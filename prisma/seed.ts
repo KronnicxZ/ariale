@@ -65,7 +65,7 @@ async function main() {
       id: 1,
       businessName: "Arialé Studio",
       tagline: "Diseñando tu mejor versión con amor y detalle",
-      logoUrl: "/marca/logo-ariale.jpg",
+      logoUrl: "/marca/logo-ariale.png",
       slug: "ariale-studio",
       phone: "04241354645",
       whatsapp: "04241354645",
@@ -81,7 +81,7 @@ async function main() {
       rateMode: "AUTO",
       manualRate: 240,
       accentColor: "#E9B21C",
-      menuColor: "#2B2723",
+      menuColor: "#1A1A1A",
     },
   });
 
@@ -112,7 +112,7 @@ async function main() {
       data: { name: "Arialé", slug: "ariale", pin: "1234", color: "#E9B21C", phone: "04241354645" },
     }),
     prisma.specialist.create({
-      data: { name: "Andreína", slug: "andreina", pin: "2468", color: "#B5651D", phone: "04141234567" },
+      data: { name: "Andreína", slug: "andreina", pin: "2468", color: "#BDAEDC", phone: "04141234567" },
     }),
   ]);
 
@@ -122,7 +122,7 @@ async function main() {
       name: "Depilaciones",
       slug: "depilaciones",
       kind: "DEPILATION",
-      color: "#B5651D",
+      color: "#E9A8B4",
       icon: "wand-sparkles",
       order: 1,
     },
@@ -138,7 +138,7 @@ async function main() {
     },
   });
   const pedicura = await prisma.category.create({
-    data: { name: "Pedicura", slug: "pedicura", kind: "PEDICURE", color: "#7A8B6F", icon: "footprints", order: 3 },
+    data: { name: "Pedicura", slug: "pedicura", kind: "PEDICURE", color: "#A8C7A9", icon: "footprints", order: 3 },
   });
 
   // Precios tomados de la lista oficial del estudio (USD).
@@ -393,10 +393,10 @@ async function main() {
   const expenseCats = await Promise.all(
     [
       { name: "Insumos", color: "#E9B21C" },
-      { name: "Alquiler", color: "#B5651D" },
-      { name: "Servicios", color: "#5B7B9A" },
-      { name: "Publicidad", color: "#A0567F" },
-      { name: "Personal", color: "#7A8B6F" },
+      { name: "Alquiler", color: "#BDAEDC" },
+      { name: "Servicios", color: "#A6C4DC" },
+      { name: "Publicidad", color: "#E9A8B4" },
+      { name: "Personal", color: "#A8C7A9" },
     ].map((data) => prisma.expenseCategory.create({ data })),
   );
 

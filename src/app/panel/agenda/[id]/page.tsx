@@ -59,13 +59,13 @@ export default async function AppointmentPage(props: PageProps<"/panel/agenda/[i
         Volver a la agenda
       </Link>
 
-      <div className="bg-card space-y-4 rounded-2xl border p-5">
+      <div className="surface space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-muted-foreground text-sm capitalize">
               {fmtDayLong(appointment.startAt, settings.timezone)}
             </p>
-            <h1 className="font-heading text-2xl font-semibold">
+            <h1 className="font-display text-2xl font-semibold">
               {fmtRange(appointment.startAt, appointment.endAt, settings.timezone)}
             </h1>
             <p className="text-muted-foreground mt-0.5 text-sm">{fmtDuration(duration)}</p>
@@ -178,7 +178,7 @@ export default async function AppointmentPage(props: PageProps<"/panel/agenda/[i
       </div>
 
       {/* Venta ligada */}
-      <div className="bg-card rounded-2xl border p-5">
+      <div className="surface p-5">
         <h2 className="mb-3 flex items-center gap-2 font-semibold">
           <Receipt className="text-muted-foreground size-4" />
           Cobro

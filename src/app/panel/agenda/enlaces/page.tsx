@@ -38,7 +38,7 @@ export default async function BookingLinksPage() {
         description="Comparte estos enlaces por WhatsApp o ponlos en tu Instagram."
       />
 
-      <section className="bg-card rounded-2xl border p-5">
+      <section className="surface p-5">
         <h2 className="flex items-center gap-2 font-semibold">
           <Users className="text-muted-foreground size-4" />
           Para tus clientas
@@ -53,11 +53,11 @@ export default async function BookingLinksPage() {
         />
       </section>
 
-      <section className="bg-card rounded-2xl border p-5">
+      <section className="surface p-5">
         <AutoConfirmToggle enabled={settings.autoConfirm} />
       </section>
 
-      <section className="bg-card rounded-2xl border p-5">
+      <section className="surface p-5">
         <h2 className="flex items-center gap-2 font-semibold">
           <Link2 className="text-muted-foreground size-4" />
           Para tu equipo

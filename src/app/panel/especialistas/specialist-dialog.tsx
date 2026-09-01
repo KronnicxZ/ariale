@@ -19,7 +19,7 @@ import { deleteSpecialistAction, saveSpecialistAction } from "@/actions/catalog"
 import { useFormAction } from "@/hooks/use-form-action";
 import { cn } from "@/lib/utils";
 
-const SWATCHES = ["#E9B21C", "#B5651D", "#7A8B6F", "#A0567F", "#5B7B9A", "#8C6A4F"];
+const SWATCHES = ["#E9B21C", "#E9A8B4", "#A8C7A9", "#BDAEDC", "#A6C4DC", "#F0C79A"];
 
 type ServiceOption = { id: string; name: string; category: { name: string } };
 

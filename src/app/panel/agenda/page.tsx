@@ -69,11 +69,11 @@ export default async function AgendaPage(props: PageProps<"/panel/agenda">) {
           { label: "Confirmadas", value: counts.confirmed },
           { label: "Atendidas", value: counts.attended },
         ].map((stat) => (
-          <div key={stat.label} className="bg-card rounded-xl border px-3 py-2.5">
+          <div key={stat.label} className="surface-sm px-3 py-2.5">
             <p className="text-muted-foreground text-[0.7rem] tracking-wide uppercase">
               {stat.label}
             </p>
-            <p className="font-heading text-xl font-semibold">{stat.value}</p>
+            <p className="font-numeric text-xl font-semibold">{stat.value}</p>
           </div>
         ))}
       </div>

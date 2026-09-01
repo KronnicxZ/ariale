@@ -68,7 +68,7 @@ export function NewAppointment({
         <span className="bg-success/12 text-success mx-auto mb-4 grid size-16 place-items-center rounded-full">
           <PartyPopper className="size-8" />
         </span>
-        <h2 className="font-heading text-2xl font-semibold">¡Cita agendada!</h2>
+        <h2 className="font-display text-2xl font-semibold">¡Cita agendada!</h2>
         <p className="text-muted-foreground mt-1 text-sm">
           Ya está en la agenda de {done.specialistName}.
         </p>
@@ -129,7 +129,7 @@ export function NewAppointment({
     <div className="mx-auto max-w-2xl">
       <section className="mb-7 space-y-3">
         <header>
-          <h2 className="font-heading text-xl font-semibold">¿Para quién agendamos?</h2>
+          <h2 className="font-display text-xl font-semibold">¿Para quién agendamos?</h2>
           <p className="text-muted-foreground text-sm">
             Elige una clienta o registra una nueva.
           </p>

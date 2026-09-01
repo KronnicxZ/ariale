@@ -64,7 +64,7 @@ export default async function PayablesPage(props: PageProps<"/panel/pagar">) {
         />
       ) : (
         <>
-          <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
+          <div className="surface hidden overflow-hidden md:block">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr className="text-left">
@@ -147,7 +147,7 @@ export default async function PayablesPage(props: PageProps<"/panel/pagar">) {
               <div
                 key={row.id}
                 className={cn(
-                  "bg-card rounded-2xl border p-3.5",
+                  "surface p-3.5",
                   row.overdue && "border-destructive/40",
                 )}
               >

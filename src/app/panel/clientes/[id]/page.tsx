@@ -61,14 +61,14 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
         Volver a clientas
       </Link>
 
-      <div className="bg-card rounded-2xl border p-5">
+      <div className="surface p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-4">
             <span className="bg-primary/12 text-primary grid size-14 shrink-0 place-items-center rounded-full text-lg font-semibold">
               {initials(client.name)}
             </span>
             <div className="min-w-0">
-              <h1 className="font-heading text-2xl font-semibold">{client.name}</h1>
+              <h1 className="font-display text-2xl font-semibold">{client.name}</h1>
               <p className="text-muted-foreground text-sm">
                 {formatPhone(client.phone, settings.countryCode)}
               </p>
@@ -132,26 +132,26 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="bg-card rounded-2xl border p-4">
+        <div className="surface p-4">
           <p className="text-muted-foreground text-xs uppercase">Visitas</p>
-          <p className="font-heading text-2xl font-semibold">{stats.visits}</p>
+          <p className="font-numeric text-2xl font-semibold">{stats.visits}</p>
           <p className="text-muted-foreground text-xs">
             {stats.lastVisitAt
               ? `Última ${fmtRelativeDay(stats.lastVisitAt, settings.timezone)}`
               : "Sin visitas aún"}
           </p>
         </div>
-        <div className="bg-card rounded-2xl border p-4">
+        <div className="surface p-4">
           <p className="text-muted-foreground text-xs uppercase">Total gastado</p>
           <Money
             cents={stats.totalSpentCents}
             rate={rateInfo.rate}
-            className="font-heading text-2xl font-semibold"
+            className="font-numeric text-2xl font-semibold"
           />
         </div>
-        <div className="bg-card rounded-2xl border p-4">
+        <div className="surface p-4">
           <p className="text-muted-foreground text-xs uppercase">Ticket promedio</p>
-          <p className="font-heading text-2xl font-semibold">
+          <p className="font-numeric text-2xl font-semibold">
             {formatUsd(stats.ticketAvgCents)}
           </p>
         </div>
@@ -159,7 +159,7 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
           className={
             stats.balanceCents > 0
               ? "menu-gradient rounded-2xl p-4 text-white"
-              : "bg-card rounded-2xl border p-4"
+              : "surface p-4"
           }
         >
           <p
@@ -169,7 +169,7 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
           >
             Saldo pendiente
           </p>
-          <p className="font-heading text-2xl font-semibold">{formatUsd(stats.balanceCents)}</p>
+          <p className="font-numeric text-2xl font-semibold">{formatUsd(stats.balanceCents)}</p>
           {stats.balanceCents > 0 ? (
             <Link href="/panel/cobrar" className="text-xs text-white/70 underline">
               Ver cuentas por cobrar
@@ -219,7 +219,7 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
       ) : null}
 
       {activePackages.length > 0 ? (
-        <section className="bg-card rounded-2xl border p-5">
+        <section className="surface p-5">
           <h2 className="mb-3 flex items-center gap-2 font-semibold">
             <BadgePercent className="text-muted-foreground size-4" />
             Bonos activos
@@ -251,7 +251,7 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
       ) : null}
 
       {upcoming.length > 0 ? (
-        <section className="bg-card rounded-2xl border">
+        <section className="surface">
           <h2 className="border-b px-5 py-3 font-semibold">Próximas citas</h2>
           <ul className="divide-y">
             {upcoming.map((appointment) => (
@@ -278,7 +278,7 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
         </section>
       ) : null}
 
-      <section className="bg-card rounded-2xl border">
+      <section className="surface">
         <h2 className="border-b px-5 py-3 font-semibold">Historial de visitas</h2>
         {client.appointments.length === 0 ? (
           <p className="text-muted-foreground px-5 py-10 text-center text-sm">
@@ -314,7 +314,7 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
         )}
       </section>
 
-      <section className="bg-card rounded-2xl border">
+      <section className="surface">
         <h2 className="flex items-center gap-2 border-b px-5 py-3 font-semibold">
           <Receipt className="text-muted-foreground size-4" />
           Ventas

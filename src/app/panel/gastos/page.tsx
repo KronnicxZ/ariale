@@ -88,7 +88,7 @@ export default async function ExpensesPage(props: PageProps<"/panel/gastos">) {
       <ExpenseCategoryFilter categories={categories} current={categoryId} />
 
       {categoryRows.length > 1 ? (
-        <div className="bg-card rounded-2xl border p-4">
+        <div className="surface p-4">
           <h2 className="mb-3 text-sm font-semibold">En qué se va el dinero</h2>
           <div className="space-y-2.5">
             {categoryRows.map((row) => (
@@ -130,7 +130,7 @@ export default async function ExpensesPage(props: PageProps<"/panel/gastos">) {
           }
         />
       ) : (
-        <div className="bg-card overflow-hidden rounded-2xl border">
+        <div className="surface overflow-hidden">
           <ul className="divide-y">
             {expenses.map((expense) => (
               <li key={expense.id} className="flex items-center gap-3 px-4 py-3">

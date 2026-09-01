@@ -1,21 +1,25 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Fraunces } from "next/font/google";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { BrandTheme } from "@/components/brand-theme";
 import { getSettings } from "@/lib/settings";
 import "./globals.css";
 
-const sans = Manrope({
+// Inter para toda la interfaz: es la más legible en pantallas pequeñas y
+// tiene cifras tabulares, que es lo que necesitan las tablas de dinero.
+const sans = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-const heading = Fraunces({
+// Serif fina, solo para títulos grandes. Le da el aire de spa sin
+// comprometer la lectura, porque nunca se usa en texto pequeño ni en cifras.
+const heading = Cormorant_Garamond({
   variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
   display: "swap",
-  axes: ["SOFT", "WONK", "opsz"],
 });
 
 export async function generateMetadata(): Promise<Metadata> {

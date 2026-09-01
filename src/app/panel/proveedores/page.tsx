@@ -57,20 +57,20 @@ export default async function SuppliersPage() {
       />
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <div className="bg-card rounded-xl border px-3 py-2.5">
+        <div className="surface-sm px-3 py-2.5">
           <p className="text-muted-foreground text-[0.7rem] uppercase">Proveedores</p>
-          <p className="font-heading text-xl font-semibold">{stats.total}</p>
+          <p className="font-numeric text-xl font-semibold">{stats.total}</p>
         </div>
-        <div className="bg-card rounded-xl border px-3 py-2.5">
+        <div className="surface-sm px-3 py-2.5">
           <p className="text-muted-foreground text-[0.7rem] uppercase">Con compras</p>
-          <p className="font-heading text-xl font-semibold">{stats.withPurchases}</p>
+          <p className="font-numeric text-xl font-semibold">{stats.withPurchases}</p>
         </div>
         <div className="menu-gradient col-span-2 rounded-xl px-3 py-2.5 text-white sm:col-span-1">
           <p className="text-[0.7rem] text-white/60 uppercase">Saldo por pagar</p>
           <Money
             cents={stats.balanceCents}
             rate={rateInfo.rate}
-            className="font-heading text-xl font-semibold"
+            className="font-numeric text-xl font-semibold"
             bsClassName="text-white/50"
           />
         </div>
@@ -86,7 +86,7 @@ export default async function SuppliersPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map(({ supplier, totalCents, balanceCents, lastPurchase }) => (
-            <article key={supplier.id} className="bg-card flex flex-col gap-3 rounded-2xl border p-4">
+            <article key={supplier.id} className="surface flex flex-col gap-3 p-4">
               <div className="flex items-start gap-3">
                 <span className="bg-secondary text-secondary-foreground grid size-11 shrink-0 place-items-center rounded-xl text-sm font-semibold">
                   {initials(supplier.name)}

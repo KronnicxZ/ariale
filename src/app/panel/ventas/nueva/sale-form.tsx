@@ -182,7 +182,7 @@ export function SaleForm({
 
   return (
     <div className="space-y-5">
-      <section className="bg-card space-y-3 rounded-2xl border p-5">
+      <section className="surface space-y-3 p-5">
         <h2 className="font-semibold">Clienta</h2>
         <ClientPicker
           clients={clients}
@@ -215,7 +215,7 @@ export function SaleForm({
         ) : null}
       </section>
 
-      <section className="bg-card space-y-3 rounded-2xl border p-5">
+      <section className="surface space-y-3 p-5">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Servicios</h2>
           <Button type="button" size="sm" variant="outline" onClick={addLine}>
@@ -354,7 +354,7 @@ export function SaleForm({
         ) : null}
       </section>
 
-      <section className="bg-card space-y-4 rounded-2xl border p-5">
+      <section className="surface space-y-4 p-5">
         <h2 className="font-semibold">Cobro</h2>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -458,7 +458,7 @@ export function SaleForm({
         </p>
       ) : null}
 
-      <div className="bg-card sticky bottom-20 rounded-2xl border p-4 shadow-lg lg:bottom-4">
+      <div className="surface sticky bottom-20 p-4 shadow-lg lg:bottom-4">
         <dl className="mb-3 space-y-1 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Subtotal</dt>

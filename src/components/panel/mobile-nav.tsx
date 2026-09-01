@@ -3,14 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarClock, LogOut, Menu, Sparkles, UserRound } from "lucide-react";
+import { CalendarClock, LogOut, Menu, UserRound } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn, initials } from "@/lib/utils";
 import { MOBILE_NAV, NAV_GROUPS, activeItem } from "@/components/panel/nav-config";
+import { BrandMark } from "@/components/brand-mark";
 import { logoutAction } from "@/actions/auth";
 
 type Props = {
-  business: { name: string };
+  business: { name: string; logoUrl: string | null };
   user: { name: string; email: string };
   rate: { rate: number; stale: boolean };
 };
@@ -32,11 +33,8 @@ export function MobileNav({ business, user, rate }: Props) {
           <SheetContent side="left" className="menu-gradient w-[17rem] border-none p-0 text-white">
             <SheetTitle className="sr-only">Menú</SheetTitle>
 
-            <div className="flex items-center gap-3 px-5 py-5">
-              <span className="bg-primary text-primary-foreground grid size-10 place-items-center rounded-xl">
-                <Sparkles className="size-5" />
-              </span>
-              <span className="font-heading truncate text-lg font-semibold">{business.name}</span>
+            <div className="flex items-center px-5 py-6">
+              <BrandMark logoUrl={business.logoUrl} name={business.name} height={34} onDark />
             </div>
 
             <nav className="no-scrollbar h-[calc(100dvh-13rem)] space-y-5 overflow-y-auto px-3 pb-4">

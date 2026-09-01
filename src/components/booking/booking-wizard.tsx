@@ -168,7 +168,7 @@ export function BookingWizard({
 
       <section className="space-y-3">
         <header>
-          <h2 className="font-heading text-xl font-semibold">Elige el servicio</h2>
+          <h2 className="font-display text-xl font-semibold">Elige el servicio</h2>
           <p className="text-muted-foreground text-sm">
             Puedes combinar más de uno. El tiempo se suma solo.
           </p>
@@ -185,7 +185,7 @@ export function BookingWizard({
       {!lockedSpecialistId && specialists.length > 1 ? (
         <section className="mt-7 space-y-3">
           <header>
-            <h2 className="font-heading text-xl font-semibold">¿Con quién?</h2>
+            <h2 className="font-display text-xl font-semibold">¿Con quién?</h2>
             {eligibleSpecialists.length < specialists.length ? (
               <p className="text-muted-foreground text-sm">
                 Mostramos solo quienes hacen todo lo que elegiste.
@@ -232,7 +232,7 @@ export function BookingWizard({
 
       <section className="mt-7 space-y-3">
         <header>
-          <h2 className="font-heading text-xl font-semibold">Elige el día</h2>
+          <h2 className="font-display text-xl font-semibold">Elige el día</h2>
           <p className="text-muted-foreground text-sm">
             {selected.length > 0
               ? `La cita dura ${fmtDuration(totalMinutes)}.`
@@ -244,7 +244,7 @@ export function BookingWizard({
 
       <section className="mt-7 space-y-3">
         <header>
-          <h2 className="font-heading text-xl font-semibold">Elige la hora</h2>
+          <h2 className="font-display text-xl font-semibold">Elige la hora</h2>
           {time ? (
             <p className="text-muted-foreground text-sm">
               Te esperamos a las <strong>{prettyTime(time)}</strong> · termina ~
@@ -271,7 +271,7 @@ export function BookingWizard({
         <button
           type="button"
           onClick={() => setNoteOpen((open) => !open)}
-          className="border-border bg-card flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left"
+          className="surface border-border flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
         >
           <span>
             <span className="block text-sm font-medium">¿Quieres dejar una nota?</span>
@@ -320,7 +320,7 @@ export function BookingWizard({
             </p>
           </div>
           <div className="shrink-0 text-right">
-            <p className="font-heading text-lg leading-none font-semibold">
+            <p className="font-numeric text-lg leading-none font-semibold">
               {formatUsd(totalCents)}
             </p>
             {rate ? (

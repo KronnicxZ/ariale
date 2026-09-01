@@ -46,13 +46,13 @@ export default async function SalePage(props: PageProps<"/panel/ventas/[id]">) {
         Volver a ventas
       </Link>
 
-      <div className="bg-card rounded-2xl border p-5">
+      <div className="surface p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-muted-foreground text-sm">
               {fmtDate(sale.date, settings.timezone)}
             </p>
-            <h1 className="font-heading text-2xl font-semibold">Venta #{sale.number}</h1>
+            <h1 className="font-display text-2xl font-semibold">Venta #{sale.number}</h1>
             <Link
               href={`/panel/clientes/${sale.client.id}`}
               className="hover:text-primary mt-0.5 inline-flex items-center gap-1.5 text-sm transition"
@@ -153,7 +153,7 @@ export default async function SalePage(props: PageProps<"/panel/ventas/[id]">) {
       </div>
 
       {sale.packagesSold.length > 0 ? (
-        <div className="bg-card rounded-2xl border p-5">
+        <div className="surface p-5">
           <h2 className="mb-2 flex items-center gap-2 font-semibold">
             <BadgePercent className="text-muted-foreground size-4" />
             Bono vendido
@@ -168,7 +168,7 @@ export default async function SalePage(props: PageProps<"/panel/ventas/[id]">) {
       ) : null}
 
       {balanceCents > 0 && sale.status !== "CANCELLED" ? (
-        <div className="bg-card rounded-2xl border p-5">
+        <div className="surface p-5">
           <h2 className="mb-1 font-semibold">Registrar abono</h2>
           <p className="text-muted-foreground mb-4 text-sm">
             Faltan {formatUsd(balanceCents)} por cobrar.
@@ -191,7 +191,7 @@ export default async function SalePage(props: PageProps<"/panel/ventas/[id]">) {
         </div>
       ) : null}
 
-      <div className="bg-card rounded-2xl border p-5">
+      <div className="surface p-5">
         <h2 className="mb-3 font-semibold">Pagos recibidos</h2>
         {sale.payments.length === 0 ? (
           <p className="text-muted-foreground text-sm">Todavía no hay pagos.</p>

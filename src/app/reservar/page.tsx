@@ -47,7 +47,7 @@ export default async function ReservarPage() {
   return (
     <div className="soft-blush flex-1 px-5 py-7">
       <div className="mx-auto max-w-md">
-        <h1 className="font-heading text-3xl font-semibold">Hola, {firstName(client.name)}</h1>
+        <h1 className="font-display text-3xl font-semibold">Hola, {firstName(client.name)}</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Agenda tu cita en {settings.businessName} o consulta tu historial.
         </p>
@@ -69,7 +69,7 @@ export default async function ReservarPage() {
 
           <Link
             href="/reservar/historial"
-            className="bg-card flex items-center gap-4 rounded-2xl border p-4 transition active:scale-[0.99]"
+            className="surface flex items-center gap-4 p-4 transition active:scale-[0.99]"
           >
             <span className="bg-primary/12 text-primary grid size-11 shrink-0 place-items-center rounded-xl">
               <ClipboardList className="size-5" />
@@ -93,7 +93,7 @@ export default async function ReservarPage() {
                 return (
                   <li
                     key={entry.id}
-                    className="bg-card flex items-center justify-between gap-3 rounded-2xl border p-3.5"
+                    className="surface flex items-center justify-between gap-3 p-3.5"
                   >
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium">
@@ -130,13 +130,13 @@ export default async function ReservarPage() {
               {upcoming.map((appointment) => {
                 const totalCents = appointment.services.reduce((sum, s) => sum + s.priceCents, 0);
                 return (
-                  <li key={appointment.id} className="bg-card rounded-2xl border p-3.5">
+                  <li key={appointment.id} className="surface p-3.5">
                     <div className="flex gap-3.5">
                       <div className="bg-primary/10 text-primary w-14 shrink-0 rounded-xl py-2 text-center">
                         <p className="text-[0.65rem] font-medium uppercase">
                           {fmtDayShort(appointment.startAt, settings.timezone).split(" ")[2]}
                         </p>
-                        <p className="font-heading text-xl leading-tight font-semibold">
+                        <p className="font-numeric text-xl leading-tight font-semibold">
                           {fmtDayShort(appointment.startAt, settings.timezone).split(" ")[1]}
                         </p>
                         <p className="text-[0.6rem] capitalize">

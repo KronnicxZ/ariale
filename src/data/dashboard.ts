@@ -226,7 +226,7 @@ export async function getTopServices(period: Period, limit = 6) {
     id: g.serviceId!,
     name: byId.get(g.serviceId!)?.name ?? "Servicio eliminado",
     category: byId.get(g.serviceId!)?.category?.name ?? "",
-    color: byId.get(g.serviceId!)?.category?.color ?? "#C2185B",
+    color: byId.get(g.serviceId!)?.category?.color ?? "#E9B21C",
     totalCents: g._sum.totalCents ?? 0,
     quantity: g._sum.quantity ?? 0,
   }));

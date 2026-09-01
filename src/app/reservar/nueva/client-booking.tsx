@@ -58,7 +58,7 @@ export function ClientBooking({
         <p className="text-primary text-xs font-semibold tracking-widest uppercase">
           {confirmed ? "Confirmada" : "Agendada"}
         </p>
-        <h2 className="font-heading mt-1 text-3xl font-semibold">
+        <h2 className="font-display mt-1 text-3xl font-semibold">
           {confirmed ? "¡Tu cita está confirmada!" : "¡Tu cita quedó agendada!"}
         </h2>
         <p className="text-muted-foreground mt-2 text-sm">
@@ -111,7 +111,7 @@ export function ClientBooking({
     <>
       <header className="mb-5">
         <p className="text-primary text-xs font-semibold tracking-widest uppercase">Tu cita</p>
-        <h1 className="font-heading text-2xl font-semibold">Reserva en un minuto</h1>
+        <h1 className="font-display text-2xl font-semibold">Reserva en un minuto</h1>
       </header>
 
       <BookingWizard

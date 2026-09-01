@@ -75,7 +75,7 @@ export function ClientPicker({
   if (creating) {
     const phoneOk = normalizePhone(newPhone).length >= 10;
     return (
-      <div className="border-border bg-card space-y-3 rounded-2xl border p-3">
+      <div className="surface border-border space-y-3 p-3">
         <div className="space-y-1.5">
           <Label htmlFor="new-client-name">Nombre</Label>
           <Input
@@ -143,7 +143,7 @@ export function ClientPicker({
             key={client.id}
             type="button"
             onClick={() => onChange({ kind: "existing", id: client.id, name: client.name })}
-            className="border-border bg-card hover:border-primary/50 flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition"
+            className="surface-sm border-border hover:border-primary/50 flex w-full items-center gap-3 px-3 py-2.5 text-left transition"
           >
             <span className="bg-muted grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold">
               {initials(client.name)}

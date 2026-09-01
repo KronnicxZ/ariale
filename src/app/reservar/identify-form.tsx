@@ -33,7 +33,7 @@ export function IdentifyForm({
     <div className="soft-blush flex flex-1 flex-col justify-center px-5 py-10">
       <div className="mx-auto w-full max-w-sm">
         <p className="text-primary text-xs font-semibold tracking-widest uppercase">Hola</p>
-        <h1 className="font-heading mt-1 text-4xl font-semibold">
+        <h1 className="font-display mt-1 text-4xl font-semibold">
           {needsName ? "¿Cómo te llamas?" : "Bienvenida"}
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
@@ -46,7 +46,7 @@ export function IdentifyForm({
           <div className="space-y-1.5">
             <Label htmlFor="phone">Tu número de teléfono</Label>
             <div className="flex items-center gap-2">
-              <span className="bg-card flex h-12 shrink-0 items-center rounded-xl border px-3 text-sm font-medium">
+              <span className="surface-sm flex h-12 shrink-0 items-center px-3 text-sm font-medium">
                 {countryCode}
               </span>
               <Input

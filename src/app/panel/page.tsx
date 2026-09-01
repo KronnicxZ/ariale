@@ -175,7 +175,7 @@ export default async function DashboardPage(props: PageProps<"/panel">) {
 
       {/* Cartera + gráfico */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="bg-card rounded-2xl border p-4 sm:p-5 lg:col-span-2">
+        <div className="surface p-4 sm:p-5 lg:col-span-2">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="font-semibold">Ventas y cobros</h2>
@@ -200,7 +200,7 @@ export default async function DashboardPage(props: PageProps<"/panel">) {
         </div>
 
         <div className="space-y-3">
-          <div className="bg-card rounded-2xl border p-4 sm:p-5">
+          <div className="surface p-4 sm:p-5">
             <h2 className="mb-3 font-semibold">Cartera</h2>
             <div className="space-y-3">
               <Link
@@ -246,7 +246,7 @@ export default async function DashboardPage(props: PageProps<"/panel">) {
             </div>
           </div>
 
-          <div className="bg-card rounded-2xl border p-4 sm:p-5">
+          <div className="surface p-4 sm:p-5">
             <h2 className="mb-3 font-semibold">Por categoría</h2>
             {categories.length === 0 ? (
               <p className="text-muted-foreground text-sm">Sin ventas en el periodo.</p>
@@ -285,7 +285,7 @@ export default async function DashboardPage(props: PageProps<"/panel">) {
 
       {/* Agenda de hoy + top servicios */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="bg-card rounded-2xl border lg:col-span-2">
+        <div className="surface lg:col-span-2">
           <div className="flex items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
             <div>
               <h2 className="font-semibold">Agenda de hoy</h2>
@@ -319,7 +319,7 @@ export default async function DashboardPage(props: PageProps<"/panel">) {
                       href={`/panel/agenda/${appt.id}`}
                       className="hover:bg-accent/40 flex items-center gap-3 px-4 py-3 transition sm:px-5"
                     >
-                      <div className="w-16 shrink-0 text-center">
+                      <div className="w-20 shrink-0 text-center whitespace-nowrap">
                         <p className="text-sm font-semibold tabular-nums">
                           {fmtTime(appt.startAt, settings.timezone)}
                         </p>
@@ -352,7 +352,7 @@ export default async function DashboardPage(props: PageProps<"/panel">) {
           )}
         </div>
 
-        <div className="bg-card rounded-2xl border p-4 sm:p-5">
+        <div className="surface p-4 sm:p-5">
           <h2 className="mb-3 font-semibold">Servicios que más dejan</h2>
           {topServices.length === 0 ? (
             <p className="text-muted-foreground text-sm">Sin datos en el periodo.</p>

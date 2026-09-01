@@ -176,7 +176,7 @@ export function AgendaBoard({
           <button
             type="button"
             onClick={() => shift(-1)}
-            className="border-border bg-card hover:bg-accent grid size-9 place-items-center rounded-xl border transition"
+            className="surface-sm border-border hover:bg-accent grid size-9 place-items-center transition"
             aria-label="Día anterior"
           >
             <ChevronLeft className="size-4" />
@@ -185,7 +185,7 @@ export function AgendaBoard({
             <p className="text-muted-foreground text-[0.7rem] tracking-widest uppercase">
               Modo agenda
             </p>
-            <h1 className="font-heading text-xl leading-tight font-semibold capitalize">
+            <h1 className="font-display text-xl leading-tight font-semibold capitalize">
               {dayLabel}
             </h1>
             <p className="text-muted-foreground text-xs">
@@ -196,7 +196,7 @@ export function AgendaBoard({
           <button
             type="button"
             onClick={() => shift(1)}
-            className="border-border bg-card hover:bg-accent grid size-9 place-items-center rounded-xl border transition"
+            className="surface-sm border-border hover:bg-accent grid size-9 place-items-center transition"
             aria-label="Día siguiente"
           >
             <ChevronRight className="size-4" />
@@ -205,9 +205,9 @@ export function AgendaBoard({
 
         <div className="flex items-center gap-2">
           {clock ? (
-            <div className="bg-card rounded-xl border px-3 py-1.5 text-right">
+            <div className="surface-sm px-3 py-1.5 text-right">
               <p className="text-muted-foreground text-[0.6rem] tracking-widest uppercase">Hora</p>
-              <p className="font-heading text-lg leading-tight font-semibold tabular-nums">
+              <p className="font-numeric text-lg leading-tight font-semibold tabular-nums">
                 {clock}
               </p>
             </div>
@@ -222,7 +222,7 @@ export function AgendaBoard({
           <button
             type="button"
             onClick={() => setFullscreen((value) => !value)}
-            className="border-border bg-card hover:bg-accent grid size-9 place-items-center rounded-xl border transition"
+            className="surface-sm border-border hover:bg-accent grid size-9 place-items-center transition"
             aria-label={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
           >
             {fullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
@@ -231,7 +231,7 @@ export function AgendaBoard({
             <button
               type="button"
               onClick={() => setFullscreen(false)}
-              className="border-border bg-card hover:bg-accent grid size-9 place-items-center rounded-xl border transition"
+              className="surface-sm border-border hover:bg-accent grid size-9 place-items-center transition"
               aria-label="Cerrar"
             >
               <X className="size-4" />
@@ -247,11 +247,11 @@ export function AgendaBoard({
           { label: "Confirmadas", value: counts.confirmed },
           { label: "Atendidas", value: counts.attended },
         ].map((stat) => (
-          <div key={stat.label} className="bg-card rounded-xl border px-3 py-2">
+          <div key={stat.label} className="surface-sm px-3 py-2">
             <p className="text-muted-foreground text-[0.65rem] tracking-wide uppercase">
               {stat.label}
             </p>
-            <p className="font-heading text-lg font-semibold">{stat.value}</p>
+            <p className="font-numeric text-lg font-semibold">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -277,7 +277,7 @@ export function AgendaBoard({
             >
               {entry.day === today ? "Hoy" : DAY_SHORT[entry.dayOfWeek]}
             </span>
-            <span className="font-heading text-base leading-tight font-semibold">
+            <span className="font-numeric text-base leading-tight font-semibold">
               {entry.dayNumber}
             </span>
             <span
@@ -336,7 +336,7 @@ export function AgendaBoard({
         </p>
       ) : null}
 
-      <div className="bg-card overflow-hidden rounded-2xl border">
+      <div className="surface overflow-hidden">
         {/* Cabecera de columnas */}
         <div className="bg-muted/40 flex border-b">
           <div className="w-16 shrink-0" />

@@ -66,7 +66,7 @@ export default async function SpecialistsPage() {
               <article
                 key={specialist.id}
                 className={cn(
-                  "bg-card space-y-3 rounded-2xl border p-4",
+                  "surface space-y-3 p-4",
                   !specialist.active && "opacity-60",
                 )}
               >

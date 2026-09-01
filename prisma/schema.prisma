@@ -37,8 +37,8 @@ model Settings {
   rateMode      String @default("AUTO")
   manualRate    Float  @default(0)
 
-  accentColor String @default("#C2185B")
-  menuColor   String @default("#4A1130")
+  accentColor String @default("#E9B21C")
+  menuColor   String @default("#1A1A1A")
 
   updatedAt DateTime @updatedAt
 }
@@ -95,7 +95,7 @@ model Specialist {
   pin       String   @default("0000")
   phone     String?
   email     String?
-  color     String   @default("#C2185B")
+  color     String   @default("#E9B21C")
   avatarUrl String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -155,7 +155,7 @@ model Category {
   name   String
   slug   String       @unique
   kind   CategoryKind @default(OTHER)
-  color  String       @default("#C2185B")
+  color  String       @default("#E9B21C")
   icon   String       @default("sparkles")
   order  Int          @default(0)
   active Boolean      @default(true)
@@ -476,7 +476,7 @@ model PurchasePayment {
 model ExpenseCategory {
   id     String  @id @default(cuid())
   name   String  @unique
-  color  String  @default("#C2185B")
+  color  String  @default("#E9B21C")
   active Boolean @default(true)
 
   expenses Expense[]

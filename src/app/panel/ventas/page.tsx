@@ -94,7 +94,7 @@ export default async function SalesPage(props: PageProps<"/panel/ventas">) {
       ) : (
         <>
           {/* Escritorio: tabla */}
-          <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
+          <div className="surface hidden overflow-hidden md:block">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr className="text-left">
@@ -165,7 +165,7 @@ export default async function SalesPage(props: PageProps<"/panel/ventas">) {
               <Link
                 key={sale.id}
                 href={`/panel/ventas/${sale.id}`}
-                className="bg-card block rounded-2xl border p-3.5"
+                className="surface block p-3.5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

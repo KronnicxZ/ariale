@@ -63,13 +63,13 @@ export default async function PackagesPage() {
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="bg-card rounded-2xl border p-4">
+        <div className="surface p-4">
           <p className="text-muted-foreground text-xs uppercase">Bonos en catálogo</p>
-          <p className="font-heading text-2xl font-semibold">{packages.length}</p>
+          <p className="font-numeric text-2xl font-semibold">{packages.length}</p>
         </div>
-        <div className="bg-card rounded-2xl border p-4">
+        <div className="surface p-4">
           <p className="text-muted-foreground text-xs uppercase">Sesiones por consumir</p>
-          <p className="font-heading text-2xl font-semibold">{pendingSessions}</p>
+          <p className="font-numeric text-2xl font-semibold">{pendingSessions}</p>
           <p className="text-muted-foreground text-xs">
             {activeSold.length} bonos activos de clientas
           </p>
@@ -79,7 +79,7 @@ export default async function PackagesPage() {
           <Money
             cents={revenueCents}
             rate={rateInfo.rate}
-            className="font-heading text-2xl font-semibold"
+            className="font-numeric text-2xl font-semibold"
             bsClassName="text-white/50"
           />
         </div>
@@ -107,7 +107,7 @@ export default async function PackagesPage() {
               <article
                 key={pkg.id}
                 className={cn(
-                  "bg-card flex flex-col gap-3 rounded-2xl border p-4",
+                  "surface flex flex-col gap-3 p-4",
                   !pkg.active && "opacity-60",
                 )}
               >
@@ -127,7 +127,7 @@ export default async function PackagesPage() {
                   <Money
                     cents={pkg.priceCents}
                     rate={rateInfo.rate}
-                    className="font-heading text-2xl font-semibold"
+                    className="font-numeric text-2xl font-semibold"
                   />
                   {savingPct > 1 ? (
                     <p className="text-success text-xs font-medium">
@@ -163,7 +163,7 @@ export default async function PackagesPage() {
         </div>
       )}
 
-      <section className="bg-card rounded-2xl border">
+      <section className="surface">
         <h2 className="flex items-center gap-2 border-b px-5 py-3 font-semibold">
           <BadgePercent className="text-muted-foreground size-4" />
           Bonos activos de clientas

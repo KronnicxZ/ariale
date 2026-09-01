@@ -10,8 +10,8 @@ function safeColor(value: string | null | undefined, fallback: string) {
 }
 
 export function BrandTheme({ accent, menu }: { accent?: string | null; menu?: string | null }) {
-  const brand = safeColor(accent, "#C2185B");
-  const sidebar = safeColor(menu, "#4A1130");
+  const brand = safeColor(accent, "#E9B21C");
+  const sidebar = safeColor(menu, "#1A1A1A");
 
   const css = [
     ":root{",

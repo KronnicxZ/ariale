@@ -81,12 +81,12 @@ export default async function RemindersPage() {
           { label: "Repetir sesión", value: counts.sessions, icon: Timer },
           { label: "Cumpleaños", value: counts.birthdays, icon: Cake },
         ].map((stat) => (
-          <div key={stat.label} className="bg-card rounded-xl border px-3 py-2.5">
+          <div key={stat.label} className="surface-sm px-3 py-2.5">
             <p className="text-muted-foreground flex items-center gap-1.5 text-[0.7rem] uppercase">
               <stat.icon className="size-3.5" />
               {stat.label}
             </p>
-            <p className="font-heading text-xl font-semibold">{stat.value}</p>
+            <p className="font-numeric text-xl font-semibold">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -121,7 +121,7 @@ export default async function RemindersPage() {
                     <div
                       key={item.key}
                       className={cn(
-                        "bg-card flex flex-wrap items-center gap-3 rounded-2xl border p-3.5",
+                        "surface flex flex-wrap items-center gap-3 p-3.5",
                         item.urgent && "border-warning/45",
                       )}
                     >

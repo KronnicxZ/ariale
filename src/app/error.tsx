@@ -20,7 +20,7 @@ export default function ErrorBoundary({
       <span className="bg-destructive/10 text-destructive mb-5 grid size-14 place-items-center rounded-2xl">
         <AlertTriangle className="size-7" />
       </span>
-      <h1 className="font-heading text-2xl font-semibold">Algo se rompió</h1>
+      <h1 className="font-display text-2xl font-semibold">Algo se rompió</h1>
       <p className="text-muted-foreground mt-2 max-w-sm text-sm">
         No pudimos cargar esta pantalla. Vuelve a intentarlo; si sigue pasando, avísanos.
       </p>

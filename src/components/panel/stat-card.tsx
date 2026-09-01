@@ -60,7 +60,7 @@ export function StatCard({
       <div className="space-y-1">
         <div
           className={cn(
-            "font-heading text-2xl leading-none font-semibold sm:text-3xl",
+            "font-numeric text-2xl leading-none font-semibold sm:text-3xl",
             featured && "text-white",
           )}
         >

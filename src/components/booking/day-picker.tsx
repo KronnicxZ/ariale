@@ -81,7 +81,7 @@ export function DayPicker({
               >
                 {label(option.offset, option.dayOfWeek)}
               </span>
-              <span className="font-heading text-xl leading-tight font-semibold">
+              <span className="font-numeric text-xl leading-tight font-semibold">
                 {option.dayNumber}
               </span>
               <span
@@ -101,7 +101,7 @@ export function DayPicker({
         <button
           type="button"
           onClick={() => inputRef.current?.showPicker?.()}
-          className="border-border bg-card hover:border-primary/50 flex h-full w-14 flex-col items-center justify-center gap-1 rounded-2xl border transition"
+          className="surface border-border hover:border-primary/50 flex h-full w-14 flex-col items-center justify-center gap-1 transition"
         >
           <CalendarDays className="text-muted-foreground size-4" />
           <span className="text-muted-foreground text-[0.6rem]">Otro día</span>

@@ -44,11 +44,11 @@ export function AppointmentRow({
   return (
     <div
       className={cn(
-        "bg-card flex items-stretch gap-3 rounded-2xl border p-3 transition",
+        "surface flex items-stretch gap-3 p-3 transition",
         cancelled && "opacity-60",
       )}
     >
-      <div className="flex w-16 shrink-0 flex-col justify-center text-center">
+      <div className="flex w-20 shrink-0 flex-col justify-center text-center whitespace-nowrap">
         <p className="text-sm font-semibold tabular-nums">{fmtTime(appointment.startAt, tz)}</p>
         <p className="text-muted-foreground text-[0.7rem]">{fmtDuration(duration)}</p>
       </div>

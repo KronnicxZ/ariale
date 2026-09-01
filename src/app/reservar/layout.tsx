@@ -1,6 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { getSettings } from "@/lib/settings";
 import { getCurrentClient } from "@/lib/auth";
 import { clientLogoutAction } from "@/actions/auth";
@@ -24,24 +23,9 @@ export default async function ReservarLayout({ children }: LayoutProps<"/reserva
     <div className="flex min-h-dvh flex-col">
       <header className="bg-card sticky top-0 z-30 flex items-center gap-3 border-b px-4 py-3">
         <Link href="/reservar" className="flex min-w-0 flex-1 items-center gap-3">
-          {settings.logoUrl ? (
-            <Image
-              src={settings.logoUrl}
-              alt=""
-              width={40}
-              height={40}
-              className="size-10 shrink-0 rounded-full object-cover"
-            />
-          ) : (
-            <span className="bg-primary text-primary-foreground grid size-10 shrink-0 place-items-center rounded-full">
-              <Sparkles className="size-5" />
-            </span>
-          )}
-          <span className="min-w-0">
-            <span className="block truncate font-semibold">{settings.businessName}</span>
-            <span className="text-muted-foreground block truncate text-xs">
-              {client ? "Tu espacio" : scheduleLabel}
-            </span>
+          <BrandMark logoUrl={settings.logoUrl} name={settings.businessName} height={30} />
+          <span className="text-muted-foreground min-w-0 truncate text-xs">
+            {client ? "Tu espacio" : scheduleLabel}
           </span>
         </Link>
 

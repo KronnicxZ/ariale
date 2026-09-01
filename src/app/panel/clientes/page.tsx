@@ -66,7 +66,7 @@ export default async function ClientsPage(props: PageProps<"/panel/clientes">) {
             className={
               stat.featured
                 ? "menu-gradient rounded-xl px-3 py-2.5 text-white"
-                : "bg-card rounded-xl border px-3 py-2.5"
+                : "surface-sm px-3 py-2.5"
             }
           >
             <p
@@ -78,7 +78,7 @@ export default async function ClientsPage(props: PageProps<"/panel/clientes">) {
             >
               {stat.label}
             </p>
-            <p className="font-heading text-xl font-semibold">{stat.value}</p>
+            <p className="font-numeric text-xl font-semibold">{stat.value}</p>
             <p
               className={
                 stat.featured ? "text-[0.68rem] text-white/50" : "text-muted-foreground text-[0.68rem]"
@@ -120,7 +120,7 @@ export default async function ClientsPage(props: PageProps<"/panel/clientes">) {
             {clients.map((client) => (
               <article
                 key={client.id}
-                className="bg-card relative flex flex-col gap-3 overflow-hidden rounded-2xl border p-4"
+                className="surface relative flex flex-col gap-3 overflow-hidden p-4"
               >
                 {!client.active ? (
                   <span className="bg-muted text-muted-foreground absolute top-3 right-3 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold">

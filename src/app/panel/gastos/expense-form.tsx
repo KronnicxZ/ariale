@@ -47,7 +47,7 @@ export function ExpenseForm({
   }, [state, router]);
 
   return (
-    <form action={action} className="bg-card space-y-4 rounded-2xl border p-5">
+    <form action={action} className="surface space-y-4 p-5">
       {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
 
       <div className="space-y-1.5">

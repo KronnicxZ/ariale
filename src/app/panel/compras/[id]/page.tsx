@@ -48,7 +48,7 @@ export default async function PurchasePage(props: PageProps<"/panel/compras/[id]
       />
 
       {balanceCents > 0 ? (
-        <div className="bg-card rounded-2xl border p-5">
+        <div className="surface p-5">
           <h2 className="mb-1 font-semibold">Registrar pago</h2>
           <p className="text-muted-foreground mb-4 text-sm">
             Faltan {formatUsd(balanceCents)} por pagar.
@@ -57,7 +57,7 @@ export default async function PurchasePage(props: PageProps<"/panel/compras/[id]
         </div>
       ) : null}
 
-      <div className="bg-card rounded-2xl border p-5">
+      <div className="surface p-5">
         <h2 className="mb-3 font-semibold">Pagos realizados</h2>
         {purchase.payments.length === 0 ? (
           <p className="text-muted-foreground text-sm">Todavía no hay pagos.</p>

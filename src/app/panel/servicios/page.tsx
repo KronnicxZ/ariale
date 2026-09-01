@@ -51,17 +51,17 @@ export default async function ServicesPage() {
       />
 
       <div className="grid grid-cols-3 gap-2">
-        <div className="bg-card rounded-xl border px-3 py-2.5">
+        <div className="surface-sm px-3 py-2.5">
           <p className="text-muted-foreground text-[0.7rem] uppercase">Servicios</p>
-          <p className="font-heading text-xl font-semibold">{allServices.length}</p>
+          <p className="font-numeric text-xl font-semibold">{allServices.length}</p>
         </div>
-        <div className="bg-card rounded-xl border px-3 py-2.5">
+        <div className="surface-sm px-3 py-2.5">
           <p className="text-muted-foreground text-[0.7rem] uppercase">Activos</p>
-          <p className="font-heading text-xl font-semibold">{activeCount}</p>
+          <p className="font-numeric text-xl font-semibold">{activeCount}</p>
         </div>
-        <div className="bg-card rounded-xl border px-3 py-2.5">
+        <div className="surface-sm px-3 py-2.5">
           <p className="text-muted-foreground text-[0.7rem] uppercase">Categorías</p>
-          <p className="font-heading text-xl font-semibold">{categories.length}</p>
+          <p className="font-numeric text-xl font-semibold">{categories.length}</p>
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export default async function ServicesPage() {
                     <article
                       key={service.id}
                       className={cn(
-                        "bg-card flex flex-col gap-2 rounded-2xl border p-3.5",
+                        "surface flex flex-col gap-2 p-3.5",
                         !service.active && "opacity-60",
                       )}
                     >

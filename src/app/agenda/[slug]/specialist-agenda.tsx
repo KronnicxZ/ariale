@@ -165,7 +165,7 @@ export function SpecialistAgenda({
                 <p className="text-primary text-xs font-semibold tracking-widest uppercase">
                   Nueva cita
                 </p>
-                <h1 className="font-heading text-2xl font-semibold">¿Para quién agendamos?</h1>
+                <h1 className="font-display text-2xl font-semibold">¿Para quién agendamos?</h1>
                 <p className="text-muted-foreground text-sm">
                   Elige una clienta o registra una nueva. La cita queda confirmada.
                 </p>
@@ -304,17 +304,18 @@ function AppointmentCard({
   return (
     <li
       className={cn(
-        "border-primary/25 bg-card rounded-2xl border p-3",
+        "border-primary/25 surface p-3",
         cancelled && "border-border opacity-60",
       )}
     >
       <div className="flex gap-3">
-        <div className="w-16 shrink-0 border-r pr-3 text-center">
+        <div className="w-20 shrink-0 border-r pr-3 text-center whitespace-nowrap">
           <p className="text-sm font-semibold tabular-nums">
             {fmtTime(appointment.startAt, business.timezone)}
           </p>
+          {/* El guion evita que se lea como una segunda hora de inicio. */}
           <p className="text-muted-foreground text-[0.7rem] tabular-nums">
-            {fmtTime(appointment.endAt, business.timezone)}
+            – {fmtTime(appointment.endAt, business.timezone)}
           </p>
           <p className="text-muted-foreground mt-1 text-[0.68rem]">{fmtDuration(duration)}</p>
         </div>
@@ -401,7 +402,7 @@ function BookingDone({
         <PartyPopper className="size-8" />
       </span>
       <p className="text-primary text-xs font-semibold tracking-widest uppercase">Agenda lista</p>
-      <h2 className="font-heading mt-1 text-3xl font-semibold">¡Cita confirmada!</h2>
+      <h2 className="font-display mt-1 text-3xl font-semibold">¡Cita confirmada!</h2>
 
       <dl className="bg-muted/60 mt-6 w-full max-w-sm space-y-2 rounded-2xl p-4 text-left text-sm">
         <div className="flex justify-between gap-4">

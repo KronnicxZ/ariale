@@ -56,7 +56,7 @@ export function PurchaseForm({
   const balanceCents = Math.max(0, totalCents - paidCents);
 
   return (
-    <form action={action} className="bg-card space-y-4 rounded-2xl border p-5">
+    <form action={action} className="surface space-y-4 p-5">
       {purchase ? <input type="hidden" name="id" value={purchase.id} /> : null}
 
       <div className="space-y-1.5">

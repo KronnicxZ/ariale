@@ -42,7 +42,7 @@ export function ProfileForms({
 
   return (
     <div className="space-y-5">
-      <form action={profileAction} className="bg-card space-y-4 rounded-2xl border p-5">
+      <form action={profileAction} className="surface space-y-4 p-5">
         <div>
           <h2 className="font-semibold">Tus datos</h2>
           <p className="text-muted-foreground text-sm">
@@ -82,7 +82,7 @@ export function ProfileForms({
         </Button>
       </form>
 
-      <form action={passwordAction} className="bg-card space-y-4 rounded-2xl border p-5">
+      <form action={passwordAction} className="surface space-y-4 p-5">
         <div>
           <h2 className="font-semibold">Cambiar contraseña</h2>
           <p className="text-muted-foreground text-sm">Mínimo 8 caracteres.</p>

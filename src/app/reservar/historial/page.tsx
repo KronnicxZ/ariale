@@ -57,7 +57,7 @@ export default async function ClientHistoryPage() {
         Inicio
       </Link>
 
-      <h1 className="font-heading text-2xl font-semibold">Tus visitas</h1>
+      <h1 className="font-display text-2xl font-semibold">Tus visitas</h1>
       <p className="text-muted-foreground mt-0.5 text-sm">
         Historial y consumo con {settings.businessName}.
       </p>
@@ -65,7 +65,7 @@ export default async function ClientHistoryPage() {
       <div className="mt-5 grid grid-cols-2 gap-3">
         <div className="menu-gradient rounded-2xl p-4 text-white">
           <p className="text-xs text-white/60">Total gastado</p>
-          <p className="font-heading mt-1 text-2xl font-semibold">
+          <p className="font-numeric mt-1 text-2xl font-semibold">
             {formatUsd(totalSpentCents)}
           </p>
           {rateInfo.rate ? (
@@ -74,9 +74,9 @@ export default async function ClientHistoryPage() {
             </p>
           ) : null}
         </div>
-        <div className="bg-card rounded-2xl border p-4">
+        <div className="surface p-4">
           <p className="text-muted-foreground text-xs">Visitas</p>
-          <p className="font-heading mt-1 text-2xl font-semibold">{visitCount}</p>
+          <p className="font-numeric mt-1 text-2xl font-semibold">{visitCount}</p>
           {balanceCents > 0 ? (
             <p className="text-destructive mt-0.5 text-[0.7rem]">
               Saldo: {formatUsd(balanceCents)}
@@ -94,7 +94,7 @@ export default async function ClientHistoryPage() {
             {upcoming.map((appointment) => (
               <li
                 key={appointment.id}
-                className="bg-card flex items-start justify-between gap-3 rounded-2xl border p-3.5"
+                className="surface flex items-start justify-between gap-3 p-3.5"
               >
                 <span className="min-w-0">
                   <span className="block text-sm font-medium">
@@ -123,7 +123,7 @@ export default async function ClientHistoryPage() {
             {past.map((appointment) => {
               const totalCents = appointment.services.reduce((sum, s) => sum + s.priceCents, 0);
               return (
-                <li key={appointment.id} className="bg-card rounded-2xl border p-3.5">
+                <li key={appointment.id} className="surface p-3.5">
                   <div className="flex items-start justify-between gap-3">
                     <span className="min-w-0">
                       <span className="block text-sm font-medium">

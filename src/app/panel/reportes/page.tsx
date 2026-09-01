@@ -76,7 +76,7 @@ export default async function ReportsPage(props: PageProps<"/panel/reportes">) {
         <StatCard label="Costos" value={<Money cents={kpis.costsCents} rate={rateInfo.rate} />} />
       </div>
 
-      <section className="bg-card rounded-2xl border p-4 sm:p-5">
+      <section className="surface p-4 sm:p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-semibold">Los últimos 12 meses</h2>
@@ -105,7 +105,7 @@ export default async function ReportsPage(props: PageProps<"/panel/reportes">) {
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="bg-card overflow-hidden rounded-2xl border">
+        <section className="surface overflow-hidden">
           <h2 className="border-b px-5 py-3 font-semibold">Ventas por servicio</h2>
           {byService.length === 0 ? (
             <p className="text-muted-foreground px-5 py-10 text-center text-sm">
@@ -147,7 +147,7 @@ export default async function ReportsPage(props: PageProps<"/panel/reportes">) {
           )}
         </section>
 
-        <section className="bg-card overflow-hidden rounded-2xl border">
+        <section className="surface overflow-hidden">
           <h2 className="border-b px-5 py-3 font-semibold">Ventas por especialista</h2>
           {bySpecialist.length === 0 ? (
             <p className="text-muted-foreground px-5 py-10 text-center text-sm">
@@ -190,7 +190,7 @@ export default async function ReportsPage(props: PageProps<"/panel/reportes">) {
         </section>
       </div>
 
-      <section className="bg-card overflow-hidden rounded-2xl border">
+      <section className="surface overflow-hidden">
         <h2 className="flex items-center gap-2 border-b px-5 py-3 font-semibold">
           <ChartNoAxesCombined className="text-muted-foreground size-4" />
           Ventas por clienta

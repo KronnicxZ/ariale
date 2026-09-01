@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarClock, LogOut, Sparkles, UserRound } from "lucide-react";
+import { CalendarClock, LogOut, UserRound } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 import { NAV_GROUPS } from "@/components/panel/nav-config";
+import { BrandMark } from "@/components/brand-mark";
 import { logoutAction } from "@/actions/auth";
 
 type Props = {
@@ -19,26 +19,13 @@ export function Sidebar({ business, user, rate }: Props) {
 
   return (
     <aside className="menu-gradient text-sidebar-foreground fixed inset-y-0 left-0 z-40 hidden w-64 flex-col lg:flex">
-      <Link
-        href="/panel"
-        className="flex items-center gap-3 px-5 py-5 transition hover:opacity-90"
-      >
-        {business.logoUrl ? (
-          <Image
-            src={business.logoUrl}
-            alt=""
-            width={40}
-            height={40}
-            className="size-10 rounded-xl object-cover"
-          />
-        ) : (
-          <span className="bg-primary text-primary-foreground grid size-10 place-items-center rounded-xl">
-            <Sparkles className="size-5" />
-          </span>
-        )}
-        <span className="font-heading min-w-0 truncate text-lg font-semibold">
-          {business.name}
-        </span>
+      <Link href="/panel" className="flex items-center px-5 py-7 transition hover:opacity-90">
+        <BrandMark
+          logoUrl={business.logoUrl}
+          name={business.name}
+          height={38}
+          onDark
+        />
       </Link>
 
       <nav className="no-scrollbar flex-1 space-y-5 overflow-y-auto px-3 pb-4">

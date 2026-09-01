@@ -40,7 +40,7 @@ export function ClientForm({
   }, [state, router]);
 
   return (
-    <form action={action} className="bg-card space-y-5 rounded-2xl border p-5">
+    <form action={action} className="surface space-y-5 p-5">
       {client ? <input type="hidden" name="id" value={client.id} /> : null}
 
       <div className="grid gap-4 sm:grid-cols-2">

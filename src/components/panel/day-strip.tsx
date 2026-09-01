@@ -44,7 +44,7 @@ export function DayStrip({
       <button
         type="button"
         onClick={() => shift(-1)}
-        className="border-border bg-card hover:bg-accent grid size-9 shrink-0 place-items-center rounded-xl border transition"
+        className="surface-sm border-border hover:bg-accent grid size-9 shrink-0 place-items-center transition"
         aria-label="Día anterior"
       >
         <ChevronLeft className="size-4" />
@@ -74,7 +74,7 @@ export function DayStrip({
               >
                 {isToday ? "Hoy" : DAY_SHORT[entry.dayOfWeek]}
               </span>
-              <span className="font-heading text-lg leading-tight font-semibold">
+              <span className="font-numeric text-lg leading-tight font-semibold">
                 {entry.dayNumber}
               </span>
               <span
@@ -97,7 +97,7 @@ export function DayStrip({
       <button
         type="button"
         onClick={() => shift(1)}
-        className="border-border bg-card hover:bg-accent grid size-9 shrink-0 place-items-center rounded-xl border transition"
+        className="surface-sm border-border hover:bg-accent grid size-9 shrink-0 place-items-center transition"
         aria-label="Día siguiente"
       >
         <ChevronRight className="size-4" />

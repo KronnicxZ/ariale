@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import { AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { specialistLoginAction, type ActionState } from "@/actions/auth";
 import { cn, firstName } from "@/lib/utils";
 
@@ -73,21 +73,9 @@ export function PinGate({
   return (
     <main className="flex min-h-dvh flex-col">
       <header className="bg-card flex items-center gap-3 border-b px-4 py-3">
-        {logoUrl ? (
-          <Image
-            src={logoUrl}
-            alt=""
-            width={40}
-            height={40}
-            className="size-10 rounded-full object-cover"
-          />
-        ) : (
-          <span className="bg-primary text-primary-foreground grid size-10 place-items-center rounded-full">
-            <Sparkles className="size-5" />
-          </span>
-        )}
-        <div className="min-w-0">
-          <p className="truncate font-semibold">{name}</p>
+        <BrandMark logoUrl={logoUrl} name={business} height={30} />
+        <div className="min-w-0 border-l pl-3">
+          <p className="truncate text-sm font-medium">{name}</p>
           <p className="text-muted-foreground text-xs">Agenda rápida</p>
         </div>
       </header>
@@ -95,7 +83,7 @@ export function PinGate({
       <div className="soft-blush flex flex-1 flex-col items-center px-5 pt-10">
         <div className="bg-card w-full max-w-sm rounded-3xl border p-6 shadow-sm">
           <p className="text-primary text-xs font-semibold tracking-widest uppercase">Solo tú</p>
-          <h1 className="font-heading mt-1 text-3xl font-semibold">Hola, {firstName(name)}</h1>
+          <h1 className="font-display mt-1 text-3xl font-semibold">Hola, {firstName(name)}</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Escribe tu clave para ver tu agenda.
           </p>

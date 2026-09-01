@@ -31,7 +31,7 @@ const KINDS = [
   { value: "OTHER", label: "Otros" },
 ];
 
-const SWATCHES = ["#E9B21C", "#B5651D", "#7A8B6F", "#A0567F", "#5B7B9A", "#2B2723"];
+const SWATCHES = ["#E9B21C", "#E9A8B4", "#A8C7A9", "#BDAEDC", "#A6C4DC", "#F0C79A"];
 
 type Category = { id: string; name: string; kind: string; color: string; order: number };
 

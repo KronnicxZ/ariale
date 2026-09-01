@@ -50,8 +50,8 @@ type Settings = {
 
 type Hour = { dayOfWeek: number; enabled: boolean; openTime: string; closeTime: string };
 
-const ACCENT_SWATCHES = ["#E9B21C", "#D98C1F", "#B5651D", "#A0567F", "#7A8B6F", "#C2185B"];
-const MENU_SWATCHES = ["#2B2723", "#1C1A17", "#3A2F26", "#2A2E2B", "#4A1130", "#232B33"];
+const ACCENT_SWATCHES = ["#E9B21C", "#F0C79A", "#E9A8B4", "#BDAEDC", "#A8C7A9", "#A6C4DC"];
+const MENU_SWATCHES = ["#1A1A1A", "#000000", "#242424", "#2E2E33", "#1F262B", "#332E33"];
 
 function Feedback({ state }: { state: ActionState }) {
   if (state?.error) {
@@ -116,7 +116,7 @@ function IdentityForm({ settings, onSaved }: { settings: Settings; onSaved: () =
   }, [state, onSaved]);
 
   return (
-    <form action={action} className="bg-card space-y-5 rounded-2xl border p-5">
+    <form action={action} className="surface space-y-5 p-5">
       <div>
         <h2 className="font-semibold">Identidad</h2>
         <p className="text-muted-foreground text-sm">
@@ -240,7 +240,7 @@ function ScheduleForm({
   const ordered = [...days].sort((a, b) => ((a.dayOfWeek + 6) % 7) - ((b.dayOfWeek + 6) % 7));
 
   return (
-    <form action={action} className="bg-card space-y-5 rounded-2xl border p-5">
+    <form action={action} className="surface space-y-5 p-5">
       <div>
         <h2 className="font-semibold">Horario de atención</h2>
         <p className="text-muted-foreground text-sm">
@@ -365,7 +365,7 @@ function CurrencyForm({
   }, [state, onSaved]);
 
   return (
-    <form action={action} className="bg-card space-y-5 rounded-2xl border p-5">
+    <form action={action} className="surface space-y-5 p-5">
       <div>
         <h2 className="font-semibold">Moneda y tasa</h2>
         <p className="text-muted-foreground text-sm">
@@ -376,7 +376,7 @@ function CurrencyForm({
       <div className="bg-muted/50 flex flex-wrap items-center justify-between gap-3 rounded-xl p-4">
         <div>
           <p className="text-muted-foreground text-xs uppercase">Tasa de hoy</p>
-          <p className="font-heading text-2xl font-semibold tabular-nums">
+          <p className="font-numeric text-2xl font-semibold tabular-nums">
             {rate.value > 0 ? `${rate.value.toFixed(2)} Bs.` : "Sin tasa"}
           </p>
           <p className="text-muted-foreground text-xs">
@@ -518,7 +518,7 @@ function AppearanceForm({ settings, onSaved }: { settings: Settings; onSaved: ()
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
-      <form action={action} className="bg-card space-y-5 rounded-2xl border p-5">
+      <form action={action} className="surface space-y-5 p-5">
         <div>
           <h2 className="font-semibold">Colores de la app</h2>
           <p className="text-muted-foreground text-sm">
@@ -608,7 +608,7 @@ function AppearanceForm({ settings, onSaved }: { settings: Settings; onSaved: ()
       </form>
 
       {/* Vista previa en vivo, antes de guardar */}
-      <aside className="bg-card h-fit rounded-2xl border p-4">
+      <aside className="surface h-fit p-4">
         <p className="text-muted-foreground mb-3 text-xs font-semibold tracking-widest uppercase">
           Vista previa
         </p>
