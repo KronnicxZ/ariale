@@ -7,7 +7,7 @@ La app tiene **tres puertas de entrada**, cada una con su sesión:
 
 | Zona | Ruta | Entra con | Qué puede hacer |
 | --- | --- | --- | --- |
-| Panel | `/panel` | Correo y contraseña | Todo: dinero, agenda, catálogo, ajustes |
+| Panel | `/panel` | Correo y contraseña | Todo: agenda, clientas, dinero, catálogo, ajustes |
 | Especialista | `/agenda/<slug>` | PIN de 4 dígitos | Solo su agenda del día y agendar citas |
 | Clienta | `/reservar` | Su número de teléfono | Reservar, ver su historial y sus bonos |
 
@@ -38,6 +38,19 @@ Abre <http://localhost:3000>.
 - **Recharts** para los gráficos; **date-fns** con `@date-fns/tz` para la zona
   horaria del salón (`America/Caracas` por defecto).
 - Sesiones con **JWT firmado en cookie httpOnly** (`jose`), contraseñas con `bcryptjs`.
+
+### La app gira alrededor de la agenda
+
+`/panel` es **Hoy**: la agenda del día como protagonista, con la próxima cita
+resaltada, la tira de la semana para saltar de día y un botón grande de
+agendar. El dinero aparece resumido en tres cifras que llevan a Reportes; el
+análisis a fondo (gráficos, ranking de servicios, reparto por categoría) vive
+en `/panel/reportes`, no en la portada.
+
+Está pensada **primero para el móvil**: barra inferior con Hoy, Agenda,
+Clientas y Cobrar; acciones principales a ancho completo al alcance del
+pulgar; y los accesos secundarios al final de cada pantalla, sin competir con
+lo que se usa a diario.
 
 ### Decisiones que conviene conocer
 

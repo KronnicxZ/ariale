@@ -126,7 +126,7 @@ export function MobileNav({ business, user, rate }: Props) {
               )}
             >
               <item.icon className={cn("size-5", active && "stroke-[2.4]")} />
-              {item.label}
+              {item.shortLabel ?? item.label}
             </Link>
           );
         })}

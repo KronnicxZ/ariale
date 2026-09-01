@@ -24,12 +24,25 @@ export default async function AgendaPage(props: PageProps<"/panel/agenda">) {
   const day = stringParam(params, "dia") ?? today;
   const specialistId = stringParam(params, "especialista");
   const statusParam = stringParam(params, "estado");
-  const status = statusParam && STATUSES.has(statusParam) ? (statusParam as AppointmentStatus) : undefined;
+  const status =
+    statusParam && STATUSES.has(statusParam) ? (statusParam as AppointmentStatus) : undefined;
 
   const [{ appointments, specialists, counts, revenueCents }, strip] = await Promise.all([
     getDayAgenda({ day, specialistId, status, tz: settings.timezone }),
     getWeekStrip(day, settings.timezone),
   ]);
+
+  // Una sola línea en vez de cuatro fichas de contadores.
+  const summary =
+    counts.total === 0
+      ? "Sin citas ese día"
+      : [
+          `${counts.total} ${counts.total === 1 ? "cita" : "citas"}`,
+          counts.pending > 0 ? `${counts.pending} por confirmar` : null,
+          counts.attended > 0 ? `${counts.attended} atendidas` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ");
 
   return (
     <div className="space-y-5">
@@ -37,46 +50,26 @@ export default async function AgendaPage(props: PageProps<"/panel/agenda">) {
         title="Agenda"
         description={fmtDayLong(`${day}T12:00:00Z`, "UTC")}
         actions={
-          <>
-            <Button asChild size="sm">
-              <Link href="/panel/agenda/nueva">
-                <CalendarPlus className="size-4" />
-                Nueva cita
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/panel/modo-agenda?dia=${day}`}>
-                <LayoutGrid className="size-4" />
-                Modo agenda
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/panel/agenda/enlaces">
-                <Link2 className="size-4" />
-                Enlaces
-              </Link>
-            </Button>
-          </>
+          <Button asChild size="sm" className="hidden sm:inline-flex">
+            <Link href="/panel/agenda/nueva">
+              <CalendarPlus className="size-4" />
+              Nueva cita
+            </Link>
+          </Button>
         }
       />
 
+      {/* En el móvil la acción principal ocupa todo el ancho, al alcance del pulgar. */}
+      <Button asChild className="h-12 w-full text-base sm:hidden">
+        <Link href="/panel/agenda/nueva">
+          <CalendarPlus className="size-5" />
+          Agendar una cita
+        </Link>
+      </Button>
+
       <DayStrip days={strip} current={day} today={today} />
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {[
-          { label: "Citas", value: counts.total },
-          { label: "Por confirmar", value: counts.pending },
-          { label: "Confirmadas", value: counts.confirmed },
-          { label: "Atendidas", value: counts.attended },
-        ].map((stat) => (
-          <div key={stat.label} className="surface-sm px-3 py-2.5">
-            <p className="text-muted-foreground text-[0.7rem] tracking-wide uppercase">
-              {stat.label}
-            </p>
-            <p className="font-numeric text-xl font-semibold">{stat.value}</p>
-          </div>
-        ))}
-      </div>
+      <p className="text-muted-foreground text-sm">{summary}</p>
 
       <AgendaFilters specialists={specialists} specialistId={specialistId} status={statusParam} />
 
@@ -113,6 +106,22 @@ export default async function AgendaPage(props: PageProps<"/panel/agenda">) {
           </p>
         </>
       )}
+
+      {/* Accesos secundarios al final, sin competir con la agenda. */}
+      <div className="flex flex-wrap gap-2 border-t pt-4">
+        <Button asChild variant="ghost" size="sm">
+          <Link href={`/panel/modo-agenda?dia=${day}`}>
+            <LayoutGrid className="size-4" />
+            Modo agenda
+          </Link>
+        </Button>
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/panel/agenda/enlaces">
+            <Link2 className="size-4" />
+            Enlaces de reserva
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

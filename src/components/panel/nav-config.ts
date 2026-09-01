@@ -23,6 +23,8 @@ export type NavItem = {
   icon: LucideIcon;
   /** Se muestra en la barra inferior del móvil. */
   mobile?: boolean;
+  /** Etiqueta corta para la barra inferior, donde no cabe el nombre largo. */
+  shortLabel?: string;
 };
 
 export type NavGroup = {
@@ -34,7 +36,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Día a día",
     items: [
-      { href: "/panel", label: "Dashboard", icon: LayoutDashboard, mobile: true },
+      { href: "/panel", label: "Hoy", icon: LayoutDashboard, mobile: true },
       { href: "/panel/agenda", label: "Agenda", icon: CalendarDays, mobile: true },
       { href: "/panel/clientes", label: "Clientas", icon: Users, mobile: true },
       { href: "/panel/recordatorios", label: "Recordatorios", icon: BellRing },
@@ -43,8 +45,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Dinero",
     items: [
-      { href: "/panel/ventas", label: "Ventas", icon: Receipt, mobile: true },
-      { href: "/panel/cobrar", label: "Cuentas por cobrar", icon: HandCoins },
+      { href: "/panel/ventas", label: "Ventas", icon: Receipt },
+      { href: "/panel/cobrar", label: "Cuentas por cobrar", shortLabel: "Cobrar", icon: HandCoins, mobile: true },
       { href: "/panel/gastos", label: "Gastos", icon: Wallet },
       { href: "/panel/compras", label: "Compras", icon: ShoppingBag },
       { href: "/panel/pagar", label: "Cuentas por pagar", icon: CreditCard },
