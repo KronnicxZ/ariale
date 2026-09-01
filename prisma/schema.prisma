@@ -1,0 +1,524 @@
+// Ariale Studio — esquema de datos
+// Todo el dinero se guarda en CENTAVOS DE USD (Int) para evitar errores de coma flotante.
+// Las fechas se guardan en UTC; la app las presenta en America/Caracas.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------------------------------------------------------------------------
+// Configuración del negocio
+// ---------------------------------------------------------------------------
+
+model Settings {
+  id           Int     @id @default(1)
+  businessName String  @default("Ariale Studio")
+  tagline      String  @default("Manicura, pedicura y depilación")
+  logoUrl      String?
+  slug         String  @default("ariale-studio")
+  phone        String?
+  whatsapp     String?
+  instagram    String?
+  address      String?
+  timezone     String  @default("America/Caracas")
+  countryCode  String  @default("+58")
+
+  slotMinutes   Int     @default(30)
+  autoConfirm   Boolean @default(false)
+  maxDaysAhead  Int     @default(45)
+  minHoursAhead Int     @default(1)
+
+  currencyLabel String @default("Dólar BCV")
+  rateMode      String @default("AUTO")
+  manualRate    Float  @default(0)
+
+  accentColor String @default("#C2185B")
+  menuColor   String @default("#4A1130")
+
+  updatedAt DateTime @updatedAt
+}
+
+/// Horario de atención por día de la semana (0 = domingo … 6 = sábado).
+model WorkingHour {
+  id        Int     @id @default(autoincrement())
+  dayOfWeek Int     @unique
+  enabled   Boolean @default(true)
+  openTime  String  @default("09:00")
+  closeTime String  @default("18:00")
+}
+
+/// Tasa BCV cacheada por día. `rate` son bolívares por 1 USD.
+model ExchangeRate {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @unique
+  rate      Float
+  source    String   @default("BCV")
+  fetchedAt DateTime @default(now())
+
+  @@index([date])
+}
+
+// ---------------------------------------------------------------------------
+// Personas
+// ---------------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         Role     @default(ADMIN)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  expenses Expense[]
+}
+
+/// Quien presta el servicio. Entra a su agenda con un PIN de 4 dígitos,
+/// no al panel administrativo.
+model Specialist {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  pin       String   @default("0000")
+  phone     String?
+  email     String?
+  color     String   @default("#C2185B")
+  avatarUrl String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  skills       SpecialistService[]
+  appointments Appointment[]
+  sales        Sale[]
+  timeOff      TimeOff[]
+}
+
+model TimeOff {
+  id           String     @id @default(cuid())
+  specialistId String
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  startAt      DateTime
+  endAt        DateTime
+  reason       String?
+
+  @@index([specialistId, startAt])
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String    @unique
+  email     String?
+  birthday  DateTime?
+  instagram String?
+  notes     String?
+  allergies String?
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  appointments Appointment[]
+  sales        Sale[]
+  packages     ClientPackage[]
+  reminders    ReminderLog[]
+
+  @@index([name])
+}
+
+// ---------------------------------------------------------------------------
+// Catálogo de servicios
+// ---------------------------------------------------------------------------
+
+enum CategoryKind {
+  MANICURE
+  PEDICURE
+  DEPILATION
+  OTHER
+}
+
+model Category {
+  id     String       @id @default(cuid())
+  name   String
+  slug   String       @unique
+  kind   CategoryKind @default(OTHER)
+  color  String       @default("#C2185B")
+  icon   String       @default("sparkles")
+  order  Int          @default(0)
+  active Boolean      @default(true)
+
+  services Service[]
+}
+
+/// Método de depilación. Solo aplica a servicios de categoría DEPILATION.
+enum HairRemovalMethod {
+  NONE
+  WAX
+  SUGAR
+  LASER
+  THREAD
+  RAZOR
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  priceCents  Int      @default(0)
+  durationMin Int      @default(60)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  color       String?
+
+  bodyZone            String?
+  method              HairRemovalMethod @default(NONE)
+  sessionIntervalDays Int?
+  requiresPatchTest   Boolean           @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  specialists         SpecialistService[]
+  appointmentServices AppointmentService[]
+  saleItems           SaleItem[]
+  packageServices     PackageService[]
+
+  @@index([categoryId, active])
+}
+
+model SpecialistService {
+  specialistId String
+  serviceId    String
+  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  service      Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([specialistId, serviceId])
+}
+
+// ---------------------------------------------------------------------------
+// Bonos / paquetes de sesiones
+// ---------------------------------------------------------------------------
+
+model Package {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  sessions     Int      @default(6)
+  priceCents   Int      @default(0)
+  validityDays Int      @default(365)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  services PackageService[]
+  sold     ClientPackage[]
+}
+
+model PackageService {
+  packageId String
+  serviceId String
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([packageId, serviceId])
+}
+
+enum ClientPackageStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  CANCELLED
+}
+
+/// Bono comprado por una clienta, con su saldo de sesiones.
+model ClientPackage {
+  id             String              @id @default(cuid())
+  clientId       String
+  client         Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  packageId      String
+  package        Package             @relation(fields: [packageId], references: [id])
+  purchasedAt    DateTime            @default(now())
+  expiresAt      DateTime
+  sessionsTotal  Int
+  sessionsUsed   Int                 @default(0)
+  pricePaidCents Int                 @default(0)
+  status         ClientPackageStatus @default(ACTIVE)
+  saleId         String?
+  sale           Sale?               @relation(fields: [saleId], references: [id])
+
+  redemptions SaleItem[]
+
+  @@index([clientId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Agenda
+// ---------------------------------------------------------------------------
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  ATTENDED
+  CANCELLED
+  NO_SHOW
+}
+
+enum BookingSource {
+  CLIENT
+  SPECIALIST
+  ADMIN
+}
+
+model Appointment {
+  id             String            @id @default(cuid())
+  clientId       String
+  client         Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  specialistId   String
+  specialist     Specialist        @relation(fields: [specialistId], references: [id])
+  startAt        DateTime
+  endAt          DateTime
+  status         AppointmentStatus @default(PENDING)
+  source         BookingSource     @default(ADMIN)
+  note           String?
+  cancelReason   String?
+  reminderSentAt DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  services  AppointmentService[]
+  sale      Sale?
+  reminders ReminderLog[]
+
+  @@index([startAt])
+  @@index([specialistId, startAt])
+  @@index([clientId, startAt])
+}
+
+/// Servicios de una cita. El precio y la duración se congelan al agendar.
+model AppointmentService {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  serviceId     String
+  service       Service     @relation(fields: [serviceId], references: [id])
+  priceCents    Int
+  durationMin   Int
+
+  @@index([appointmentId])
+}
+
+// ---------------------------------------------------------------------------
+// Ventas, cobros y cuentas por cobrar
+// ---------------------------------------------------------------------------
+
+enum SaleStatus {
+  PENDING
+  PARTIAL
+  PAID
+  CANCELLED
+}
+
+/// Una venta con saldo pendiente y fecha de vencimiento es una cuenta por cobrar.
+model Sale {
+  id            String       @id @default(cuid())
+  number        Int          @unique
+  date          DateTime     @default(now())
+  clientId      String
+  client        Client       @relation(fields: [clientId], references: [id])
+  specialistId  String?
+  specialist    Specialist?  @relation(fields: [specialistId], references: [id])
+  appointmentId String?      @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+
+  subtotalCents Int        @default(0)
+  discountCents Int        @default(0)
+  totalCents    Int        @default(0)
+  paidCents     Int        @default(0)
+  status        SaleStatus @default(PENDING)
+  dueDate       DateTime?
+  notes         String?
+
+  rateUsed  Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items        SaleItem[]
+  payments     Payment[]
+  packagesSold ClientPackage[]
+
+  @@index([date])
+  @@index([clientId, date])
+  @@index([status])
+}
+
+model SaleItem {
+  id             String   @id @default(cuid())
+  saleId         String
+  sale           Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  serviceId      String?
+  service        Service? @relation(fields: [serviceId], references: [id])
+  description    String
+  quantity       Int      @default(1)
+  unitPriceCents Int      @default(0)
+  totalCents     Int      @default(0)
+
+  /// Si se descuenta de un bono, el total es 0 y se consume una sesión.
+  clientPackageId String?
+  clientPackage   ClientPackage? @relation(fields: [clientPackageId], references: [id])
+
+  @@index([saleId])
+}
+
+enum PaymentMethod {
+  CASH_USD
+  CASH_VES
+  PAGO_MOVIL
+  TRANSFER
+  ZELLE
+  BINANCE
+  CARD
+  OTHER
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  saleId      String
+  sale        Sale          @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  date        DateTime      @default(now())
+  amountCents Int
+  method      PaymentMethod @default(CASH_USD)
+  reference   String?
+  rateUsed    Float?
+  createdAt   DateTime      @default(now())
+
+  @@index([saleId])
+  @@index([date])
+}
+
+// ---------------------------------------------------------------------------
+// Proveedores, compras y cuentas por pagar
+// ---------------------------------------------------------------------------
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchases Purchase[]
+
+  @@index([name])
+}
+
+enum PurchaseStatus {
+  PENDING
+  PARTIAL
+  PAID
+  CANCELLED
+}
+
+/// Una compra con saldo pendiente y vencimiento es una cuenta por pagar.
+model Purchase {
+  id          String         @id @default(cuid())
+  number      Int            @unique
+  supplierId  String?
+  supplier    Supplier?      @relation(fields: [supplierId], references: [id])
+  date        DateTime       @default(now())
+  description String
+  totalCents  Int            @default(0)
+  paidCents   Int            @default(0)
+  status      PurchaseStatus @default(PENDING)
+  dueDate     DateTime?
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  payments PurchasePayment[]
+
+  @@index([date])
+  @@index([status])
+}
+
+model PurchasePayment {
+  id          String        @id @default(cuid())
+  purchaseId  String
+  purchase    Purchase      @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  date        DateTime      @default(now())
+  amountCents Int
+  method      PaymentMethod @default(CASH_USD)
+  reference   String?
+
+  @@index([purchaseId])
+}
+
+// ---------------------------------------------------------------------------
+// Gastos
+// ---------------------------------------------------------------------------
+
+model ExpenseCategory {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  color  String  @default("#C2185B")
+  active Boolean @default(true)
+
+  expenses Expense[]
+}
+
+model Expense {
+  id          String           @id @default(cuid())
+  date        DateTime         @default(now())
+  categoryId  String?
+  category    ExpenseCategory? @relation(fields: [categoryId], references: [id])
+  description String
+  amountCents Int
+  method      PaymentMethod    @default(CASH_USD)
+  userId      String?
+  user        User?            @relation(fields: [userId], references: [id])
+  createdAt   DateTime         @default(now())
+
+  @@index([date])
+}
+
+// ---------------------------------------------------------------------------
+// Recordatorios
+// ---------------------------------------------------------------------------
+
+enum ReminderKind {
+  APPOINTMENT
+  NEXT_SESSION
+  BIRTHDAY
+  DEBT
+}
+
+/// Registro de recordatorios ya enviados, para no repetirlos.
+model ReminderLog {
+  id            String       @id @default(cuid())
+  kind          ReminderKind
+  clientId      String
+  client        Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  sentAt        DateTime     @default(now())
+  channel       String       @default("whatsapp")
+  note          String?
+
+  @@index([clientId, kind, sentAt])
+}

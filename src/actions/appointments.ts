@@ -1,0 +1,254 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db";
+import { getSettings } from "@/lib/settings";
+import { getAvailability } from "@/lib/slots";
+import { normalizePhone } from "@/lib/utils";
+import { tzDateTimeToUtc } from "@/lib/date";
+import {
+  fail,
+  ok,
+  readBool,
+  readList,
+  readOptional,
+  readString,
+  requireUser,
+  toMessage,
+  type ActionState,
+} from "@/actions/shared";
+import type { AppointmentStatus, BookingSource } from "@/generated/prisma/client";
+
+/**
+ * Alta de cita. Se usa desde el panel, desde la agenda de la especialista y
+ * desde la zona pública de la clienta, con la misma validación de solape.
+ */
+export async function createAppointment(input: {
+  clientId: string;
+  specialistId: string;
+  serviceIds: string[];
+  day: string;
+  time: string;
+  note?: string | null;
+  source: BookingSource;
+  status?: AppointmentStatus;
+}) {
+  const settings = await getSettings();
+
+  const services = await prisma.service.findMany({
+    where: { id: { in: input.serviceIds }, active: true },
+  });
+  if (services.length === 0) throw new Error("Elige al menos un servicio.");
+
+  const durationMin = services.reduce((sum, s) => sum + s.durationMin, 0);
+  const startAt = tzDateTimeToUtc(input.day, input.time, settings.timezone);
+  const endAt = new Date(startAt.getTime() + durationMin * 60_000);
+
+  // Revalidamos el hueco contra la base al momento de guardar: entre que la
+  // clienta vio los horarios y pulsó confirmar, alguien pudo tomar el suyo.
+  const clash = await prisma.appointment.findFirst({
+    where: {
+      specialistId: input.specialistId,
+      status: { notIn: ["CANCELLED", "NO_SHOW"] },
+      startAt: { lt: endAt },
+      endAt: { gt: startAt },
+    },
+    select: { id: true },
+  });
+  if (clash) throw new Error("Ese horario se acaba de ocupar. Elige otro, por favor.");
+
+  const appointment = await prisma.appointment.create({
+    data: {
+      clientId: input.clientId,
+      specialistId: input.specialistId,
+      startAt,
+      endAt,
+      note: input.note || null,
+      source: input.source,
+      status:
+        input.status ??
+        (input.source === "CLIENT" && !settings.autoConfirm ? "PENDING" : "CONFIRMED"),
+      services: {
+        create: services.map((s) => ({
+          serviceId: s.id,
+          priceCents: s.priceCents,
+          durationMin: s.durationMin,
+        })),
+      },
+    },
+    include: {
+      client: true,
+      specialist: true,
+      services: { include: { service: true } },
+    },
+  });
+
+  revalidatePath("/panel");
+  revalidatePath("/panel/agenda");
+  revalidatePath("/panel/modo-agenda");
+  return appointment;
+}
+
+export async function createAppointmentAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    await requireUser();
+
+    const clientId = readString(formData, "clientId");
+    const specialistId = readString(formData, "specialistId");
+    const serviceIds = readList(formData, "serviceIds");
+    const day = readString(formData, "day");
+    const time = readString(formData, "time");
+
+    if (!clientId) return fail("Elige una clienta.");
+    if (!specialistId) return fail("Elige una especialista.");
+    if (serviceIds.length === 0) return fail("Elige al menos un servicio.");
+    if (!day || !time) return fail("Elige el día y la hora.");
+
+    const appointment = await createAppointment({
+      clientId,
+      specialistId,
+      serviceIds,
+      day,
+      time,
+      note: readOptional(formData, "note"),
+      source: "ADMIN",
+      status: readBool(formData, "confirmed") ? "CONFIRMED" : "PENDING",
+    });
+
+    return ok("Cita agendada.", appointment.id);
+  } catch (error) {
+    return fail(toMessage(error));
+  }
+}
+
+export async function updateAppointmentStatusAction(formData: FormData) {
+  await requireUser();
+  const id = readString(formData, "id");
+  const status = readString(formData, "status") as AppointmentStatus;
+  const cancelReason = readOptional(formData, "cancelReason");
+
+  await prisma.appointment.update({
+    where: { id },
+    data: { status, ...(status === "CANCELLED" ? { cancelReason } : {}) },
+  });
+
+  revalidatePath("/panel");
+  revalidatePath("/panel/agenda");
+  revalidatePath(`/panel/agenda/${id}`);
+  revalidatePath("/panel/modo-agenda");
+}
+
+export async function rescheduleAppointmentAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  try {
+    await requireUser();
+    const settings = await getSettings();
+
+    const id = readString(formData, "id");
+    const day = readString(formData, "day");
+    const time = readString(formData, "time");
+    if (!id || !day || !time) return fail("Falta el día o la hora.");
+
+    const appointment = await prisma.appointment.findUnique({
+      where: { id },
+      include: { services: true },
+    });
+    if (!appointment) return fail("La cita ya no existe.");
+
+    const durationMin = appointment.services.reduce((sum, s) => sum + s.durationMin, 0);
+    const startAt = tzDateTimeToUtc(day, time, settings.timezone);
+    const endAt = new Date(startAt.getTime() + durationMin * 60_000);
+
+    const clash = await prisma.appointment.findFirst({
+      where: {
+        id: { not: id },
+        specialistId: appointment.specialistId,
+        status: { notIn: ["CANCELLED", "NO_SHOW"] },
+        startAt: { lt: endAt },
+        endAt: { gt: startAt },
+      },
+      select: { id: true },
+    });
+    if (clash) return fail("Ese horario ya está ocupado.");
+
+    await prisma.appointment.update({ where: { id }, data: { startAt, endAt } });
+
+    revalidatePath("/panel/agenda");
+    revalidatePath(`/panel/agenda/${id}`);
+    revalidatePath("/panel/modo-agenda");
+    return ok("Cita reprogramada.");
+  } catch (error) {
+    return fail(toMessage(error));
+  }
+}
+
+export async function deleteAppointmentAction(formData: FormData) {
+  await requireUser();
+  const id = readString(formData, "id");
+  await prisma.appointment.delete({ where: { id } });
+  revalidatePath("/panel/agenda");
+  revalidatePath("/panel/modo-agenda");
+}
+
+export async function markReminderSentAction(formData: FormData) {
+  await requireUser();
+  const id = readString(formData, "id");
+  const appointment = await prisma.appointment.update({
+    where: { id },
+    data: { reminderSentAt: new Date() },
+    select: { clientId: true },
+  });
+  await prisma.reminderLog.create({
+    data: { kind: "APPOINTMENT", clientId: appointment.clientId, appointmentId: id },
+  });
+  revalidatePath("/panel/recordatorios");
+}
+
+/** Huecos libres de un día, para los selectores de hora. */
+export async function fetchSlotsAction(input: {
+  day: string;
+  serviceIds: string[];
+  specialistId?: string | null;
+  excludeAppointmentId?: string;
+}) {
+  const services = await prisma.service.findMany({
+    where: { id: { in: input.serviceIds } },
+    select: { durationMin: true },
+  });
+  const durationMin = services.reduce((sum, s) => sum + s.durationMin, 0) || 30;
+
+  const availability = await getAvailability({
+    day: input.day,
+    durationMin,
+    specialistId: input.specialistId ?? null,
+    excludeAppointmentId: input.excludeAppointmentId,
+  });
+
+  return {
+    ...availability,
+    durationMin,
+    slots: availability.slots.map((s) => ({ time: s.time, period: s.period })),
+  };
+}
+
+/** Busca o crea la clienta por teléfono. El teléfono es la identidad. */
+export async function findOrCreateClient(name: string, phone: string) {
+  const normalized = normalizePhone(phone);
+  if (normalized.length < 10) throw new Error("El teléfono no parece válido.");
+
+  const existing = await prisma.client.findUnique({ where: { phone: normalized } });
+  if (existing) {
+    if (!existing.active) {
+      return prisma.client.update({ where: { id: existing.id }, data: { active: true } });
+    }
+    return existing;
+  }
+
+  if (!name.trim()) throw new Error("Escribe el nombre de la clienta.");
+  return prisma.client.create({ data: { name: name.trim(), phone: normalized } });
+}

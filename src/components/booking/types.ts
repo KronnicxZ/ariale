@@ -1,0 +1,33 @@
+export type ServiceOption = {
+  id: string;
+  name: string;
+  description: string | null;
+  priceCents: number;
+  durationMin: number;
+  bodyZone: string | null;
+  requiresPatchTest: boolean;
+  categoryId: string;
+  categoryName: string;
+  categoryColor: string;
+};
+
+export type SpecialistOption = {
+  id: string;
+  name: string;
+  color: string;
+  serviceIds: string[];
+};
+
+export type ClientOption = {
+  id: string;
+  name: string;
+  phone: string;
+};
+
+/** Bono con saldo que la clienta puede usar en esta cita. */
+export type PackageBalance = {
+  id: string;
+  name: string;
+  remaining: number;
+  serviceIds: string[];
+};
