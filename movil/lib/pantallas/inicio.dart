@@ -98,7 +98,10 @@ class _PantallaInicioState extends State<PantallaInicio> {
     }
 
     final pantallas = [
-      PantallaHoy(alIrAAgenda: _irAAgenda),
+      PantallaHoy(
+        alIrAAgenda: _irAAgenda,
+        alIrACobrar: () => setState(() => _indice = 3),
+      ),
       PantallaAgenda(diaInicial: _diaAgenda),
       const PantallaClientas(),
       const PantallaCobrar(),

@@ -40,19 +40,21 @@ class Marca {
       fondo.computeLuminance() > 0.55 ? negro : Colors.white;
 }
 
-/// Serif fina, solo para títulos grandes.
+/// Playfair Display, solo en títulos grandes: la serif de contraste alto de
+/// las marcas de belleza. Nunca baja a texto pequeño ni a cifras.
 TextStyle titulo(double tamano, {Color? color, FontWeight peso = FontWeight.w600}) =>
-    GoogleFonts.cormorantGaramond(
+    GoogleFonts.playfairDisplay(
       fontSize: tamano,
       fontWeight: peso,
       color: color ?? Marca.texto,
-      height: 1.15,
+      height: 1.12,
+      letterSpacing: -0.2,
     );
 
 /// Cifras siempre en sans con espaciado tabular: el dinero se lee de un
 /// vistazo, no se contempla.
 TextStyle cifra(double tamano, {Color? color, FontWeight peso = FontWeight.w600}) =>
-    GoogleFonts.inter(
+    GoogleFonts.plusJakartaSans(
       fontSize: tamano,
       fontWeight: peso,
       color: color ?? Marca.texto,
@@ -76,7 +78,7 @@ ThemeData construirTema() {
   );
 
   return base.copyWith(
-    textTheme: GoogleFonts.interTextTheme(base.textTheme).apply(
+    textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme).apply(
       bodyColor: Marca.texto,
       displayColor: Marca.texto,
     ),
@@ -86,7 +88,7 @@ ThemeData construirTema() {
       foregroundColor: Marca.texto,
       elevation: 0,
       scrolledUnderElevation: 0.5,
-      titleTextStyle: GoogleFonts.inter(
+      titleTextStyle: GoogleFonts.plusJakartaSans(
         fontSize: 17,
         fontWeight: FontWeight.w600,
         color: Marca.texto,
@@ -107,7 +109,7 @@ ThemeData construirTema() {
         backgroundColor: Marca.dorado,
         foregroundColor: Marca.negro,
         minimumSize: const Size(0, 52),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     ),
@@ -116,14 +118,14 @@ ThemeData construirTema() {
         foregroundColor: Marca.texto,
         minimumSize: const Size(0, 48),
         side: const BorderSide(color: Marca.borde),
-        textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: Marca.texto,
-        textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w600),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -142,7 +144,7 @@ ThemeData construirTema() {
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: Marca.dorado, width: 2),
       ),
-      labelStyle: GoogleFonts.inter(color: Marca.textoSuave, fontSize: 14),
+      labelStyle: GoogleFonts.plusJakartaSans(color: Marca.textoSuave, fontSize: 14),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Marca.tarjeta,
@@ -151,7 +153,7 @@ ThemeData construirTema() {
       elevation: 0,
       height: 68,
       labelTextStyle: WidgetStateProperty.resolveWith(
-        (states) => GoogleFonts.inter(
+        (states) => GoogleFonts.plusJakartaSans(
           fontSize: 11.5,
           fontWeight: states.contains(WidgetState.selected)
               ? FontWeight.w600
@@ -166,7 +168,7 @@ ThemeData construirTema() {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: Marca.negro,
-      contentTextStyle: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+      contentTextStyle: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
   );

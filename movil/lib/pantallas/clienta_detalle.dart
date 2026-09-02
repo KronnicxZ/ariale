@@ -202,10 +202,10 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                         children: [
                           FilaDato('Visitas', '${f.visitas}'),
                           FilaDato('Ha gastado', dinero(f.gastadoCentavos)),
-                          FilaDato('Ticket promedio', dinero(f.ticketCentavos)),
+                          FilaDato('Promedio por visita', dinero(f.ticketCentavos)),
                           if (f.saldoCentavos > 0)
                             FilaDato(
-                              'Debe',
+                              'Te debe',
                               dinero(f.saldoCentavos),
                               destacado: true,
                               color: Marca.error,

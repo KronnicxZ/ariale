@@ -346,11 +346,11 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
               onChanged: (v) => setState(() => _cobraAhora = v),
               activeThumbColor: Marca.dorado,
               contentPadding: EdgeInsets.zero,
-              title: const Text('Cobra ahora'),
+              title: const Text('¿Te pagó ahora?'),
               subtitle: Text(
                 _cobraAhora
-                    ? 'Se registra el pago junto con la venta.'
-                    : 'Quedará como cuenta por cobrar.',
+                    ? 'Se guarda el pago junto con la venta.'
+                    : 'Queda apuntado como que te debe.',
                 style: const TextStyle(fontSize: 12.5, color: Marca.textoSuave),
               ),
             ),
@@ -360,7 +360,7 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
                 controller: _cobro,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
-                  labelText: 'Monto cobrado',
+                  labelText: 'Cuánto te pagó',
                   prefixText: '\$ ',
                 ),
               ),

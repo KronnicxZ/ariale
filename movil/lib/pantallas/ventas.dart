@@ -25,9 +25,9 @@ class _PantallaVentasState extends State<PantallaVentas> {
 
   static const _estados = <(String?, String)>[
     (null, 'Todas'),
-    ('PENDING', 'Sin cobrar'),
-    ('PARTIAL', 'Parciales'),
-    ('PAID', 'Cobradas'),
+    ('PENDING', 'Sin pagar'),
+    ('PARTIAL', 'A medias'),
+    ('PAID', 'Pagadas'),
   ];
 
   @override
@@ -128,17 +128,17 @@ class _PantallaVentasState extends State<PantallaVentas> {
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 96),
                       children: [
                         Cabecera(
-                          etiqueta: 'Facturado · ${datos.etiquetaPeriodo}',
+                          etiqueta: 'Vendido · ${datos.etiquetaPeriodo}',
                           valor: dinero(datos.totalCentavos),
                           apoyo: '${datos.cuenta} '
                               '${datos.cuenta == 1 ? 'venta' : 'ventas'} · '
-                              'cobrado ${dinero(datos.cobradoCentavos)}',
+                              'te pagaron ${dinero(datos.cobradoCentavos)}',
                           accion: datos.pendienteCentavos > 0
                               ? Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     const Text(
-                                      'Por cobrar',
+                                      'Te deben',
                                       style: TextStyle(
                                         fontSize: 11.5,
                                         color: Marca.textoSuave,
@@ -240,7 +240,7 @@ class _TarjetaVenta extends StatelessWidget {
                   const Spacer(),
                   if (venta.saldoCentavos > 0 && venta.estado != 'CANCELLED')
                     Text(
-                      'Debe ${dinero(venta.saldoCentavos)}',
+                      'Falta ${dinero(venta.saldoCentavos)}',
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,

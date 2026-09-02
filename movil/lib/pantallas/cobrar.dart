@@ -115,7 +115,7 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Saldo total',
+                                  'Te deben en total',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Marca.textoSuave,
@@ -128,7 +128,7 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
                                 ),
                                 Text(
                                   '${datos.cuentas.length} '
-                                  '${datos.cuentas.length == 1 ? 'cuenta' : 'cuentas'}'
+                                  '${datos.cuentas.length == 1 ? 'clienta' : 'clientas'}'
                                   '${datos.vencidas > 0 ? ' · ${datos.vencidas} vencidas' : ''}',
                                   style: const TextStyle(
                                     fontSize: 12.5,

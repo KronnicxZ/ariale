@@ -26,8 +26,8 @@ class Etiqueta extends StatelessWidget {
   factory Etiqueta.venta(String estado) {
     final (texto, color) = switch (estado) {
       'PAID' => ('Pagado', Marca.exito),
-      'PARTIAL' => ('Parcial', Marca.alerta),
-      'PENDING' => ('Pendiente', Marca.error),
+      'PARTIAL' => ('Pagó una parte', Marca.alerta),
+      'PENDING' => ('Sin pagar', Marca.error),
       'CANCELLED' => ('Anulada', Marca.textoSuave),
       _ => (estado, Marca.textoSuave),
     };

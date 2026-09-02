@@ -1,21 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { BrandTheme } from "@/components/brand-theme";
 import { getSettings } from "@/lib/settings";
 import "./globals.css";
 
-// Inter para toda la interfaz: es la más legible en pantallas pequeñas y
-// tiene cifras tabulares, que es lo que necesitan las tablas de dinero.
-const sans = Inter({
+// Plus Jakarta Sans en toda la interfaz: geométrica y actual, con cifras
+// tabulares y una "a" y un "1" que no se confunden en pantalla pequeña.
+const sans = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-// Serif fina, solo para títulos grandes. Le da el aire de spa sin
-// comprometer la lectura, porque nunca se usa en texto pequeño ni en cifras.
-const heading = Cormorant_Garamond({
+// Playfair Display solo en títulos grandes: es la serif de contraste alto
+// que usan las marcas de belleza, moderna y con presencia. Nunca baja a
+// texto pequeño ni a cifras, donde no se leería igual de bien.
+const heading = Playfair_Display({
   variable: "--font-heading",
   subsets: ["latin"],
   weight: ["500", "600", "700"],

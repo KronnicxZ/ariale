@@ -159,9 +159,9 @@ class _PantallaComprasState extends State<PantallaCompras> {
                           ),
                           apoyo: _porPagar
                               ? '${datos.cuenta} '
-                                  '${datos.cuenta == 1 ? 'compra abierta' : 'compras abiertas'}'
+                                  '${datos.cuenta == 1 ? 'compra sin pagar' : 'compras sin pagar'}'
                                   '${datos.vencidas > 0 ? ' · ${datos.vencidas} vencidas' : ''}'
-                              : '${datos.cuenta} compras · pagado '
+                              : '${datos.cuenta} compras · ya pagaste '
                                   '${dinero(datos.pagadoCentavos)}',
                           colorValor: _porPagar && datos.saldoCentavos > 0
                               ? Marca.error
@@ -246,7 +246,7 @@ class _TarjetaCompra extends StatelessWidget {
                   Text(dinero(compra.totalCentavos), style: cifra(16)),
                   if (compra.saldoCentavos > 0)
                     Text(
-                      'debes ${dinero(compra.saldoCentavos)}',
+                      'te falta ${dinero(compra.saldoCentavos)}',
                       style: const TextStyle(fontSize: 12, color: Marca.textoSuave),
                     ),
                 ],
@@ -313,14 +313,14 @@ class _DialogoPagoState extends State<_DialogoPago> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Registrar pago'),
+      title: const Text('¿Cuánto vas a pagar?'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '${widget.compra.descripcion}\n'
-            'Saldo: ${dinero(widget.compra.saldoCentavos)}',
+            'Te falta ${dinero(widget.compra.saldoCentavos)}',
             style: const TextStyle(fontSize: 13, color: Marca.textoSuave),
           ),
           const SizedBox(height: 14),

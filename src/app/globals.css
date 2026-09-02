@@ -187,8 +187,9 @@
   .font-display {
     font-family: var(--font-heading), ui-serif, Georgia, serif;
     font-weight: 600;
-    letter-spacing: 0.005em;
-    line-height: 1.15;
+    /* Playfair ya viene apretada: sin este aire los títulos se amontonan. */
+    letter-spacing: -0.008em;
+    line-height: 1.12;
   }
 
   .font-numeric {

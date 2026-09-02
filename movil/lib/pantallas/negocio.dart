@@ -200,7 +200,7 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                       ],
                     ),
                   ),
-                  const Seccion('Reglas de la agenda'),
+                  const Seccion('Cómo funciona la agenda'),
                   Card(
                     child: Column(
                       children: [
@@ -209,7 +209,7 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                           activeThumbColor: Marca.dorado,
                           onChanged: (v) => _guardar({'confirmarAuto': v}),
                           title: const Text(
-                            'Confirmar sola',
+                            'Confirmar sin preguntarte',
                             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5),
                           ),
                           subtitle: Text(
@@ -222,11 +222,11 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                         const Divider(height: 1),
                         ListTile(
                           title: const Text(
-                            'Intervalo entre horas',
+                            'Cada cuánto ofreces una hora',
                             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5),
                           ),
                           subtitle: const Text(
-                            'Cada cuánto se ofrece un hueco libre',
+                            'A las 9:00, 9:30, 10:00…',
                             style: TextStyle(fontSize: 12.5),
                           ),
                           trailing: DropdownButton<int>(

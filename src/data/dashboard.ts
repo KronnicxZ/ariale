@@ -122,13 +122,21 @@ export async function getDashboard(period: Period, tz = TZ) {
   const receivableCents = receivable.reduce((sum, s) => sum + s.totalCents - s.paidCents, 0);
   const payableCents = payable.reduce((sum, p) => sum + p.totalCents - p.paidCents, 0);
 
+  // Un estudio que abrió hace tres semanas no tiene con qué compararse:
+  // enseñarle "+1400%" es peor que no enseñarle nada.
+  const hayConQueComparar = previous.salesCount >= 5;
+
   return {
     kpis: current,
     deltas: {
-      sales: pctChange(current.salesCents, previous.salesCents),
-      profit: pctChange(current.netProfitCents, previous.netProfitCents),
-      collected: pctChange(current.collectedCents, previous.collectedCents),
-      costs: pctChange(current.costsCents, previous.costsCents),
+      sales: hayConQueComparar ? pctChange(current.salesCents, previous.salesCents) : null,
+      profit: hayConQueComparar
+        ? pctChange(current.netProfitCents, previous.netProfitCents)
+        : null,
+      collected: hayConQueComparar
+        ? pctChange(current.collectedCents, previous.collectedCents)
+        : null,
+      costs: hayConQueComparar ? pctChange(current.costsCents, previous.costsCents) : null,
     },
     portfolio: { receivableCents, payableCents, overdueCount: overdue },
     todayAppointments,

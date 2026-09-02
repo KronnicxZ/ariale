@@ -95,7 +95,7 @@ class _PantallaReportesState extends State<PantallaReportes> {
                                 rotulo: 'Ganancia',
                                 valor: dinero(r.gananciaCentavos),
                                 variacion: r.variacionGanancia,
-                                apoyo: 'margen ${r.margenPct.toStringAsFixed(0)}%',
+                                apoyo: 'te queda el ${r.margenPct.toStringAsFixed(0)}%',
                                 color: r.gananciaCentavos >= 0 ? Marca.exito : Marca.error,
                               ),
                             ),
@@ -106,25 +106,25 @@ class _PantallaReportesState extends State<PantallaReportes> {
                           children: [
                             Expanded(
                               child: _Kpi(
-                                rotulo: 'Cobrado',
+                                rotulo: 'Te pagaron',
                                 valor: dinero(r.cobradoCentavos),
                                 variacion: r.variacionCobrado,
-                                apoyo: '${r.cobranzaPct.toStringAsFixed(0)}% de lo facturado',
+                                apoyo: '${r.cobranzaPct.toStringAsFixed(0)}% de lo vendido',
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: _Kpi(
-                                rotulo: 'Costos',
+                                rotulo: 'Gastos',
                                 valor: dinero(r.costosCentavos),
                                 variacion: r.variacionCostos,
-                                apoyo: 'gastos y compras',
+                                apoyo: 'con las compras incluidas',
                                 invertirColor: true,
                               ),
                             ),
                           ],
                         ),
-                        const Seccion('La cartera hoy'),
+                        const Seccion('Cuentas pendientes'),
                         Card(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
@@ -136,12 +136,12 @@ class _PantallaReportesState extends State<PantallaReportes> {
                                   destacado: true,
                                   color: r.porCobrarCentavos > 0 ? Marca.alerta : null,
                                 ),
-                                FilaDato('Debes a proveedores', dinero(r.porPagarCentavos)),
+                                FilaDato('Le debes a proveedores', dinero(r.porPagarCentavos)),
                                 FilaDato(
-                                  'Ticket promedio',
+                                  'Promedio por visita',
                                   dinero(r.ticketCentavos),
                                 ),
-                                FilaDato('Clientas atendidas', '${r.clientasAtendidas}'),
+                                FilaDato('Clientas que vinieron', '${r.clientasAtendidas}'),
                               ],
                             ),
                           ),
@@ -271,6 +271,9 @@ class _Kpi extends StatelessWidget {
   /// En los costos, subir es malo: el verde y el rojo cambian de bando.
   final bool invertirColor;
 
+  /// El servidor manda 0 cuando el periodo anterior no da para comparar.
+  bool get _comparable => variacion != 0;
+
   @override
   Widget build(BuildContext context) {
     final sube = variacion > 0;
@@ -289,7 +292,7 @@ class _Kpi extends StatelessWidget {
             const SizedBox(height: 3),
             Text(valor, style: cifra(19, color: color)),
             const SizedBox(height: 3),
-            if (variacion != 0)
+            if (_comparable)
               Row(
                 children: [
                   Icon(

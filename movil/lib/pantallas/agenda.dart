@@ -5,12 +5,15 @@ import '../api/modelos.dart';
 import '../formato.dart';
 import '../sesion.dart';
 import '../tema.dart';
+import '../widgets/calendario.dart';
 import '../widgets/comunes.dart';
+import '../widgets/rejilla_dia.dart';
 import 'cita_detalle.dart';
 import 'nueva_cita.dart';
 
-/// Agenda de un día, con navegación entre días y filtros por especialista
-/// y estado. Es la pantalla que más se abre después de "Hoy".
+/// La agenda como calendario: el mes arriba para saltar de fecha y el día
+/// abajo dibujado por horas, con una columna por especialista. De un vistazo
+/// se ve qué está ocupado y qué queda libre.
 class PantallaAgenda extends StatefulWidget {
   const PantallaAgenda({super.key, this.diaInicial});
 
@@ -21,16 +24,25 @@ class PantallaAgenda extends StatefulWidget {
 }
 
 class _PantallaAgendaState extends State<PantallaAgenda> {
-  String? _dia;
-  String? _especialistaId;
-  String? _estado;
-  late Future<_DatosAgenda> _futuro;
+  late DateTime _dia;
+  bool _mesAbierto = false;
+  Map<String, ConteoDia> _conteos = {};
+  String? _mesCargado;
+  late Future<_DatosDia> _futuro;
+
+  DateTime get _hoy {
+    final clave = Sesion.catalogo?.hoy;
+    return clave == null ? DateTime.now() : _desdeClave(clave);
+  }
 
   @override
   void initState() {
     super.initState();
-    _dia = widget.diaInicial;
-    _futuro = _cargar();
+    _dia = widget.diaInicial != null
+        ? _desdeClave(widget.diaInicial!)
+        : _hoy;
+    _futuro = _cargarDia();
+    _cargarMes();
   }
 
   @override
@@ -38,377 +50,380 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
     super.didUpdateWidget(anterior);
     // Al llegar desde "Hoy" con un día concreto, saltamos a ese día.
     if (widget.diaInicial != null && widget.diaInicial != anterior.diaInicial) {
-      _dia = widget.diaInicial;
-      _futuro = _cargar();
+      _dia = _desdeClave(widget.diaInicial!);
+      _futuro = _cargarDia();
+      _cargarMes();
     }
   }
 
-  Future<_DatosAgenda> _cargar() async {
+  static DateTime _desdeClave(String clave) {
+    final p = clave.split('-').map(int.parse).toList();
+    return DateTime(p[0], p[1], p[2]);
+  }
+
+  Future<_DatosDia> _cargarDia() async {
     final datos = await Sesion.de(context).obtener(
       '/api/v1/agenda',
-      params: {
-        if (_dia case final d?) 'dia': d,
-        if (_especialistaId case final e?) 'especialista': e,
-        if (_estado case final x?) 'estado': x,
-      },
+      params: {'dia': claveDia(_dia)},
     );
-    return _DatosAgenda.desdeJson(datos);
+    return _DatosDia.desdeJson(datos);
+  }
+
+  /// Los conteos del mes visible, para los puntitos del calendario. Se piden
+  /// una vez por mes, no una por día.
+  Future<void> _cargarMes() async {
+    final clave = '${_dia.year}-${_dia.month}';
+    if (clave == _mesCargado) return;
+
+    // Un poco antes y un poco después: el mes en pantalla incluye días
+    // sueltos del mes anterior y del siguiente.
+    final desde = DateTime(_dia.year, _dia.month, 1).subtract(const Duration(days: 7));
+    final hasta = DateTime(_dia.year, _dia.month + 1, 0).add(const Duration(days: 7));
+
+    try {
+      final datos = await Sesion.de(context).obtener(
+        '/api/v1/calendario',
+        params: {'desde': claveDia(desde), 'hasta': claveDia(hasta)},
+      );
+      if (!mounted) return;
+      setState(() {
+        _mesCargado = clave;
+        _conteos = {
+          for (final d in (datos['dias'] as List))
+            (d as Map)['dia'] as String: ConteoDia(
+              citas: d['citas'] as int,
+              porConfirmar: d['porConfirmar'] as int? ?? 0,
+            ),
+        };
+      });
+    } on ErrorApi {
+      // Los puntitos son un adorno útil: si fallan, la agenda sigue sirviendo.
+    }
   }
 
   Future<void> _refrescar() async {
-    final futuro = _cargar();
+    _mesCargado = null;
+    final futuro = _cargarDia();
     setState(() => _futuro = futuro);
-    await futuro;
+    await Future.wait([futuro, _cargarMes()]);
   }
 
-  void _cambiarDia(String dia) {
+  void _irA(DateTime dia) {
     setState(() {
-      _dia = dia;
-      _futuro = _cargar();
+      _dia = DateTime(dia.year, dia.month, dia.day);
+      _futuro = _cargarDia();
     });
+    _cargarMes();
   }
 
-  void _desplazarDia(int dias) {
-    final actual = DateTime.parse(_dia ?? claveDia(DateTime.now()));
-    _cambiarDia(claveDia(actual.add(Duration(days: dias))));
+  void _saltarMes(int meses) {
+    final destino = DateTime(_dia.year, _dia.month + meses, 1);
+    // Al cambiar de mes caemos en el día 1, salvo que sea el mes de hoy.
+    final hoy = _hoy;
+    _irA(
+      destino.year == hoy.year && destino.month == hoy.month ? hoy : destino,
+    );
+  }
+
+  Future<void> _agendar({String? especialistaId}) async {
+    final creada = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => PantallaNuevaCita(
+          diaSugerido: claveDia(_dia),
+          especialistaSugerido: especialistaId,
+        ),
+      ),
+    );
+    if (creada == true) _refrescar();
+  }
+
+  Future<void> _abrirCita(Cita cita) async {
+    final cambio = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => PantallaCitaDetalle(citaId: cita.id)),
+    );
+    if (cambio == true) _refrescar();
   }
 
   @override
   Widget build(BuildContext context) {
-    final negocio = Sesion.catalogo?.negocio;
+    final hoy = _hoy;
+    final esHoy = claveDia(_dia) == claveDia(hoy);
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _agendar(),
+        backgroundColor: Marca.dorado,
+        foregroundColor: Marca.negro,
+        icon: const Icon(Icons.add),
+        label: const Text('Agendar'),
+      ),
       body: SafeArea(
-        child: FutureBuilder<_DatosAgenda>(
-          future: _futuro,
-          builder: (context, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snap.hasError) {
-              return ErrorConReintento(
-                mensaje: snap.error is ErrorApi
-                    ? (snap.error as ErrorApi).mensaje
-                    : 'No pudimos cargar la agenda.',
-                alReintentar: _refrescar,
-              );
-            }
-
-            final datos = snap.data!;
-            return RefreshIndicator(
-              onRefresh: _refrescar,
-              color: Marca.dorado,
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 28),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 6, 12, 0),
+              child: Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Agenda', style: titulo(29)),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            IconButton(
-                              onPressed: () => _desplazarDia(-1),
-                              icon: const Icon(Icons.chevron_left),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                            Expanded(
-                              child: Text(
-                                fechaLarga(DateTime.parse(datos.dia)),
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Marca.textoSuave,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => _desplazarDia(1),
-                              icon: const Icon(Icons.chevron_right),
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ],
+                  IconButton(
+                    onPressed: () => _saltarMes(-1),
+                    icon: const Icon(Icons.chevron_left),
+                    tooltip: 'Mes anterior',
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _mesAbierto = !_mesAbierto),
+                      child: Text(
+                        mesYAno(_dia),
+                        textAlign: TextAlign.center,
+                        style: titulo(23),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _saltarMes(1),
+                    icon: const Icon(Icons.chevron_right),
+                    tooltip: 'Mes siguiente',
+                  ),
+                  if (!esHoy)
+                    TextButton(
+                      onPressed: () => _irA(hoy),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        minimumSize: const Size(0, 36),
+                      ),
+                      child: const Text('Hoy'),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Calendario(
+                seleccionado: _dia,
+                hoy: hoy,
+                conteos: _conteos,
+                expandido: _mesAbierto,
+                alElegir: _irA,
+                alAlternar: () => setState(() => _mesAbierto = !_mesAbierto),
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: FutureBuilder<_DatosDia>(
+                future: _futuro,
+                builder: (context, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snap.hasError) {
+                    return ErrorConReintento(
+                      mensaje: snap.error is ErrorApi
+                          ? (snap.error as ErrorApi).mensaje
+                          : 'No pudimos cargar la agenda.',
+                      alReintentar: _refrescar,
+                    );
+                  }
+
+                  final datos = snap.data!;
+                  final horario =
+                      Sesion.catalogo?.horarioDe(_dia) ??
+                          HorarioDia(
+                            dia: _dia.weekday % 7,
+                            abierto: true,
+                            desde: '09:00',
+                            hasta: '18:00',
+                          );
+
+                  if (!horario.abierto && datos.citas.isEmpty) {
+                    return _Cerrado(dia: _dia, alAgendar: () => _agendar());
+                  }
+
+                  return Column(
+                    children: [
+                      _Cabecera(
+                        fecha: _dia,
+                        datos: datos,
+                        especialistas: datos.especialistas,
+                      ),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: _refrescar,
+                          color: Marca.dorado,
+                          child: RejillaDia(
+                            fecha: _dia,
+                            citas: datos.citas,
+                            especialistas: datos.especialistas,
+                            horario: horario,
+                            alTocarCita: _abrirCita,
+                            alTocarHueco: (_) => _agendar(),
+                          ),
                         ),
-                        const SizedBox(height: 10),
-                        FilledButton.icon(
-                          onPressed: () async {
-                            final creada = await Navigator.push<bool>(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PantallaNuevaCita(diaSugerido: datos.dia),
-                              ),
-                            );
-                            if (creada == true) _refrescar();
-                          },
-                          icon: const Icon(Icons.calendar_month_outlined),
-                          label: const Text('Agendar una cita'),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// El resumen del día y los nombres de las columnas, alineados con la rejilla.
+class _Cabecera extends StatelessWidget {
+  const _Cabecera({
+    required this.fecha,
+    required this.datos,
+    required this.especialistas,
+  });
+
+  final DateTime fecha;
+  final _DatosDia datos;
+  final List<Especialista> especialistas;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 12, 8),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Marca.borde)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  fechaLarga(fecha),
+                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                ),
+              ),
+              Text(
+                datos.citas.isEmpty
+                    ? 'Sin citas'
+                    : '${datos.total} '
+                        '${datos.total == 1 ? 'cita' : 'citas'}'
+                        '${datos.porConfirmar > 0 ? ' · ${datos.porConfirmar} por confirmar' : ''}'
+                        ' · ${dinero(datos.previstoCentavos)}',
+                style: const TextStyle(fontSize: 12, color: Marca.textoSuave),
+              ),
+            ],
+          ),
+          if (especialistas.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                // El mismo hueco que ocupa la columna de horas en la rejilla.
+                const SizedBox(width: 38),
+                for (final persona in especialistas)
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Marca.desdeHex(persona.color),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            persona.nombre,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  TiraDias(
-                    dias: datos.semana,
-                    diaActivo: datos.dia,
-                    hoy: datos.hoy,
-                    alElegir: _cambiarDia,
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      datos.resumen,
-                      style: const TextStyle(color: Marca.textoSuave, fontSize: 13.5),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  _Filtros(
-                    especialistas: datos.especialistas,
-                    especialistaId: _especialistaId,
-                    estado: _estado,
-                    alCambiarEspecialista: (id) => setState(() {
-                      _especialistaId = id;
-                      _futuro = _cargar();
-                    }),
-                    alCambiarEstado: (estado) => setState(() {
-                      _estado = estado;
-                      _futuro = _cargar();
-                    }),
-                  ),
-                  const SizedBox(height: 12),
-                  if (datos.citas.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: const Vacio(
-                        icono: Icons.event_busy_outlined,
-                        titulo: 'No hay citas ese día',
-                        descripcion: 'Cuando agendes, aparecerán aquí ordenadas por hora.',
-                      ),
-                    )
-                  else
-                    ...datos.citas.map(
-                      (cita) => Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        child: TarjetaCita(
-                          cita: cita,
-                          negocio: negocio?.nombre ?? 'Arialé Studio',
-                          prefijo: negocio?.prefijo ?? '+58',
-                          alTocar: () async {
-                            final cambio = await Navigator.push<bool>(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PantallaCitaDetalle(citaId: cita.id),
-                              ),
-                            );
-                            if (cambio == true) _refrescar();
-                          },
-                        ),
-                      ),
-                    ),
-                  if (datos.citas.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-                      child: Text(
-                        'Previsto del día: ${dinero(datos.previstoCentavos)}',
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(color: Marca.textoSuave, fontSize: 13),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          },
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Cerrado extends StatelessWidget {
+  const _Cerrado({required this.dia, required this.alAgendar});
+
+  final DateTime dia;
+  final VoidCallback alAgendar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.bedtime_outlined, size: 36, color: Marca.textoSuave),
+            const SizedBox(height: 12),
+            Text('El estudio está cerrado', style: titulo(21)),
+            const SizedBox(height: 4),
+            Text(
+              fechaLarga(dia),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13.5, color: Marca.textoSuave),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: alAgendar,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Agendar de todos modos'),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _Filtros extends StatelessWidget {
-  const _Filtros({
-    required this.especialistas,
-    required this.especialistaId,
-    required this.estado,
-    required this.alCambiarEspecialista,
-    required this.alCambiarEstado,
-  });
-
-  final List<Especialista> especialistas;
-  final String? especialistaId;
-  final String? estado;
-  final ValueChanged<String?> alCambiarEspecialista;
-  final ValueChanged<String?> alCambiarEstado;
-
-  static const _estados = [
-    ('PENDING', 'Por confirmar'),
-    ('CONFIRMED', 'Confirmada'),
-    ('ATTENDED', 'Atendida'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (especialistas.length > 1)
-          SizedBox(
-            height: 38,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _Pastilla(
-                  texto: 'Todo el equipo',
-                  activa: especialistaId == null,
-                  alTocar: () => alCambiarEspecialista(null),
-                ),
-                for (final e in especialistas)
-                  _Pastilla(
-                    texto: e.nombre,
-                    color: Marca.desdeHex(e.color),
-                    activa: especialistaId == e.id,
-                    alTocar: () => alCambiarEspecialista(e.id),
-                  ),
-              ],
-            ),
-          ),
-        const SizedBox(height: 6),
-        SizedBox(
-          height: 38,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              _Pastilla(
-                texto: 'Todas',
-                activa: estado == null,
-                alTocar: () => alCambiarEstado(null),
-              ),
-              for (final (valor, etiqueta) in _estados)
-                _Pastilla(
-                  texto: etiqueta,
-                  activa: estado == valor,
-                  alTocar: () => alCambiarEstado(valor),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Pastilla extends StatelessWidget {
-  const _Pastilla({
-    required this.texto,
-    required this.activa,
-    required this.alTocar,
-    this.color,
-  });
-
-  final String texto;
-  final bool activa;
-  final VoidCallback alTocar;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Material(
-        color: activa ? Marca.dorado : Marca.tarjeta,
-        borderRadius: BorderRadius.circular(999),
-        child: InkWell(
-          onTap: alTocar,
-          borderRadius: BorderRadius.circular(999),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: activa ? Marca.dorado : Marca.borde),
-            ),
-            child: Row(
-              children: [
-                if (color != null) ...[
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 7),
-                ],
-                Text(
-                  texto,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: activa ? Marca.negro : Marca.texto,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DatosAgenda {
-  _DatosAgenda({
-    required this.dia,
-    required this.hoy,
+class _DatosDia {
+  _DatosDia({
     required this.citas,
-    required this.semana,
     required this.especialistas,
+    required this.total,
+    required this.porConfirmar,
     required this.previstoCentavos,
-    required this.resumen,
   });
 
-  final String dia;
-  final String hoy;
   final List<Cita> citas;
-  final List<DiaResumen> semana;
   final List<Especialista> especialistas;
+  final int total;
+  final int porConfirmar;
   final int previstoCentavos;
-  final String resumen;
 
-  factory _DatosAgenda.desdeJson(Map<String, dynamic> j) {
-    final c = j['contadores'] as Map<String, dynamic>;
-    final total = c['total'] as int;
-    final porConfirmar = c['porConfirmar'] as int;
-    final atendidas = c['atendidas'] as int;
-
-    final partes = <String>[
-      '$total ${total == 1 ? 'cita' : 'citas'}',
-      if (porConfirmar > 0) '$porConfirmar por confirmar',
-      if (atendidas > 0) '$atendidas atendidas',
-    ];
-
-    return _DatosAgenda(
-      dia: j['dia'] as String,
-      hoy: j['hoy'] as String,
-      previstoCentavos: j['previstoCentavos'] as int,
-      resumen: total == 0 ? 'Sin citas ese día' : partes.join(' · '),
+  factory _DatosDia.desdeJson(Map<String, dynamic> j) {
+    final contadores = j['contadores'] as Map<String, dynamic>;
+    return _DatosDia(
       citas: [
-        for (final x in (j['citas'] as List)) Cita.desdeJson(x as Map<String, dynamic>),
-      ],
-      semana: [
-        for (final x in (j['semana'] as List))
-          DiaResumen.desdeJson(x as Map<String, dynamic>),
+        for (final c in (j['citas'] as List)) Cita.desdeJson(c as Map<String, dynamic>),
       ],
       especialistas: [
-        for (final x in (j['especialistas'] as List))
+        for (final e in (j['especialistas'] as List))
           Especialista(
-            id: (x as Map)['id'] as String,
-            nombre: x['nombre'] as String,
-            color: x['color'] as String,
+            id: (e as Map)['id'] as String,
+            nombre: e['nombre'] as String,
+            color: e['color'] as String,
             servicioIds: const [],
           ),
       ],
+      total: contadores['total'] as int,
+      porConfirmar: contadores['porConfirmar'] as int,
+      previstoCentavos: j['previstoCentavos'] as int,
     );
   }
 }

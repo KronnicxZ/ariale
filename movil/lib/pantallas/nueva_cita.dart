@@ -12,9 +12,17 @@ import 'elegir_clienta.dart';
 /// Los huecos los calcula el servidor con las mismas reglas que la web, así
 /// que la app nunca ofrece una hora que luego se rechace.
 class PantallaNuevaCita extends StatefulWidget {
-  const PantallaNuevaCita({super.key, this.diaSugerido, this.clientaPreseleccionada});
+  const PantallaNuevaCita({
+    super.key,
+    this.diaSugerido,
+    this.especialistaSugerido,
+    this.clientaPreseleccionada,
+  });
 
   final String? diaSugerido;
+
+  /// Al tocar la columna de alguien en el calendario, viene ya elegida.
+  final String? especialistaSugerido;
   final ClientaElegida? clientaPreseleccionada;
 
   @override
@@ -44,7 +52,8 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     _clienta = widget.clientaPreseleccionada;
     _dia = widget.diaSugerido ?? _catalogo.hoy;
     final elegibles = _especialistasElegibles;
-    _especialistaId = elegibles.isEmpty ? null : elegibles.first.id;
+    _especialistaId = widget.especialistaSugerido ??
+        (elegibles.isEmpty ? null : elegibles.first.id);
   }
 
   @override

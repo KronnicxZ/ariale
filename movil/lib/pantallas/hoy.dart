@@ -11,9 +11,14 @@ import 'nueva_cita.dart';
 
 /// Pantalla de arranque: el día de hoy manda, el dinero va resumido.
 class PantallaHoy extends StatefulWidget {
-  const PantallaHoy({super.key, required this.alIrAAgenda});
+  const PantallaHoy({
+    super.key,
+    required this.alIrAAgenda,
+    required this.alIrACobrar,
+  });
 
   final void Function(String dia) alIrAAgenda;
+  final VoidCallback alIrACobrar;
 
   @override
   State<PantallaHoy> createState() => _PantallaHoyState();
@@ -104,8 +109,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                               icono: Icons.schedule,
                               color: Marca.dorado,
                               texto: '${datos.porConfirmar} '
-                                  '${datos.porConfirmar == 1 ? 'cita espera' : 'citas esperan'}'
-                                  ' tu confirmación',
+                                  '${datos.porConfirmar == 1 ? 'cita sin confirmar' : 'citas sin confirmar'}',
                               alTocar: () => widget.alIrAAgenda(datos.hoy),
                             ),
                           if (datos.porConfirmar > 0 && datos.vencidas > 0)
@@ -114,7 +118,10 @@ class _PantallaHoyState extends State<PantallaHoy> {
                             Aviso(
                               icono: Icons.warning_amber_rounded,
                               color: Marca.alerta,
-                              texto: '${datos.vencidas} por cobrar vencidas',
+                              texto: '${datos.vencidas} '
+                                  '${datos.vencidas == 1 ? 'clienta te debe' : 'clientas te deben'}'
+                                  ' desde hace tiempo',
+                              alTocar: widget.alIrACobrar,
                             ),
                         ],
                       ],
@@ -140,7 +147,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                             datos.total == 0
                                 ? 'Sin citas'
                                 : '${datos.total} ${datos.total == 1 ? 'cita' : 'citas'} · '
-                                    '${dinero(datos.previstoCentavos)} previstos',
+                                    '${dinero(datos.previstoCentavos)}',
                             textAlign: TextAlign.right,
                             style: const TextStyle(
                               color: Marca.textoSuave,

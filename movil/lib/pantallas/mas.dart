@@ -38,7 +38,7 @@ class PantallaMas extends StatelessWidget {
               _Entrada(
                 icono: Icons.receipt_long_outlined,
                 rotulo: 'Ventas',
-                apoyo: 'Lo facturado y lo cobrado',
+                apoyo: 'Lo que vendiste y lo que te pagaron',
                 crear: PantallaVentas.new,
               ),
               _Entrada(
@@ -50,7 +50,7 @@ class PantallaMas extends StatelessWidget {
               _Entrada(
                 icono: Icons.inventory_2_outlined,
                 rotulo: 'Compras y pagos',
-                apoyo: 'Material y cuentas por pagar',
+                apoyo: 'Material y lo que le debes a alguien',
                 crear: PantallaCompras.new,
               ),
               _Entrada(

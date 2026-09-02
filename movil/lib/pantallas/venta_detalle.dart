@@ -186,10 +186,10 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                             dinero(venta.totalCentavos),
                             destacado: true,
                           ),
-                          FilaDato('Cobrado', dinero(venta.cobradoCentavos)),
+                          FilaDato('Ya pagó', dinero(venta.cobradoCentavos)),
                           if (venta.saldoCentavos > 0)
                             FilaDato(
-                              'Saldo',
+                              'Le falta pagar',
                               dinero(venta.saldoCentavos),
                               destacado: true,
                               color: Marca.error,
@@ -213,7 +213,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                           child: FilledButton.icon(
                             onPressed: () => _abonar(venta),
                             icon: const Icon(Icons.payments_outlined, size: 20),
-                            label: const Text('Cobrar'),
+                            label: const Text('Me pagó'),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -341,13 +341,13 @@ class _DialogoAbonoState extends State<_DialogoAbono> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Registrar cobro'),
+      title: const Text('¿Cuánto te pagó?'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Saldo pendiente: ${dinero(widget.saldoCentavos)}',
+            'Le falta pagar ${dinero(widget.saldoCentavos)}',
             style: const TextStyle(fontSize: 13, color: Marca.textoSuave),
           ),
           const SizedBox(height: 14),

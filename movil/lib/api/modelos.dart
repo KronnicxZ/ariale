@@ -13,6 +13,7 @@ class Cita {
     required this.clientaId,
     required this.clientaNombre,
     required this.clientaTelefono,
+    required this.especialistaId,
     required this.especialistaNombre,
     required this.especialistaColor,
     required this.servicios,
@@ -30,6 +31,7 @@ class Cita {
   final String clientaId;
   final String clientaNombre;
   final String clientaTelefono;
+  final String especialistaId;
   final String especialistaNombre;
   final String especialistaColor;
   final List<String> servicios;
@@ -54,6 +56,7 @@ class Cita {
         clientaId: (j['clienta'] as Map)['id'] as String,
         clientaNombre: (j['clienta'] as Map)['nombre'] as String,
         clientaTelefono: (j['clienta'] as Map)['telefono'] as String,
+        especialistaId: (j['especialista'] as Map)['id'] as String,
         especialistaNombre: (j['especialista'] as Map)['nombre'] as String,
         especialistaColor: (j['especialista'] as Map)['color'] as String,
         servicios: [
@@ -227,6 +230,43 @@ class Negocio {
       );
 }
 
+/// Un día de la semana en el horario del estudio.
+class HorarioDia {
+  HorarioDia({
+    required this.dia,
+    required this.abierto,
+    required this.desde,
+    required this.hasta,
+  });
+
+  /// 0 = domingo, como en Dart y como en la base de datos.
+  final int dia;
+  final bool abierto;
+
+  /// "09:00" y "18:00".
+  final String desde;
+  final String hasta;
+
+  int get desdeMin => _aMinutos(desde, 9 * 60);
+  int get hastaMin => _aMinutos(hasta, 18 * 60);
+
+  static int _aMinutos(String texto, int alterno) {
+    final partes = texto.split(':');
+    if (partes.length != 2) return alterno;
+    final h = int.tryParse(partes[0]);
+    final m = int.tryParse(partes[1]);
+    if (h == null || m == null) return alterno;
+    return h * 60 + m;
+  }
+
+  factory HorarioDia.desdeJson(Map<String, dynamic> j) => HorarioDia(
+        dia: j['dia'] as int,
+        abierto: j['abierto'] as bool? ?? true,
+        desde: j['desde'] as String? ?? '09:00',
+        hasta: j['hasta'] as String? ?? '18:00',
+      );
+}
+
 class Catalogo {
   Catalogo({
     required this.hoy,
@@ -234,6 +274,7 @@ class Catalogo {
     required this.negocio,
     required this.servicios,
     required this.especialistas,
+    required this.horario,
     required this.tasa,
   });
 
@@ -242,7 +283,14 @@ class Catalogo {
   final Negocio negocio;
   final List<Servicio> servicios;
   final List<Especialista> especialistas;
+  final List<HorarioDia> horario;
   final double tasa;
+
+  /// El horario de un día concreto; si falta, se asume abierto 9–18.
+  HorarioDia horarioDe(DateTime fecha) => horario.firstWhere(
+        (h) => h.dia == fecha.weekday % 7,
+        orElse: () => HorarioDia(dia: fecha.weekday % 7, abierto: true, desde: '09:00', hasta: '18:00'),
+      );
 
   factory Catalogo.desdeJson(Map<String, dynamic> j) => Catalogo(
         hoy: j['hoy'] as String,
@@ -256,6 +304,10 @@ class Catalogo {
         especialistas: [
           for (final e in (j['especialistas'] as List))
             Especialista.desdeJson(e as Map<String, dynamic>),
+        ],
+        horario: [
+          for (final h in (j['horario'] as List? ?? const []))
+            HorarioDia.desdeJson(h as Map<String, dynamic>),
         ],
       );
 }

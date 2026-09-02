@@ -107,12 +107,13 @@ async function main() {
   });
 
   console.log("Especialistas…");
-  const [ariale, asistente] = await Promise.all([
+  // El estudio son dos: Alejandra lleva uñas y Arianny, depilación.
+  const [alejandra, arianny] = await Promise.all([
     prisma.specialist.create({
-      data: { name: "Arialé", slug: "ariale", pin: "1234", color: "#E9B21C", phone: "04241354645" },
+      data: { name: "Alejandra", slug: "alejandra", pin: "1234", color: "#E9B21C", phone: "04241354645" },
     }),
     prisma.specialist.create({
-      data: { name: "Andreína", slug: "andreina", pin: "2468", color: "#BDAEDC", phone: "04141234567" },
+      data: { name: "Arianny", slug: "arianny", pin: "2468", color: "#BDAEDC", phone: "04141234567" },
     }),
   ]);
 
@@ -295,13 +296,15 @@ async function main() {
     return found;
   };
 
-  // Arialé hace de todo; Andreína lleva depilación y esmaltado.
+  // Alejandra lleva uñas y pies; Arianny, todo lo de depilación.
   const depServices = services.filter((s) => s.categoryId === depilacion.id);
+  const nailServices = services.filter((s) => s.categoryId !== depilacion.id);
   await prisma.specialistService.createMany({
     data: [
-      ...services.map((s) => ({ specialistId: ariale.id, serviceId: s.id })),
-      ...depServices.map((s) => ({ specialistId: asistente.id, serviceId: s.id })),
-      { specialistId: asistente.id, serviceId: byName("Esmaltado Semipermanente").id },
+      ...nailServices.map((s) => ({ specialistId: alejandra.id, serviceId: s.id })),
+      ...depServices.map((s) => ({ specialistId: arianny.id, serviceId: s.id })),
+      // Las cejas las hacen las dos: es lo que más se pide.
+      { specialistId: alejandra.id, serviceId: byName("Diseño + Depilación de cejas").id },
     ],
   });
 
@@ -354,19 +357,17 @@ async function main() {
   });
 
   console.log("Clientas…");
+  // Tres clientas de prueba: lo justo para ver cómo se comporta el panel
+  // sin que parezca una agenda que no es la del estudio.
   const clientSeed = [
     { name: "Camila Reyes", phone: "4241112233", email: "camila@gmail.com" },
-    { name: "Daniela Cruz", phone: "4142223344", instagram: "danicruz" },
-    { name: "Elena Vargas", phone: "4123334455" },
-    { name: "Laura Méndez", phone: "4264445566", email: "laura.m@gmail.com" },
-    { name: "Andrea Salas", phone: "4145556677" },
-    { name: "Patricia Gómez", phone: "4246667788", allergies: "Sensible a la cera caliente" },
+    {
+      name: "Daniela Cruz",
+      phone: "4142223344",
+      instagram: "danicruz",
+      allergies: "Sensible a la cera caliente",
+    },
     { name: "Verónica Silva", phone: "4127778899" },
-    { name: "Mariana Ortiz", phone: "4248889900" },
-    { name: "Sofía Herrera", phone: "4149990011" },
-    { name: "Isabella Torres", phone: "4241010102" },
-    { name: "Carolina Martínez", phone: "4141720099" },
-    { name: "Ángela Rivas", phone: "4142658907" },
   ];
   const clients: { id: string; name: string; phone: string }[] = [];
   for (const [i, data] of clientSeed.entries()) {
@@ -375,7 +376,7 @@ async function main() {
         data: {
           ...data,
           birthday: caracas(1995, ((i * 3) % 12) + 1, ((i * 5) % 27) + 1),
-          createdAt: daysAgo(120 - i * 8),
+          createdAt: daysAgo(90 - i * 25),
         },
       }),
     );
@@ -530,8 +531,9 @@ async function main() {
   const visits: Visit[] = [];
   const OPEN_MIN = 9 * 60;
 
-  // 60 días de historial + los próximos 7.
-  for (let offset = -60; offset <= 7; offset++) {
+  // Dos meses de historial + los próximos diez días. Hacen falta los dos:
+  // los reportes de 30 días se comparan con los 30 anteriores.
+  for (let offset = -63; offset <= 10; offset++) {
     const date = new Date(Date.now() + offset * 86_400_000);
     if (date.getDay() === 0) continue; // domingo cerrado
     const saturday = date.getDay() === 6;
@@ -539,11 +541,13 @@ async function main() {
     const past = offset < 0;
 
     for (const person of [
-      { id: ariale.id, combos: [...NAIL_COMBOS, ...WAX_COMBOS] },
-      { id: asistente.id, combos: WAX_COMBOS },
+      { id: alejandra.id, combos: NAIL_COMBOS },
+      { id: arianny.id, combos: WAX_COMBOS },
     ]) {
       let cursor = OPEN_MIN + Math.floor(rand() * 3) * 30;
-      const target = saturday ? 2 + Math.floor(rand() * 2) : 3 + Math.floor(rand() * 3);
+      // Dos o tres citas al día por persona: el ritmo real de un estudio
+      // de dos manos, y una agenda que se lee de un vistazo.
+      const target = saturday ? 2 : 2 + Math.floor(rand() * 2);
 
       for (let i = 0; i < target; i++) {
         const serviceNames = pick(person.combos);
@@ -571,7 +575,7 @@ async function main() {
           note: past ? undefined : (pick(NOTES) ?? undefined),
         });
 
-        cursor += duration + 15;
+        cursor += duration + 30;
       }
     }
   }
@@ -584,7 +588,7 @@ async function main() {
       number: saleNumber++,
       date: daysAgo(35, 14),
       clientId: clients[1].id,
-      specialistId: asistente.id,
+      specialistId: arianny.id,
       subtotalCents: bonoPiernas.priceCents,
       totalCents: bonoPiernas.priceCents,
       paidCents: bonoPiernas.priceCents,
@@ -618,7 +622,7 @@ async function main() {
   });
   await prisma.clientPackage.create({
     data: {
-      clientId: clients[4].id,
+      clientId: clients[2].id,
       packageId: bonoAxilas.id,
       purchasedAt: daysAgo(20),
       expiresAt: daysAhead(345),
@@ -661,8 +665,8 @@ async function main() {
       { categoryId: expenseCats[2].id, description: "Electricidad e internet", amountCents: 3800, date: daysAgo(base + 18) },
       { categoryId: expenseCats[3].id, description: "Pauta en Instagram", amountCents: 2500, date: daysAgo(base + 14) },
       { categoryId: expenseCats[0].id, description: "Algodón, guantes y desinfectante", amountCents: 2600, date: daysAgo(base + 10) },
-      { categoryId: expenseCats[4].id, description: "Comisión Andreína — quincena", amountCents: 9000, date: daysAgo(base + 7) },
-      { categoryId: expenseCats[4].id, description: "Comisión Andreína — quincena", amountCents: 9500, date: daysAgo(base) },
+      { categoryId: expenseCats[4].id, description: "Comisión Arianny — quincena", amountCents: 9000, date: daysAgo(base + 7) },
+      { categoryId: expenseCats[4].id, description: "Comisión Arianny — quincena", amountCents: 9500, date: daysAgo(base) },
       { categoryId: expenseCats[2].id, description: "Agua potable y aseo", amountCents: 1600, date: daysAgo(base + 4) },
     );
   }
@@ -691,7 +695,7 @@ async function main() {
     ventas: await prisma.sale.count(),
   });
   console.log("\n  Panel:  admin@arialestudio.com / ariale2026");
-  console.log("  Agenda: /agenda/ariale con PIN 1234\n");
+  console.log("  Agenda: /agenda/alejandra con PIN 1234\n");
 }
 
 main()
