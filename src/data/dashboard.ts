@@ -122,9 +122,16 @@ export async function getDashboard(period: Period, tz = TZ) {
   const receivableCents = receivable.reduce((sum, s) => sum + s.totalCents - s.paidCents, 0);
   const payableCents = payable.reduce((sum, p) => sum + p.totalCents - p.paidCents, 0);
 
-  // Un estudio que abrió hace tres semanas no tiene con qué compararse:
-  // enseñarle "+1400%" es peor que no enseñarle nada.
-  const hayConQueComparar = previous.salesCount >= 5;
+  // Solo comparamos contra un periodo que el estudio vivió entero con la
+  // app puesta. Si el periodo anterior empieza antes de la primera venta
+  // registrada, la comparación es contra un vacío y sale "+1400%".
+  const primera = await prisma.sale.findFirst({
+    where: { status: { not: "CANCELLED" } },
+    orderBy: { date: "asc" },
+    select: { date: true },
+  });
+  const hayConQueComparar =
+    previous.salesCount >= 5 && primera != null && primera.date <= prev.from;
 
   return {
     kpis: current,

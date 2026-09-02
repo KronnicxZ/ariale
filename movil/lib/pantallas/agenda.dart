@@ -410,10 +410,14 @@ class _DatosDia {
 
   factory _DatosDia.desdeJson(Map<String, dynamic> j) {
     final contadores = j['contadores'] as Map<String, dynamic>;
+
+    // Una cita cancelada no ocupa sitio: ese hueco está libre de verdad.
+    final citas = [
+      for (final c in (j['citas'] as List)) Cita.desdeJson(c as Map<String, dynamic>),
+    ]..removeWhere((cita) => cita.cancelada);
+
     return _DatosDia(
-      citas: [
-        for (final c in (j['citas'] as List)) Cita.desdeJson(c as Map<String, dynamic>),
-      ],
+      citas: citas,
       especialistas: [
         for (final e in (j['especialistas'] as List))
           Especialista(
@@ -423,7 +427,8 @@ class _DatosDia {
             servicioIds: const [],
           ),
       ],
-      total: contadores['total'] as int,
+      // El número que se enseña es el de citas que de verdad se pintan.
+      total: citas.length,
       porConfirmar: contadores['porConfirmar'] as int,
       previstoCentavos: j['previstoCentavos'] as int,
     );

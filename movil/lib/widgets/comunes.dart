@@ -4,7 +4,8 @@ import '../api/modelos.dart';
 import '../formato.dart';
 import '../tema.dart';
 
-/// Etiqueta de estado de una cita o una venta.
+/// Etiqueta de estado de una cita o una venta. Plana y pequeña: informa,
+/// no grita.
 class Etiqueta extends StatelessWidget {
   const Etiqueta(this.texto, {super.key, required this.color});
 
@@ -15,7 +16,7 @@ class Etiqueta extends StatelessWidget {
     final (texto, color) = switch (estado) {
       'PENDING' => ('Por confirmar', Marca.alerta),
       'CONFIRMED' => ('Confirmada', Marca.exito),
-      'ATTENDED' => ('Atendida', Marca.dorado),
+      'ATTENDED' => ('Atendida', Marca.textoSuave),
       'CANCELLED' => ('Cancelada', Marca.textoSuave),
       'NO_SHOW' => ('No asistió', Marca.error),
       _ => (estado, Marca.textoSuave),
@@ -37,20 +38,27 @@ class Etiqueta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.13),
-        borderRadius: BorderRadius.circular(999),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(7),
       ),
       child: Text(
         texto,
-        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: color),
+        style: TextStyle(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.1,
+          color: color,
+        ),
       ),
     );
   }
 }
 
-/// Aviso que solo aparece cuando hay algo que atender.
+/// Aviso que solo aparece cuando hay algo que atender. Es una fila blanca
+/// con su icono a color, como una celda de lista: se lee sin esfuerzo y no
+/// tiñe media pantalla.
 class Aviso extends StatelessWidget {
   const Aviso({
     super.key,
@@ -68,20 +76,29 @@ class Aviso extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(16),
+      color: Marca.tarjeta,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: alTocar,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
           child: Row(
             children: [
-              Icon(icono, size: 18, color: color),
-              const SizedBox(width: 10),
-              Expanded(child: Text(texto, style: const TextStyle(fontSize: 14))),
+              Icon(icono, size: 19, color: color),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Text(
+                  texto,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
               if (alTocar != null)
-                const Icon(Icons.arrow_forward, size: 16, color: Marca.textoSuave),
+                const Icon(Icons.chevron_right, size: 20, color: Marca.textoTenue),
             ],
           ),
         ),
@@ -107,27 +124,26 @@ class Vacio extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 44),
-      decoration: BoxDecoration(
-        border: Border.all(color: Marca.borde),
-        borderRadius: BorderRadius.circular(18),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 52),
       child: Column(
         children: [
-          Icon(icono, size: 34, color: Marca.textoSuave.withValues(alpha: 0.5)),
-          const SizedBox(height: 12),
-          Text(titulo, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+          Icon(icono, size: 30, color: Marca.textoTenue),
+          const SizedBox(height: 14),
+          Text(
+            titulo,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              letterSpacing: -0.3,
+            ),
+          ),
           if (descripcion != null) ...[
             const SizedBox(height: 6),
-            Text(
-              descripcion!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Marca.textoSuave, fontSize: 13.5),
-            ),
+            Text(descripcion!, textAlign: TextAlign.center, style: sutil(13.5)),
           ],
-          if (accion != null) ...[const SizedBox(height: 16), accion!],
+          if (accion != null) ...[const SizedBox(height: 18), accion!],
         ],
       ),
     );
@@ -149,13 +165,9 @@ class ErrorConReintento extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off, size: 38, color: Marca.textoSuave),
+            const Icon(Icons.cloud_off, size: 30, color: Marca.textoTenue),
             const SizedBox(height: 14),
-            Text(
-              mensaje,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Marca.textoSuave, fontSize: 14),
-            ),
+            Text(mensaje, textAlign: TextAlign.center, style: sutil(14)),
             const SizedBox(height: 18),
             OutlinedButton.icon(
               onPressed: alReintentar,
@@ -189,29 +201,25 @@ class TiraDias extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 82,
+      height: 76,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
         itemCount: dias.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 6),
         itemBuilder: (context, i) {
           final dia = dias[i];
           final activo = dia.dia == diaActivo;
           final esHoy = dia.dia == hoy;
 
           return Material(
-            color: activo ? Marca.dorado : Marca.tarjeta,
-            borderRadius: BorderRadius.circular(16),
+            color: activo ? Marca.texto : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
             child: InkWell(
               onTap: () => alElegir(dia.dia),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: 68,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: activo ? Marca.dorado : Marca.borde),
-                ),
+              borderRadius: BorderRadius.circular(18),
+              child: SizedBox(
+                width: 56,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -220,24 +228,30 @@ class TiraDias extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                        color: activo ? Marca.negro.withValues(alpha: 0.7) : Marca.textoSuave,
+                        letterSpacing: 0.6,
+                        color: activo ? Colors.white70 : Marca.textoTenue,
                       ),
                     ),
+                    const SizedBox(height: 3),
                     Text(
                       '${dia.numero}',
-                      style: cifra(21, color: activo ? Marca.negro : Marca.texto),
+                      style: cifra(
+                        20,
+                        color: activo ? Colors.white : Marca.texto,
+                        peso: FontWeight.w600,
+                      ),
                     ),
+                    const SizedBox(height: 3),
                     Text(
-                      dia.citas > 0 ? '${dia.citas} cita${dia.citas == 1 ? '' : 's'}' : 'Libre',
+                      dia.citas > 0 ? '${dia.citas}' : '—',
                       style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: dia.citas > 0 ? FontWeight.w600 : FontWeight.w400,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                         color: activo
-                            ? Marca.negro.withValues(alpha: 0.7)
+                            ? Colors.white70
                             : dia.citas > 0
-                                ? Marca.dorado
-                                : Marca.textoSuave.withValues(alpha: 0.7),
+                                ? Marca.textoSuave
+                                : Marca.textoTenue,
                       ),
                     ),
                   ],
@@ -251,7 +265,8 @@ class TiraDias extends StatelessWidget {
   }
 }
 
-/// Una cita en la lista del día. Es la pieza más usada de la app.
+/// Una cita en la lista del día. Es la pieza más usada de la app: hora a la
+/// izquierda, nombre en negrita y el resto en gris, como una celda de iOS.
 class TarjetaCita extends StatelessWidget {
   const TarjetaCita({
     super.key,
@@ -273,146 +288,123 @@ class TarjetaCita extends StatelessWidget {
     final color = Marca.desdeHex(cita.especialistaColor);
 
     return Opacity(
-      opacity: cita.cancelada || cita.atendida ? 0.65 : 1,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Marca.tarjeta,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: esProxima ? Marca.dorado : Marca.borde,
-            width: esProxima ? 2 : 1,
-          ),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: alTocar,
-            borderRadius: BorderRadius.circular(18),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 66,
-                    child: Column(
-                      children: [
-                        Text(hora(cita.inicio), style: cifra(15)),
-                        const SizedBox(height: 2),
+      opacity: cita.cancelada ? 0.5 : 1,
+      child: Material(
+        color: Marca.tarjeta,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: alTocar,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: esProxima
+                  ? Border.all(color: Marca.dorado, width: 1.5)
+                  : null,
+            ),
+            padding: const EdgeInsets.fromLTRB(14, 13, 10, 13),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 74,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(hora(cita.inicio), style: cifra(15.5)),
+                      const SizedBox(height: 1),
+                      Text(duracion(cita.duracionMin), style: sutil(11.5)),
+                      if (esProxima) ...[
+                        const SizedBox(height: 6),
                         Text(
-                          duracion(cita.duracionMin),
-                          style: const TextStyle(fontSize: 11, color: Marca.textoSuave),
+                          'AHORA',
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                            color: Marca.dorado,
+                          ),
                         ),
-                        if (esProxima) ...[
-                          const SizedBox(height: 5),
+                      ],
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            width: 7,
+                            height: 7,
+                            margin: const EdgeInsets.only(right: 7),
                             decoration: BoxDecoration(
-                              color: Marca.dorado.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(999),
+                              color: color,
+                              shape: BoxShape.circle,
                             ),
-                            child: const Text(
-                              'Ahora',
+                          ),
+                          Flexible(
+                            child: Text(
+                              cita.clientaNombre,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w700,
-                                color: Marca.negro,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15.5,
+                                letterSpacing: -0.3,
+                                decoration:
+                                    cita.cancelada ? TextDecoration.lineThrough : null,
                               ),
                             ),
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: 3,
-                    height: 52,
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                cita.clientaNombre,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                  decoration:
-                                      cita.cancelada ? TextDecoration.lineThrough : null,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
+                          if (cita.porConfirmar) ...[
+                            const SizedBox(width: 7),
                             Etiqueta.cita(cita.estado),
                           ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          cita.resumenServicios,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 13.5, color: Marca.textoSuave),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${cita.especialistaNombre} · ${dinero(cita.totalCentavos)}'
-                          '${cita.cobrada ? ' · cobrada' : ''}',
-                          style: const TextStyle(fontSize: 12, color: Marca.textoSuave),
-                        ),
-                        if (cita.nota != null && cita.nota!.isNotEmpty) ...[
-                          const SizedBox(height: 5),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.sticky_note_2_outlined,
-                                  size: 13, color: Marca.textoSuave),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: Text(
-                                  cita.nota!,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontStyle: FontStyle.italic,
-                                    color: Marca.textoSuave,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Escribir por WhatsApp',
-                    onPressed: () => abrirWhatsApp(
-                      cita.clientaTelefono,
-                      Mensajes.citaConfirmada(
-                        clienta: cita.clientaNombre,
-                        cuando: cita.inicio,
-                        servicios: cita.resumenServicios,
-                        negocio: negocio,
-                        totalCentavos: cita.totalCentavos,
                       ),
-                      prefijo: prefijo,
-                    ),
-                    icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                    color: Marca.exito,
-                    style: IconButton.styleFrom(
-                      backgroundColor: Marca.exito.withValues(alpha: 0.12),
-                    ),
+                      const SizedBox(height: 2),
+                      Text(
+                        cita.resumenServicios,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: sutil(13.5),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        '${cita.especialistaNombre} · ${dinero(cita.totalCentavos)}'
+                        '${cita.cobrada ? ' · cobrada' : ''}',
+                        style: sutil(12.5, color: Marca.textoTenue),
+                      ),
+                      if (cita.nota != null && cita.nota!.isNotEmpty) ...[
+                        const SizedBox(height: 5),
+                        Text(
+                          cita.nota!,
+                          style: sutil(12.5, color: Marca.textoSuave)
+                              .copyWith(fontStyle: FontStyle.italic),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-              ),
+                ),
+                IconButton(
+                  tooltip: 'Escribir por WhatsApp',
+                  onPressed: () => abrirWhatsApp(
+                    cita.clientaTelefono,
+                    Mensajes.citaConfirmada(
+                      clienta: cita.clientaNombre,
+                      cuando: cita.inicio,
+                      servicios: cita.resumenServicios,
+                      negocio: negocio,
+                      totalCentavos: cita.totalCentavos,
+                    ),
+                    prefijo: prefijo,
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline, size: 19),
+                  color: Marca.exito,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
             ),
           ),
         ),
@@ -442,24 +434,20 @@ class Cabecera extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
         child: Row(
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    etiqueta,
-                    style: const TextStyle(fontSize: 12, color: Marca.textoSuave),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(valor, style: cifra(24, color: colorValor)),
-                  if (apoyo != null)
-                    Text(
-                      apoyo!,
-                      style: const TextStyle(fontSize: 12.5, color: Marca.textoSuave),
-                    ),
+                  Text(etiqueta, style: sutil(12.5)),
+                  const SizedBox(height: 3),
+                  Text(valor, style: cifra(28, color: colorValor)),
+                  if (apoyo != null) ...[
+                    const SizedBox(height: 2),
+                    Text(apoyo!, style: sutil(12.5, color: Marca.textoTenue)),
+                  ],
                 ],
               ),
             ),
@@ -481,16 +469,15 @@ class Seccion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 10),
+      padding: const EdgeInsets.only(top: 26, bottom: 10, left: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(rotulo, style: titulo(21)),
-          if (apoyo != null)
-            Text(
-              apoyo!,
-              style: const TextStyle(fontSize: 12.5, color: Marca.textoSuave),
-            ),
+          Text(rotulo, style: titulo(19)),
+          if (apoyo != null) ...[
+            const SizedBox(height: 2),
+            Text(apoyo!, style: sutil(12.5)),
+          ],
         ],
       ),
     );
@@ -509,25 +496,27 @@ class FilaDato extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Text(
               rotulo,
-              style: TextStyle(
-                fontSize: 13.5,
-                color: destacado ? Marca.texto : Marca.textoSuave,
-                fontWeight: destacado ? FontWeight.w600 : FontWeight.w400,
-              ),
+              style: destacado
+                  ? const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                    )
+                  : sutil(14),
             ),
           ),
           const SizedBox(width: 12),
           Text(
             valor,
             textAlign: TextAlign.right,
-            style: cifra(destacado ? 16 : 14, color: color),
+            style: cifra(destacado ? 16 : 14.5, color: color),
           ),
         ],
       ),
@@ -557,7 +546,7 @@ class BarraProporcion extends StatelessWidget {
     final fraccion = maximo <= 0 ? 0.0 : (valor / maximo).clamp(0.0, 1.0);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -568,22 +557,25 @@ class BarraProporcion extends StatelessWidget {
                   rotulo,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.2,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
-              Text(dinero(valor), style: cifra(13.5)),
+              Text(dinero(valor), style: cifra(14)),
             ],
           ),
-          if (apoyo != null)
-            Text(apoyo!, style: const TextStyle(fontSize: 11.5, color: Marca.textoSuave)),
-          const SizedBox(height: 5),
+          if (apoyo != null) Text(apoyo!, style: sutil(11.5, color: Marca.textoTenue)),
+          const SizedBox(height: 7),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
               value: fraccion,
-              minHeight: 7,
-              backgroundColor: Marca.borde,
+              minHeight: 5,
+              backgroundColor: Marca.fondo,
               valueColor: AlwaysStoppedAnimation(color),
             ),
           ),

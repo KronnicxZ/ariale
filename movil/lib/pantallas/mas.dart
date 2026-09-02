@@ -39,24 +39,28 @@ class PantallaMas extends StatelessWidget {
                 icono: Icons.receipt_long_outlined,
                 rotulo: 'Ventas',
                 apoyo: 'Lo que vendiste y lo que te pagaron',
+                color: Marca.dorado,
                 crear: PantallaVentas.new,
               ),
               _Entrada(
                 icono: Icons.trending_down,
                 rotulo: 'Gastos',
                 apoyo: 'En qué se va el dinero',
+                color: Marca.durazno,
                 crear: PantallaGastos.new,
               ),
               _Entrada(
                 icono: Icons.inventory_2_outlined,
                 rotulo: 'Compras y pagos',
                 apoyo: 'Material y lo que le debes a alguien',
+                color: Marca.cielo,
                 crear: PantallaCompras.new,
               ),
               _Entrada(
                 icono: Icons.local_shipping_outlined,
                 rotulo: 'Proveedores',
                 apoyo: 'A quién le compras',
+                color: Marca.textoSuave,
                 crear: PantallaProveedores.new,
               ),
             ]),
@@ -65,6 +69,7 @@ class PantallaMas extends StatelessWidget {
                 icono: Icons.notifications_active_outlined,
                 rotulo: 'Recordatorios',
                 apoyo: 'Mensajes de WhatsApp listos para enviar',
+                color: Marca.exito,
                 crear: PantallaRecordatorios.new,
               ),
             ]),
@@ -73,24 +78,28 @@ class PantallaMas extends StatelessWidget {
                 icono: Icons.insights_outlined,
                 rotulo: 'Reportes',
                 apoyo: 'Cómo va el negocio',
+                color: Marca.lavanda,
                 crear: PantallaReportes.new,
               ),
               _Entrada(
                 icono: Icons.spa_outlined,
                 rotulo: 'Servicios y bonos',
                 apoyo: 'Precios, duraciones y paquetes',
+                color: Marca.rosa,
                 crear: PantallaCatalogoServicios.new,
               ),
               _Entrada(
                 icono: Icons.groups_outlined,
                 rotulo: 'Equipo',
                 apoyo: 'Especialistas y sus claves',
+                color: Marca.salvia,
                 crear: PantallaEquipo.new,
               ),
               _Entrada(
                 icono: Icons.storefront_outlined,
                 rotulo: 'Mi negocio',
                 apoyo: 'Datos, horario y agenda',
+                color: Marca.negro,
                 crear: PantallaNegocio.new,
               ),
             ]),
@@ -164,8 +173,8 @@ class _Grupo extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              letterSpacing: 1,
-              color: Marca.textoSuave,
+              letterSpacing: 0.9,
+              color: Marca.textoTenue,
             ),
           ),
         ),
@@ -173,7 +182,7 @@ class _Grupo extends StatelessWidget {
           child: Column(
             children: [
               for (var i = 0; i < entradas.length; i++) ...[
-                if (i > 0) const Divider(height: 1, indent: 56),
+                if (i > 0) const Divider(indent: 60),
                 entradas[i],
               ],
             ],
@@ -189,29 +198,39 @@ class _Entrada extends StatelessWidget {
     required this.icono,
     required this.rotulo,
     required this.apoyo,
+    required this.color,
     required this.crear,
   });
 
   final IconData icono;
   final String rotulo;
   final String apoyo;
+  final Color color;
   final Widget Function({Key? key}) crear;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       leading: Container(
-        width: 38,
-        height: 38,
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Marca.dorado.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(12),
+          color: color,
+          borderRadius: BorderRadius.circular(9),
         ),
-        child: Icon(icono, size: 20, color: Marca.negro),
+        child: Icon(icono, size: 18, color: Marca.contrasteSobre(color)),
       ),
-      title: Text(rotulo, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-      subtitle: Text(apoyo, style: const TextStyle(fontSize: 12.5, color: Marca.textoSuave)),
-      trailing: const Icon(Icons.chevron_right, color: Marca.textoSuave),
+      title: Text(
+        rotulo,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 15.5,
+          letterSpacing: -0.3,
+        ),
+      ),
+      subtitle: Text(apoyo, style: sutil(12.5, color: Marca.textoTenue)),
+      trailing: const Icon(Icons.chevron_right, size: 20, color: Marca.textoTenue),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(builder: (_) => crear()),
       ),

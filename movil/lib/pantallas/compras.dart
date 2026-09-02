@@ -215,7 +215,9 @@ class _TarjetaCompra extends StatelessWidget {
       decoration: BoxDecoration(
         color: Marca.tarjeta,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: compra.vencida ? Marca.error : Marca.borde),
+        border: compra.vencida
+            ? Border.all(color: Marca.error.withValues(alpha: 0.35))
+            : null,
       ),
       padding: const EdgeInsets.all(14),
       child: Column(

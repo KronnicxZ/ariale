@@ -128,7 +128,7 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
                                 ),
                                 Text(
                                   '${datos.cuentas.length} '
-                                  '${datos.cuentas.length == 1 ? 'clienta' : 'clientas'}'
+                                  '${datos.cuentas.length == 1 ? 'deuda' : 'deudas'}'
                                   '${datos.vencidas > 0 ? ' · ${datos.vencidas} vencidas' : ''}',
                                   style: const TextStyle(
                                     fontSize: 12.5,
@@ -145,7 +145,14 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
                               setState(() => _soloVencidas = v);
                               _refrescar();
                             },
-                            selectedColor: Marca.alerta.withValues(alpha: 0.2),
+                            backgroundColor: Marca.fondo,
+                            selectedColor: Marca.texto,
+                            labelStyle: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.2,
+                              color: _soloVencidas ? Colors.white : Marca.textoSuave,
+                            ),
                           ),
                         ],
                       ),
@@ -199,7 +206,9 @@ class _TarjetaCuenta extends StatelessWidget {
       decoration: BoxDecoration(
         color: Marca.tarjeta,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cuenta.vencida ? Marca.error : Marca.borde),
+        border: cuenta.vencida
+            ? Border.all(color: Marca.error.withValues(alpha: 0.35))
+            : null,
       ),
       padding: const EdgeInsets.all(14),
       child: Column(

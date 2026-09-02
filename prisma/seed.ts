@@ -371,8 +371,8 @@ async function main() {
   });
 
   console.log("Clientas…");
-  // Tres clientas de prueba: lo justo para ver cómo se comporta el panel
-  // sin que parezca una agenda que no es la del estudio.
+  // Un puñado de clientas de prueba: las justas para que las cifras de cada
+  // ficha —visitas, gastado, saldo— salgan creíbles.
   const clientSeed = [
     { name: "Camila Reyes", phone: "4241112233", email: "camila@gmail.com" },
     {
@@ -382,6 +382,11 @@ async function main() {
       allergies: "Sensible a la cera caliente",
     },
     { name: "Verónica Silva", phone: "4127778899" },
+    { name: "Laura Méndez", phone: "4264445566", email: "laura.m@gmail.com" },
+    { name: "Andrea Salas", phone: "4145556677" },
+    { name: "Sofía Herrera", phone: "4149990011" },
+    { name: "Mariana Ortiz", phone: "4248889900" },
+    { name: "Ángela Rivas", phone: "4142658907" },
   ];
   const clients: { id: string; name: string; phone: string }[] = [];
   for (const [i, data] of clientSeed.entries()) {
@@ -390,7 +395,7 @@ async function main() {
         data: {
           ...data,
           birthday: caracas(1995, ((i * 3) % 12) + 1, ((i * 5) % 27) + 1),
-          createdAt: daysAgo(90 - i * 25),
+          createdAt: daysAgo(150 - i * 20),
         },
       }),
     );
@@ -545,9 +550,9 @@ async function main() {
   const visits: Visit[] = [];
   const OPEN_MIN = 9 * 60;
 
-  // Dos meses de historial + los próximos diez días. Hacen falta los dos:
-  // los reportes de 30 días se comparan con los 30 anteriores.
-  for (let offset = -63; offset <= 10; offset++) {
+  // Cinco semanas de historial + los próximos diez días. Más historial
+  // haría que cada clienta acumulara visitas que no se sostienen.
+  for (let offset = -35; offset <= 10; offset++) {
     const date = new Date(Date.now() + offset * 86_400_000);
     if (date.getDay() === 0) continue; // domingo cerrado
     const saturday = date.getDay() === 6;
@@ -559,9 +564,10 @@ async function main() {
       { id: arianny.id, combos: WAX_COMBOS },
     ]) {
       let cursor = OPEN_MIN + Math.floor(rand() * 3) * 30;
-      // Dos o tres citas al día por persona: el ritmo real de un estudio
-      // de dos manos, y una agenda que se lee de un vistazo.
-      const target = saturday ? 2 : 2 + Math.floor(rand() * 2);
+      // Dos citas al día por persona: cuatro en el estudio. La agenda se ve
+      // viva y sigue leyéndose de un vistazo.
+      const carga = rand();
+      const target = carga < 0.2 ? 1 : carga > 0.9 ? 3 : 2;
 
       for (let i = 0; i < target; i++) {
         const serviceNames = pick(person.combos);

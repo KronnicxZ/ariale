@@ -67,6 +67,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
 
             final datos = snap.data!;
             final saludo = _saludo();
+            final quien = Sesion.de(context).nombreUsuaria;
 
             return RefreshIndicator(
               onRefresh: _refrescar,
@@ -80,8 +81,8 @@ class _PantallaHoyState extends State<PantallaHoy> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$saludo${negocio == null ? '' : ', ${primerNombre(negocio.nombre)}'}',
-                          style: const TextStyle(color: Marca.textoSuave, fontSize: 14),
+                          '$saludo${quien == null ? '' : ', ${primerNombre(quien)}'}',
+                          style: sutil(14.5),
                         ),
                         const SizedBox(height: 2),
                         Text(

@@ -72,11 +72,11 @@ class Calendario extends StatelessWidget {
                 child: Center(
                   child: Text(
                     inicial,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.4,
-                      color: Marca.textoSuave.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                      color: Marca.textoTenue,
                     ),
                   ),
                 ),
@@ -105,12 +105,17 @@ class Calendario extends StatelessWidget {
           onTap: alAlternar,
           borderRadius: BorderRadius.circular(12),
           child: SizedBox(
-            height: 26,
+            height: 24,
             width: double.infinity,
-            child: Icon(
-              expandido ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-              size: 20,
-              color: Marca.textoSuave,
+            child: Center(
+              child: Container(
+                width: 34,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Marca.textoTenue.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
             ),
           ),
         ),
@@ -145,8 +150,10 @@ class _Celda extends StatelessWidget {
     final colorTexto = seleccionado
         ? Marca.negro
         : otroMes
-            ? Marca.textoSuave.withValues(alpha: 0.4)
-            : Marca.texto;
+            ? Marca.textoTenue
+            : esHoy
+                ? Marca.dorado
+                : Marca.texto;
 
     return InkWell(
       onTap: alTocar,
@@ -155,21 +162,20 @@ class _Celda extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 2),
         child: Column(
           children: [
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              curve: Curves.easeOut,
               width: 34,
               height: 34,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: seleccionado ? Marca.dorado : Colors.transparent,
                 shape: BoxShape.circle,
-                border: esHoy && !seleccionado
-                    ? Border.all(color: Marca.dorado, width: 1.6)
-                    : null,
               ),
               child: Text(
                 '${fecha.day}',
                 style: cifra(
-                  14.5,
+                  15,
                   color: colorTexto,
                   peso: seleccionado || esHoy ? FontWeight.w700 : FontWeight.w500,
                 ),
@@ -181,14 +187,16 @@ class _Celda extends StatelessWidget {
             SizedBox(
               height: 13,
               child: citas == 0
-                  ? null
+                  ? (esHoy && !seleccionado
+                      ? const _PuntoHoy()
+                      : null)
                   : Text(
                       '$citas',
                       style: TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                         color: otroMes
-                            ? Marca.textoSuave.withValues(alpha: 0.45)
+                            ? Marca.textoTenue
                             : (conteo?.porConfirmar ?? 0) > 0
                                 ? Marca.alerta
                                 : Marca.textoSuave,
@@ -197,6 +205,22 @@ class _Celda extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// El día de hoy, cuando no tiene citas, se marca con un punto.
+class _PuntoHoy extends StatelessWidget {
+  const _PuntoHoy();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        width: 4,
+        height: 4,
+        decoration: const BoxDecoration(color: Marca.dorado, shape: BoxShape.circle),
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../api/modelos.dart';
-import '../formato.dart';
 import '../tema.dart';
 
 /// El día como calendario: las horas bajando por la izquierda y una columna
@@ -27,11 +26,11 @@ class RejillaDia extends StatelessWidget {
   /// Minuto del día donde se tocó, ya redondeado a la media hora.
   final ValueChanged<int> alTocarHueco;
 
-  /// Un minuto = un píxel y pico: una hora ocupa 68, que es lo que hace falta
+  /// Un minuto y pico por píxel: una hora ocupa 70, que es lo que hace falta
   /// para que quepa el nombre y el servicio sin apretar.
-  static const _escala = 1.13;
-  static const _anchoHoras = 46.0;
-  static const _altoMinimo = 40.0;
+  static const _escala = 1.16;
+  static const _anchoHoras = 44.0;
+  static const _altoMinimo = 38.0;
 
   /// La rejilla arranca en la apertura, pero si hay una cita fuera de horario
   /// —pasa— se estira para que no quede escondida.
@@ -59,18 +58,13 @@ class RejillaDia extends StatelessWidget {
     final alto = (hasta - desde) * _escala;
     final horas = [for (var m = desde; m <= hasta; m += 60) m];
 
-    // Solo las especialistas que trabajan hoy o que ya tienen algo puesto.
-    final columnas = especialistas.isEmpty
-        ? <Especialista>[]
-        : especialistas.toList();
-
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(0, 4, 12, 96),
+      padding: const EdgeInsets.fromLTRB(0, 10, 14, 100),
       child: SizedBox(
-        height: alto + 24,
+        height: alto + 20,
         child: Stack(
           children: [
-            // Líneas de hora y sus rótulos.
+            // Una línea por hora y nada más: la media hora se intuye.
             for (final minuto in horas)
               Positioned(
                 top: (minuto - desde) * _escala,
@@ -82,33 +76,22 @@ class RejillaDia extends StatelessWidget {
                     SizedBox(
                       width: _anchoHoras,
                       child: Transform.translate(
-                        offset: const Offset(0, -7),
+                        offset: const Offset(0, -6),
                         child: Text(
                           _rotuloHora(minuto),
                           textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Marca.textoSuave.withValues(alpha: 0.75),
-                          ),
+                          style: cifra(10.5, color: Marca.textoTenue, peso: FontWeight.w600),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Expanded(child: Container(height: 1, color: Marca.borde)),
+                    Expanded(
+                      child: Container(
+                        height: 0.7,
+                        color: Marca.borde.withValues(alpha: 0.75),
+                      ),
+                    ),
                   ],
-                ),
-              ),
-
-            // Media hora, más tenue: ayuda a calcular sin llenar de líneas.
-            for (var m = desde + 30; m < hasta; m += 60)
-              Positioned(
-                top: (m - desde) * _escala,
-                left: _anchoHoras + 8,
-                right: 0,
-                child: Container(
-                  height: 1,
-                  color: Marca.borde.withValues(alpha: 0.45),
                 ),
               ),
 
@@ -117,15 +100,14 @@ class RejillaDia extends StatelessWidget {
               left: _anchoHoras + 8,
               child: Row(
                 children: [
-                  for (final persona in columnas)
+                  for (final persona in especialistas)
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 4),
+                        padding: const EdgeInsets.only(right: 5),
                         child: _Columna(
                           persona: persona,
-                          citas: citas
-                              .where((c) => c.especialistaId == persona.id)
-                              .toList(),
+                          citas:
+                              citas.where((c) => c.especialistaId == persona.id).toList(),
                           desde: desde,
                           escala: _escala,
                           altoMinimo: _altoMinimo,
@@ -134,7 +116,7 @@ class RejillaDia extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (columnas.isEmpty) const Expanded(child: SizedBox.shrink()),
+                  if (especialistas.isEmpty) const Expanded(child: SizedBox.shrink()),
                 ],
               ),
             ),
@@ -195,7 +177,7 @@ class _Columna extends StatelessWidget {
             child: _Bloque(
               cita: cita,
               color: color,
-              compacto: cita.duracionMin * escala < 58,
+              compacto: cita.duracionMin * escala < 56,
               alTocar: () => alTocarCita(cita),
             ),
           ),
@@ -220,86 +202,82 @@ class _Bloque extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final atenuada = cita.cancelada;
-    final fondo = cita.atendida
-        ? color.withValues(alpha: 0.10)
-        : color.withValues(alpha: 0.18);
+    final fondo = atenuada
+        ? Marca.borde.withValues(alpha: 0.55)
+        : color.withValues(alpha: cita.atendida ? 0.09 : 0.14);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.only(bottom: 3),
       child: Material(
-        color: atenuada ? Marca.borde.withValues(alpha: 0.5) : fondo,
+        color: fondo,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           onTap: alTocar,
           borderRadius: BorderRadius.circular(10),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border(
-                left: BorderSide(color: atenuada ? Marca.textoSuave : color, width: 3),
-              ),
-            ),
-            padding: EdgeInsets.fromLTRB(7, compacto ? 3 : 5, 6, 3),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    if (cita.porConfirmar)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4, top: 1),
-                        child: Icon(
-                          Icons.schedule,
-                          size: 11,
-                          color: Marca.alerta,
-                        ),
-                      ),
-                    Expanded(
-                      child: Text(
-                        cita.clientaNombre,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          height: 1.15,
-                          decoration: atenuada ? TextDecoration.lineThrough : null,
-                        ),
-                      ),
-                    ),
-                  ],
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Filo de color: dice quién atiende sin ocupar sitio.
+              Container(
+                width: 3,
+                decoration: BoxDecoration(
+                  color: atenuada ? Marca.textoTenue : color,
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(10),
+                  ),
                 ),
-                if (!compacto) ...[
-                  const SizedBox(height: 1),
-                  Expanded(
-                    child: Text(
-                      cita.resumenServicios,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        height: 1.2,
-                        color: Marca.texto,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(8, compacto ? 4 : 6, 7, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          if (cita.porConfirmar)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Container(
+                                width: 5,
+                                height: 5,
+                                decoration: const BoxDecoration(
+                                  color: Marca.alerta,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          Expanded(
+                            child: Text(
+                              cita.clientaNombre,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.25,
+                                height: 1.15,
+                                decoration:
+                                    atenuada ? TextDecoration.lineThrough : null,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                      const SizedBox(height: 1),
+                      Expanded(
+                        child: Text(
+                          cita.resumenServicios,
+                          maxLines: compacto ? 1 : 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: sutil(11.5, color: Marca.textoSuave),
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    '${hora(cita.inicio)} · ${duracion(cita.duracionMin)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 10.5, color: Marca.textoSuave),
-                  ),
-                ] else
-                  Expanded(
-                    child: Text(
-                      cita.resumenServicios,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: Marca.textoSuave),
-                    ),
-                  ),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
