@@ -83,6 +83,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  /// Cada una entra con su cuenta, pero la agenda es la misma para las dos.
+  /// Esto solo dice cuál de las dos eres, para saludarte por tu nombre y
+  /// ponerte a ti primero al agendar.
+  specialistId String?     @unique
+  specialist   Specialist? @relation(fields: [specialistId], references: [id])
+
   expenses Expense[]
 }
 
@@ -105,6 +111,7 @@ model Specialist {
   appointments Appointment[]
   sales        Sale[]
   timeOff      TimeOff[]
+  user         User?
 }
 
 model TimeOff {

@@ -27,13 +27,19 @@ class ClienteApi extends ChangeNotifier {
   static const _claveToken = 'ariale_token';
   static const _claveServidor = 'ariale_servidor';
   static const _claveNombre = 'ariale_usuaria';
+  static const _claveEspecialista = 'ariale_especialista';
 
   String _servidor;
   String? _token;
   String? _nombreUsuaria;
+  String? _miEspecialistaId;
 
   String get servidor => _servidor;
   String? get nombreUsuaria => _nombreUsuaria;
+
+  /// Cuál de las dos entró. La agenda es la misma para todas: esto solo
+  /// sirve para ponerla a ella primero y marcar su columna.
+  String? get miEspecialistaId => _miEspecialistaId;
   bool get haySesion => _token != null;
 
   /// En el emulador de Android, `localhost` es el propio teléfono: el equipo
@@ -52,6 +58,7 @@ class ClienteApi extends ChangeNotifier {
     _servidor = prefs.getString(_claveServidor) ?? _servidor;
     _token = prefs.getString(_claveToken);
     _nombreUsuaria = prefs.getString(_claveNombre);
+    _miEspecialistaId = prefs.getString(_claveEspecialista);
     notifyListeners();
   }
 
@@ -70,13 +77,20 @@ class ClienteApi extends ChangeNotifier {
       conToken: false,
     );
 
+    final usuaria = datos['user'] as Map;
     _token = datos['token'] as String;
-    _nombreUsuaria = (datos['user'] as Map)['name'] as String?;
+    _nombreUsuaria = usuaria['name'] as String?;
+    _miEspecialistaId = usuaria['specialistId'] as String?;
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_claveToken, _token!);
     if (_nombreUsuaria != null) {
       await prefs.setString(_claveNombre, _nombreUsuaria!);
+    }
+    if (_miEspecialistaId case final id?) {
+      await prefs.setString(_claveEspecialista, id);
+    } else {
+      await prefs.remove(_claveEspecialista);
     }
     notifyListeners();
   }
@@ -84,9 +98,11 @@ class ClienteApi extends ChangeNotifier {
   Future<void> salir() async {
     _token = null;
     _nombreUsuaria = null;
+    _miEspecialistaId = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_claveToken);
     await prefs.remove(_claveNombre);
+    await prefs.remove(_claveEspecialista);
     notifyListeners();
   }
 

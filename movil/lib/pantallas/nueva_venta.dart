@@ -46,6 +46,13 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Quien entró es quien suele cobrar lo suyo.
+    _especialistaId ??= Sesion.de(context).miEspecialistaId;
+  }
+
+  @override
   void dispose() {
     _descuento.dispose();
     _cobro.dispose();

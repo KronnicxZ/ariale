@@ -95,17 +95,6 @@ async function main() {
     })),
   });
 
-  console.log("Usuaria administradora…");
-  const owner = await prisma.user.create({
-    data: {
-      name: "Arialé",
-      email: "admin@arialestudio.com",
-      phone: "04241354645",
-      passwordHash: await bcrypt.hash("ariale2026", 10),
-      role: "OWNER",
-    },
-  });
-
   console.log("Especialistas…");
   // El estudio son dos: Alejandra lleva uñas y Arianny, depilación.
   const [alejandra, arianny] = await Promise.all([
@@ -116,6 +105,31 @@ async function main() {
       data: { name: "Arianny", slug: "arianny", pin: "2468", color: "#BDAEDC", phone: "04141234567" },
     }),
   ]);
+
+  console.log("Cuentas del equipo…");
+  // Cada una entra con su propia cuenta y ve la agenda completa: saber qué
+  // tiene la otra es justo lo que hace que el estudio funcione. La cuenta
+  // solo decide a quién saluda la app y a quién pone primero al agendar.
+  const cuentaAlejandra = await prisma.user.create({
+    data: {
+      name: "Alejandra",
+      email: "alejandra@arialestudio.com",
+      phone: "04241354645",
+      passwordHash: await bcrypt.hash("alejandra2026", 10),
+      role: "OWNER",
+      specialistId: alejandra.id,
+    },
+  });
+  await prisma.user.create({
+    data: {
+      name: "Arianny",
+      email: "arianny@arialestudio.com",
+      phone: "04141234567",
+      passwordHash: await bcrypt.hash("arianny2026", 10),
+      role: "OWNER",
+      specialistId: arianny.id,
+    },
+  });
 
   console.log("Categorías y servicios…");
   const depilacion = await prisma.category.create({
@@ -675,7 +689,7 @@ async function main() {
     { categoryId: expenseCats[3].id, description: "Sesión de fotos para el catálogo", amountCents: 4000, date: daysAgo(6) },
   );
   for (const data of expenses) {
-    await prisma.expense.create({ data: { ...data, userId: owner.id, method: "CASH_USD" } });
+    await prisma.expense.create({ data: { ...data, userId: cuentaAlejandra.id, method: "CASH_USD" } });
   }
 
   console.log("Tasa BCV de referencia…");
@@ -694,8 +708,9 @@ async function main() {
     citas: await prisma.appointment.count(),
     ventas: await prisma.sale.count(),
   });
-  console.log("\n  Panel:  admin@arialestudio.com / ariale2026");
-  console.log("  Agenda: /agenda/alejandra con PIN 1234\n");
+  console.log("\n  Alejandra: alejandra@arialestudio.com / alejandra2026");
+  console.log("  Arianny:   arianny@arialestudio.com / arianny2026");
+  console.log("  Las dos ven la misma agenda.\n");
 }
 
 main()

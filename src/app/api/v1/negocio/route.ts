@@ -36,7 +36,13 @@ export const GET = withUser(async ({ user }) => {
       desde: h.openTime,
       hasta: h.closeTime,
     })),
-    usuaria: { id: user.id, nombre: user.name, correo: user.email, rol: user.role },
+    usuaria: {
+      id: user.id,
+      nombre: user.name,
+      correo: user.email,
+      rol: user.role,
+      especialistaId: user.specialistId,
+    },
   };
 });
 

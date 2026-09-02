@@ -334,7 +334,9 @@ class _Cabecera extends StatelessWidget {
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            persona.nombre,
+                            persona.id == Sesion.de(context).miEspecialistaId
+                                ? '${persona.nombre} (tú)'
+                                : persona.nombre,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(

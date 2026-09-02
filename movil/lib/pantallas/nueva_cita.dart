@@ -51,8 +51,18 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     super.initState();
     _clienta = widget.clientaPreseleccionada;
     _dia = widget.diaSugerido ?? _catalogo.hoy;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // La primera vez elegimos por ella: la columna que tocó, o ella misma,
+    // que es para quien agenda casi siempre.
+    if (_especialistaId != null) return;
     final elegibles = _especialistasElegibles;
+    final yo = Sesion.de(context).miEspecialistaId;
     _especialistaId = widget.especialistaSugerido ??
+        (elegibles.any((e) => e.id == yo) ? yo : null) ??
         (elegibles.isEmpty ? null : elegibles.first.id);
   }
 

@@ -25,8 +25,11 @@ Abre <http://localhost:3000>.
 
 **Accesos de ejemplo** (los crea el seed):
 
-- Panel: `admin@arialestudio.com` / `ariale2026`
-- Agenda de la especialista: `/agenda/ariale` con PIN `1234`
+Cada una del equipo entra con su cuenta y las dos ven la misma agenda:
+
+- Alejandra (uñas y pies): `alejandra@arialestudio.com` / `alejandra2026`
+- Arianny (depilación): `arianny@arialestudio.com` / `arianny2026`
+- Agenda de la especialista: `/agenda/alejandra` con PIN `1234`
 - Zona clienta: `/reservar` con cualquier teléfono del seed, por ejemplo `04241112233`
 
 ## Cómo está hecho

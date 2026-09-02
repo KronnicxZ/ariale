@@ -8,6 +8,8 @@ export const GET = withUser(async ({ user }) => ({
     email: user.email,
     phone: user.phone,
     role: user.role,
+    // Cuál de las dos eres. La agenda es la misma para todas.
+    specialistId: user.specialistId,
   },
 }));
 

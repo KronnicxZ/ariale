@@ -24,6 +24,7 @@ export async function POST(request: Request) {
       email: result.user.email,
       phone: result.user.phone,
       role: result.user.role,
+      specialistId: result.user.specialistId,
     },
   });
 }
