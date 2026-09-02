@@ -1,0 +1,41 @@
+name: ariale_movil
+description: "Arialé Studio — agenda y caja del estudio en el móvil."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Meses y días en español dentro de los selectores de fecha de Material.
+  flutter_localizations:
+    sdk: flutter
+
+  # Llamadas a la API del panel.
+  http: ^1.2.2
+
+  # Guarda el token de sesión y la URL del servidor entre arranques.
+  shared_preferences: ^2.3.3
+
+  # Abre WhatsApp (wa.me) y el marcador. Los avisos a clientas salen así:
+  # mensaje ya escrito, la dueña pulsa enviar. Nada automático.
+  url_launcher: ^6.3.1
+
+  # Fechas y números en español de Venezuela.
+  intl: ^0.20.2
+
+  # Cormorant Garamond para títulos e Inter para el resto, igual que la web.
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/marca/

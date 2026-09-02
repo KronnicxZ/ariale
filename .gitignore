@@ -54,3 +54,7 @@ next-env.d.ts
 
 # Material de referencia (videos y fotos originales)
 /referencias
+
+# SDK de Flutter: vive aquí por comodidad, pero no es parte del proyecto.
+# Lo suyo es moverlo fuera del proyecto y quitarlo de esta carpeta.
+/flutter/

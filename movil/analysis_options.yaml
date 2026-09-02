@@ -1,0 +1,14 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - web/**
+
+linter:
+  rules:
+    # Sugiere `?'clave': valor` en mapas, pero ahí el `?` se aplica a la
+    # clave y no al valor: el código que propone no compila. Lo apagamos
+    # en vez de escribir algo peor para contentar al analizador.
+    use_null_aware_elements: false
