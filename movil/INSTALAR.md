@@ -15,16 +15,20 @@ Hay dos papeles distintos:
 La app del teléfono no guarda datos: los pide al panel. Así que lo primero
 es decidir en qué dirección va a estar ese panel.
 
-**Opción A — en internet (recomendada).** Publicas el panel en Vercel y la
-app apunta a `https://…`. Funciona desde cualquier sitio, con datos móviles,
-desde la casa de la clienta o desde el salón.
+**Ya está resuelto.** El panel vive en <https://ariale.vercel.app> y la base
+en Turso, así que la app funciona desde cualquier sitio, con datos móviles,
+sin depender de que haya una computadora encendida en el salón.
 
-> Ojo: la base de datos actual es un archivo SQLite. En Vercel ese archivo se
-> borra en cada despliegue, así que hay que mover la base a **Turso** (es
-> libSQL, el mismo motor; solo cambia la dirección de conexión). Es un cambio
-> de configuración, no de código.
+Compila con esa dirección y no hay más que pensar:
 
-**Opción B — en la computadora del salón.** Dejas `npm run dev` corriendo en
+```powershell
+.construir-apk.ps1 -Servidor "https://ariale.vercel.app"
+```
+
+El resto de esta sección queda por si alguna vez hace falta volver a
+trabajar contra una computadora del local.
+
+**Alternativa, sin internet — la computadora del salón.** Dejas `npm run dev` corriendo en
 la PC del estudio y la app apunta a `http://192.168.x.x:3000`, la IP de esa
 PC en el wifi del local. Más simple, pero solo funciona dentro del salón y
 con la computadora encendida.

@@ -23,6 +23,9 @@ npm run dev
 
 Abre <http://localhost:3000>.
 
+En producción el panel está en <https://ariale.vercel.app>, con la base en
+Turso. Ver [BASE-DE-DATOS.md](BASE-DE-DATOS.md).
+
 **Accesos de ejemplo** (los crea el seed):
 
 Cada una del equipo entra con su cuenta y las dos ven la misma agenda:
