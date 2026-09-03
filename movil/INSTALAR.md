@@ -45,7 +45,7 @@ Anota la dirección que elijas: la vas a usar en el paso 3.
 2. **Ábrelo una vez y termina el asistente de bienvenida.** Este paso es el
    que descarga de verdad el *Android SDK*; con instalar el programa no
    basta. Al terminar debe existir la carpeta
-   `C:UsersTU_USUARIOAppDataLocalAndroidSdk`.
+   `C:/Users/TU_USUARIO/AppData/Local/Android/Sdk`.
 3. Acepta las licencias desde la terminal, en la carpeta del proyecto:
 
    ```powershell
