@@ -103,7 +103,7 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
               onRefresh: _refrescar,
               color: Marca.dorado,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
                 children: [
                   Text('Por cobrar', style: titulo(29)),
                   const SizedBox(height: 12),
@@ -140,7 +140,7 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
                   else
                     ...datos.cuentas.map(
                       (c) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: _TarjetaCuenta(
                           cuenta: c,
                           prefijo: negocio?.prefijo ?? '+58',
@@ -182,7 +182,7 @@ class _TarjetaCuenta extends StatelessWidget {
             ? Border.all(color: Marca.error.withValues(alpha: 0.35))
             : null,
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

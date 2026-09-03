@@ -44,7 +44,10 @@ export const GET = withUserParams<{ id: string }, unknown>(async ({ params }) =>
       inicio: cita.startAt.toISOString(),
       estado: cita.status,
       especialista: cita.specialist.name,
+      especialistaId: cita.specialistId,
       servicios: cita.services.map((s) => s.service.name),
+      // Con esto la app puede repetir la última cita de un toque.
+      servicioIds: cita.services.map((s) => s.serviceId),
       totalCentavos: cita.services.reduce((suma, s) => suma + s.priceCents, 0),
     })),
     ventas: client.sales.slice(0, 30).map((venta) => ({

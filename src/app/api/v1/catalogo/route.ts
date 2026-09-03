@@ -22,6 +22,21 @@ export const GET = withUser(async () => {
       getRate(),
     ]);
 
+  // Lo que más se pide en los últimos tres meses. Es lo que sale primero
+  // al agendar, porque es lo que casi siempre se agenda.
+  const pedidos = await prisma.appointmentService.groupBy({
+    by: ["serviceId"],
+    where: {
+      appointment: {
+        startAt: { gte: new Date(Date.now() - 90 * 86_400_000) },
+        status: { notIn: ["CANCELLED", "NO_SHOW"] },
+      },
+    },
+    _count: { serviceId: true },
+    orderBy: { _count: { serviceId: "desc" } },
+    take: 6,
+  });
+
   const categories = await prisma.category.findMany({
     where: { active: true },
     orderBy: { order: "asc" },
@@ -31,6 +46,7 @@ export const GET = withUser(async () => {
   return {
     hoy: today,
     maxDia: maxDay,
+    masPedidos: pedidos.map((p) => p.serviceId),
     negocio: {
       nombre: settings.businessName,
       lema: settings.tagline,

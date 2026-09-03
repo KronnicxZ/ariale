@@ -88,7 +88,7 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
               onRefresh: _refrescar,
               color: Marca.dorado,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 104),
                 children: [
                   Cabecera(
                     etiqueta: 'Deuda con proveedores',
@@ -109,7 +109,7 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
                   else
                     ...proveedores.map(
                       (p) => Card(
-                        margin: const EdgeInsets.only(bottom: 8),
+                        margin: const EdgeInsets.only(bottom: 10),
                         child: ListTile(
                           contentPadding: const EdgeInsets.fromLTRB(14, 6, 8, 6),
                           title: Text(

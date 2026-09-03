@@ -180,7 +180,7 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
       appBar: AppBar(title: const Text('Nueva venta')),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
           child: Row(
             children: [
               Column(
@@ -213,7 +213,7 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
             Card(
               child: ListTile(
@@ -247,7 +247,7 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
             else ...[
               ..._lineas.map(
                 (linea) => Card(
-                  margin: const EdgeInsets.only(bottom: 8),
+                  margin: const EdgeInsets.only(bottom: 10),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
                     child: Row(

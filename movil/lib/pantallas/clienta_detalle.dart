@@ -125,7 +125,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
 
               final f = snap.data!;
               return ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
                 children: [
                   Row(
                     children: [
@@ -199,7 +199,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                   const SizedBox(height: 16),
                   Card(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
                       child: Column(
                         children: [
                           FilaDato('Visitas', '${f.visitas}'),
@@ -225,7 +225,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                     ),
                     Card(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                         child: Column(
                           children: [
                             for (final t in f.tocaRepetir)
@@ -245,7 +245,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                     const Seccion('Bonos'),
                     ...f.bonos.map(
                       (b) => Card(
-                        margin: const EdgeInsets.only(bottom: 8),
+                        margin: const EdgeInsets.only(bottom: 10),
                         child: ListTile(
                           title: Text(
                             b.nombre,
@@ -270,7 +270,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                     const Seccion('Próximas citas'),
                     Card(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                         child: Column(
                           children: [
                             for (final c in f.proximas)
@@ -287,7 +287,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                     const Seccion('Historial'),
                     Card(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                         child: Column(
                           children: [
                             for (final c in f.historial.take(15))

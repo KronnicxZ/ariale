@@ -74,7 +74,7 @@ class _PantallaVentasState extends State<PantallaVentas> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
               child: SelectorPeriodo(
                 activo: _periodo,
                 alElegir: (p) {
@@ -84,7 +84,7 @@ class _PantallaVentasState extends State<PantallaVentas> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
               child: SizedBox(
                 height: 36,
                 child: ListView.separated(
@@ -127,7 +127,7 @@ class _PantallaVentasState extends State<PantallaVentas> {
                     onRefresh: _refrescar,
                     color: Marca.dorado,
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 96),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 104),
                       children: [
                         Cabecera(
                           etiqueta: 'Vendido · ${datos.etiquetaPeriodo}',
@@ -165,7 +165,7 @@ class _PantallaVentasState extends State<PantallaVentas> {
                         else
                           ...datos.ventas.map(
                             (v) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.only(bottom: 10),
                               child: _TarjetaVenta(
                                 venta: v,
                                 alTocar: () async {
@@ -206,7 +206,7 @@ class _TarjetaVenta extends StatelessWidget {
         onTap: alTocar,
         borderRadius: BorderRadius.circular(18),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

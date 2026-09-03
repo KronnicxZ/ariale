@@ -8,6 +8,7 @@ import '../formato.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import '../widgets/calendario.dart';
+import '../widgets/animar.dart';
 import '../widgets/comunes.dart';
 import '../widgets/rejilla_dia.dart';
 import 'cita_detalle.dart';
@@ -127,12 +128,13 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
     );
   }
 
-  Future<void> _agendar({String? especialistaId}) async {
+  Future<void> _agendar({String? especialistaId, int? minuto}) async {
     final creada = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => PantallaNuevaCita(
           diaSugerido: claveDia(_dia),
           especialistaSugerido: especialistaId,
+          minutoSugerido: minuto,
         ),
       ),
     );
@@ -198,15 +200,17 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Calendario(
-                seleccionado: _dia,
-                hoy: hoy,
-                conteos: _conteos,
-                expandido: _mesAbierto,
-                alElegir: _irA,
-                alAlternar: () => setState(() => _mesAbierto = !_mesAbierto),
+            Despliega(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Calendario(
+                  seleccionado: _dia,
+                  hoy: hoy,
+                  conteos: _conteos,
+                  expandido: _mesAbierto,
+                  alElegir: _irA,
+                  alAlternar: () => setState(() => _mesAbierto = !_mesAbierto),
+                ),
               ),
             ),
             const Divider(height: 1),
@@ -242,22 +246,27 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
 
                   return Column(
                     children: [
-                      _Cabecera(
-                        fecha: _dia,
-                        datos: datos,
-                        especialistas: datos.especialistas,
-                      ),
+                      _Cabecera(fecha: _dia, datos: datos),
                       Expanded(
                         child: RefreshIndicator(
                           onRefresh: _refrescar,
                           color: Marca.dorado,
-                          child: RejillaDia(
-                            fecha: _dia,
-                            citas: datos.citas,
-                            especialistas: datos.especialistas,
-                            horario: horario,
-                            alTocarCita: _abrirCita,
-                            alTocarHueco: (_) => _agendar(),
+                          child: Cambia(
+                            clave: claveDia(_dia),
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 6, right: 14),
+                              child: RejillaDia(
+                                citas: datos.citas,
+                                especialistas: datos.especialistas,
+                                horario: horario,
+                                miEspecialistaId: Sesion.de(context).miEspecialistaId,
+                                alTocarCita: _abrirCita,
+                                alTocarHueco: (minuto, especialistaId) => _agendar(
+                                  especialistaId: especialistaId,
+                                  minuto: minuto,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -275,20 +284,15 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
 
 /// El resumen del día y los nombres de las columnas, alineados con la rejilla.
 class _Cabecera extends StatelessWidget {
-  const _Cabecera({
-    required this.fecha,
-    required this.datos,
-    required this.especialistas,
-  });
+  const _Cabecera({required this.fecha, required this.datos});
 
   final DateTime fecha;
   final _DatosDia datos;
-  final List<Especialista> especialistas;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 12, 8),
+      padding: const EdgeInsets.fromLTRB(20, 12, 18, 12),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Marca.borde)),
       ),
@@ -297,59 +301,24 @@ class _Cabecera extends StatelessWidget {
         children: [
           Row(
             children: [
+              Text(diaYNumero(fecha), style: titulo(17)),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(diaYNumero(fecha), style: titulo(17)),
-              ),
-              Text(
-                datos.citas.isEmpty
+                child: Text(
+                  datos.citas.isEmpty
                     ? 'Sin citas'
                     : '${datos.total} '
                         '${datos.total == 1 ? 'cita' : 'citas'}'
                         '${datos.porConfirmar > 0 ? ' · ${datos.porConfirmar} por confirmar' : ''}'
                         ' · ${dinero(datos.previstoCentavos)}',
-                style: sutil(12.5),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: sutil(12.5),
+                ),
               ),
             ],
           ),
-          if (especialistas.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                // El mismo hueco que ocupa la columna de horas en la rejilla.
-                const SizedBox(width: 38),
-                for (final persona in especialistas)
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: Marca.desdeHex(persona.color),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            persona.id == Sesion.de(context).miEspecialistaId
-                                ? '${persona.nombre} (tú)'
-                                : persona.nombre,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ],
         ],
       ),
     );

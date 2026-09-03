@@ -275,6 +275,7 @@ class Catalogo {
     required this.servicios,
     required this.especialistas,
     required this.horario,
+    required this.masPedidos,
     required this.tasa,
   });
 
@@ -284,6 +285,10 @@ class Catalogo {
   final List<Servicio> servicios;
   final List<Especialista> especialistas;
   final List<HorarioDia> horario;
+
+  /// Ids de los servicios más agendados en los últimos meses. Salen primero
+  /// al agendar porque son los que casi siempre se agendan.
+  final List<String> masPedidos;
   final double tasa;
 
   /// El horario de un día concreto; si falta, se asume abierto 9–18.
@@ -308,6 +313,9 @@ class Catalogo {
         horario: [
           for (final h in (j['horario'] as List? ?? const []))
             HorarioDia.desdeJson(h as Map<String, dynamic>),
+        ],
+        masPedidos: [
+          for (final s in (j['masPedidos'] as List? ?? const [])) s as String,
         ],
       );
 }

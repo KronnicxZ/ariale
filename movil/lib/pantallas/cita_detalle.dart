@@ -91,7 +91,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
             final cita = d.cita;
 
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               children: [
                 Card(
                   child: Padding(
@@ -195,7 +195,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                         const Divider(height: 26),
                         for (final s in d.servicios)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.only(bottom: 10),
                             child: Row(
                               children: [
                                 Expanded(
@@ -328,7 +328,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                 const SizedBox(height: 18),
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     child: Row(
                       children: [
                         const Icon(Ico.ventas,

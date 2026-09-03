@@ -136,7 +136,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
 
               final venta = snap.data!;
               return ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
                 children: [
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +163,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                   const SizedBox(height: 16),
                   Card(
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(18),
                       child: Column(
                         children: [
                           for (final linea in venta.lineas)
@@ -247,7 +247,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                     const Seccion('Cobros'),
                     Card(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                         child: Column(
                           children: [
                             for (final pago in venta.pagos)
@@ -264,7 +264,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                     const Seccion('Bonos vendidos'),
                     Card(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                         child: Column(
                           children: [
                             for (final bono in venta.bonos)

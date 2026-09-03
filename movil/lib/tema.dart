@@ -25,6 +25,17 @@ class Marca {
   /// Filo de un pelo, como los separadores de iOS.
   static const borde = Color(0xFFE6E5E2);
 
+  /// El velo que aparece al pasar por encima o al pulsar. Es el mismo en
+  /// toda la app: si cada componente inventa el suyo, se nota.
+  static const roce = Color(0x0A17171A);
+  static const rocePulsado = Color(0x1417171A);
+
+  /// Medidas del respiro. Están aquí para que el aire sea el mismo en todas
+  /// las pantallas y no dependa de lo que recordara cada una.
+  static const margen = 20.0;
+  static const entreTarjetas = 10.0;
+  static const dentroTarjeta = 16.0;
+
   static const exito = Color(0xFF2F9E68);
   static const alerta = Color(0xFFD1901E);
   static const error = Color(0xFFDE3B40);
@@ -120,6 +131,10 @@ ThemeData construirTema() {
     ),
     scaffoldBackgroundColor: Marca.fondo,
     splashFactory: InkSparkle.splashFactory,
+    hoverColor: Marca.roce,
+    highlightColor: Marca.roce,
+    splashColor: Marca.rocePulsado,
+    focusColor: Marca.roce,
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: CupertinoPageTransitionsBuilder(),
@@ -167,6 +182,7 @@ ThemeData construirTema() {
         foregroundColor: Marca.negro,
         minimumSize: const Size(0, 52),
         elevation: 0,
+        overlayColor: Marca.negro,
         textStyle: GoogleFonts.inter(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -183,6 +199,7 @@ ThemeData construirTema() {
         backgroundColor: Marca.tarjeta,
         minimumSize: const Size(0, 48),
         side: BorderSide.none,
+        overlayColor: Marca.texto,
         textStyle: GoogleFonts.inter(
           fontSize: 15,
           fontWeight: FontWeight.w600,
@@ -227,7 +244,13 @@ ThemeData construirTema() {
       backgroundColor: Marca.tarjeta,
       surfaceTintColor: Colors.transparent,
       indicatorColor: Colors.transparent,
-      overlayColor: WidgetStatePropertyAll(Colors.transparent),
+      overlayColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.pressed)
+            ? Marca.rocePulsado
+            : states.contains(WidgetState.hovered)
+                ? Marca.roce
+                : Colors.transparent,
+      ),
       elevation: 0,
       height: 64,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -259,7 +282,8 @@ ThemeData construirTema() {
     ),
     listTileTheme: const ListTileThemeData(
       iconColor: Marca.textoSuave,
-      minVerticalPadding: 12,
+      minVerticalPadding: 14,
+      horizontalTitleGap: 14,
     ),
     chipTheme: ChipThemeData(
       backgroundColor: Marca.tarjeta,

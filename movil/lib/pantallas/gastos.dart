@@ -94,7 +94,7 @@ class _PantallaGastosState extends State<PantallaGastos> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 4),
               child: SelectorPeriodo(
                 activo: _periodo,
                 alElegir: (p) {
@@ -128,7 +128,7 @@ class _PantallaGastosState extends State<PantallaGastos> {
                     onRefresh: _refrescar,
                     color: Marca.dorado,
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 96),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 104),
                       children: [
                         Cabecera(
                           etiqueta: 'Gastado · ${datos.etiquetaPeriodo}',
@@ -140,7 +140,7 @@ class _PantallaGastosState extends State<PantallaGastos> {
                           const Seccion('Por categoría'),
                           Card(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
                               child: Column(
                                 children: [
                                   for (final c in datos.porCategoria)
@@ -167,7 +167,7 @@ class _PantallaGastosState extends State<PantallaGastos> {
                         else
                           ...datos.gastos.map(
                             (g) => Card(
-                              margin: const EdgeInsets.only(bottom: 8),
+                              margin: const EdgeInsets.only(bottom: 10),
                               child: ListTile(
                                 leading: Container(
                                   width: 8,

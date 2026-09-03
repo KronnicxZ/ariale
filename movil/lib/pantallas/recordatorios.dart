@@ -142,7 +142,7 @@ class _PantallaRecordatoriosState extends State<PantallaRecordatorios> {
               onRefresh: _refrescar,
               color: Marca.dorado,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
                 children: [
                   Cabecera(
                     etiqueta: 'Mensajes por enviar',
@@ -183,7 +183,7 @@ class _PantallaRecordatoriosState extends State<PantallaRecordatorios> {
                   else
                     ...visibles.map(
                       (r) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: _TarjetaRecordatorio(
                           recordatorio: r,
                           alEnviar: () => _enviar(r, datos.negocio, datos.prefijo),

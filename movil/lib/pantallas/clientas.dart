@@ -102,7 +102,7 @@ class _PantallaClientasState extends State<PantallaClientas> {
               height: 38,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 children: [
                   for (final (valor, etiqueta) in _filtros)
                     Padding(
@@ -239,7 +239,7 @@ class _TarjetaClienta extends StatelessWidget {
         onTap: alAbrir,
         borderRadius: BorderRadius.circular(18),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

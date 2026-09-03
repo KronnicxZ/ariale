@@ -49,7 +49,7 @@ class _PantallaReportesState extends State<PantallaReportes> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 4),
               child: SelectorPeriodo(
                 activo: _periodo,
                 alElegir: (p) {
@@ -79,7 +79,7 @@ class _PantallaReportesState extends State<PantallaReportes> {
                     onRefresh: _refrescar,
                     color: Marca.dorado,
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 32),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
                       children: [
                         Row(
                           children: [
@@ -129,7 +129,7 @@ class _PantallaReportesState extends State<PantallaReportes> {
                         const Seccion('Cuentas pendientes'),
                         Card(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
                             child: Column(
                               children: [
                                 FilaDato(
@@ -155,7 +155,7 @@ class _PantallaReportesState extends State<PantallaReportes> {
                           ),
                           Card(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
                               child: Column(
                                 children: [
                                   for (final c in r.categorias)
@@ -174,7 +174,7 @@ class _PantallaReportesState extends State<PantallaReportes> {
                           const Seccion('Servicios más vendidos'),
                           Card(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
                               child: Column(
                                 children: [
                                   for (final s in r.servicios.take(8))
@@ -195,7 +195,7 @@ class _PantallaReportesState extends State<PantallaReportes> {
                           const Seccion('Por especialista'),
                           Card(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 14),
                               child: Column(
                                 children: [
                                   for (final e in r.especialistas)
@@ -283,7 +283,7 @@ class _Kpi extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

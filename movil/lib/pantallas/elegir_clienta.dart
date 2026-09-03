@@ -102,7 +102,7 @@ class _PantallaElegirClientaState extends State<PantallaElegirClienta> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: TextField(
               controller: _busqueda,
               onChanged: (_) => setState(() {}),
@@ -138,7 +138,7 @@ class _PantallaElegirClientaState extends State<PantallaElegirClienta> {
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: _resultados.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 8),
                         itemBuilder: (context, i) {
@@ -218,7 +218,7 @@ class _PantallaElegirClientaState extends State<PantallaElegirClienta> {
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: OutlinedButton.icon(
                 onPressed: _clientaNueva,
                 icon: const Icon(Ico.nuevaClienta, size: 19),

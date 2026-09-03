@@ -7,6 +7,7 @@ import '../api/modelos.dart';
 import '../formato.dart';
 import '../sesion.dart';
 import '../tema.dart';
+import '../widgets/animar.dart';
 import '../widgets/comunes.dart';
 import 'cita_detalle.dart';
 import 'nueva_cita.dart';
@@ -139,7 +140,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                   ),
                   const SizedBox(height: 12),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -164,7 +165,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                   const SizedBox(height: 10),
                   if (datos.citas.isEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Vacio(
                         icono: Ico.hoy,
                         titulo: 'Hoy no hay nada agendado',
@@ -174,29 +175,33 @@ class _PantallaHoyState extends State<PantallaHoy> {
                       ),
                     )
                   else
-                    ...datos.citas.map(
-                      (cita) => Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        child: TarjetaCita(
-                          cita: cita,
-                          negocio: negocio?.nombre ?? 'Arialé Studio',
-                          prefijo: negocio?.prefijo ?? '+58',
-                          esProxima: cita.id == datos.proximaCitaId,
-                          alTocar: () async {
-                            final cambio = await Navigator.push<bool>(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PantallaCitaDetalle(citaId: cita.id),
-                              ),
-                            );
-                            if (cambio == true) _refrescar();
-                          },
+                    ...datos.citas.indexed.map(
+                      ((int, Cita) par) => Aparece(
+                        posicion: par.$1,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                          child: TarjetaCita(
+                            cita: par.$2,
+                            negocio: negocio?.nombre ?? 'Arialé Studio',
+                            prefijo: negocio?.prefijo ?? '+58',
+                            esProxima: par.$2.id == datos.proximaCitaId,
+                            alTocar: () async {
+                              final cambio = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      PantallaCitaDetalle(citaId: par.$2.id),
+                                ),
+                              );
+                              if (cambio == true) _refrescar();
+                            },
+                          ),
                         ),
                       ),
                     ),
                   const SizedBox(height: 10),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: OutlinedButton.icon(
                       onPressed: () => widget.alIrAAgenda(datos.hoy),
                       icon: const Icon(Ico.agenda, size: 18),
@@ -205,7 +210,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                   ),
                   const SizedBox(height: 18),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: _ResumenMes(datos: datos),
                   ),
                 ],
@@ -237,7 +242,7 @@ class _ResumenMes extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

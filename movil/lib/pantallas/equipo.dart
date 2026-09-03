@@ -98,7 +98,7 @@ class _PantallaEquipoState extends State<PantallaEquipo> {
               onRefresh: _refrescar,
               color: Marca.dorado,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 104),
                 children: [
                   const Aviso(
                     icono: Ico.clave,
@@ -109,7 +109,7 @@ class _PantallaEquipoState extends State<PantallaEquipo> {
                   const SizedBox(height: 14),
                   ...equipo.map(
                     (m) => Card(
-                      margin: const EdgeInsets.only(bottom: 8),
+                      margin: const EdgeInsets.only(bottom: 10),
                       child: Opacity(
                         opacity: m.activa ? 1 : 0.55,
                         child: ListTile(

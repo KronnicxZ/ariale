@@ -90,7 +90,7 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
               child: SegmentedButton<bool>(
                 segments: const [
                   ButtonSegment(value: false, label: Text('Servicios')),
@@ -137,7 +137,7 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
       onRefresh: _refrescar,
       color: Marca.dorado,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+        padding: const EdgeInsets.fromLTRB(20, 6, 20, 104),
         children: [
           for (final categoria in datos.categorias) ...[
             () {
@@ -205,7 +205,7 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
       onRefresh: _refrescar,
       color: Marca.dorado,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
         children: [
           const Aviso(
             icono: Ico.info,
@@ -223,9 +223,9 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
           else
             ...datos.bonos.map(
               (b) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
+                margin: const EdgeInsets.only(bottom: 10),
                 child: Padding(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

@@ -27,7 +27,7 @@ class PantallaMas extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
           children: [
             Text('Más', style: titulo(29)),
             const SizedBox(height: 4),

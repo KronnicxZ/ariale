@@ -122,7 +122,7 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
               onRefresh: _refrescar,
               color: Marca.dorado,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
                 children: [
                   Text(a.nombre, style: titulo(28)),
                   Text(
@@ -132,7 +132,7 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                   const SizedBox(height: 16),
                   Card(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
                       child: Column(
                         children: [
                           FilaDato('Teléfono', a.telefono ?? '—'),
@@ -253,7 +253,7 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                   const Seccion('Tasa del día'),
                   Card(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
                       child: Column(
                         children: [
                           FilaDato(

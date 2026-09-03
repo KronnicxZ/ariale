@@ -103,7 +103,7 @@ class _PantallaComprasState extends State<PantallaCompras> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
               child: SegmentedButton<bool>(
                 segments: const [
                   ButtonSegment(value: true, label: Text('Por pagar')),
@@ -122,7 +122,7 @@ class _PantallaComprasState extends State<PantallaCompras> {
             ),
             if (!_porPagar)
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 2),
+                padding: const EdgeInsets.fromLTRB(20, 6, 20, 2),
                 child: SelectorPeriodo(
                   activo: _periodo,
                   alElegir: (p) {
@@ -152,7 +152,7 @@ class _PantallaComprasState extends State<PantallaCompras> {
                     onRefresh: _refrescar,
                     color: Marca.dorado,
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 96),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 104),
                       children: [
                         Cabecera(
                           etiqueta: _porPagar ? 'Debes' : 'Comprado',
@@ -185,7 +185,7 @@ class _PantallaComprasState extends State<PantallaCompras> {
                         else
                           ...datos.compras.map(
                             (c) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.only(bottom: 10),
                               child: _TarjetaCompra(
                                 compra: c,
                                 alPagar: c.saldoCentavos > 0 ? () => _pagar(c) : null,
@@ -221,7 +221,7 @@ class _TarjetaCompra extends StatelessWidget {
             ? Border.all(color: Marca.error.withValues(alpha: 0.35))
             : null,
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

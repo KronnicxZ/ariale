@@ -18,6 +18,7 @@ class PantallaNuevaCita extends StatefulWidget {
     super.key,
     this.diaSugerido,
     this.especialistaSugerido,
+    this.minutoSugerido,
     this.clientaPreseleccionada,
   });
 
@@ -25,6 +26,10 @@ class PantallaNuevaCita extends StatefulWidget {
 
   /// Al tocar la columna de alguien en el calendario, viene ya elegida.
   final String? especialistaSugerido;
+
+  /// El minuto del día que se tocó en el calendario. Si a esa hora hay
+  /// hueco, se elige sola.
+  final int? minutoSugerido;
   final ClientaElegida? clientaPreseleccionada;
 
   @override
@@ -40,6 +45,11 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
   final _nota = TextEditingController();
 
   List<Hueco> _huecos = [];
+
+  /// Lo que llevó la clienta la última vez. Repetirlo es un toque.
+  List<String> _loDeSiempre = [];
+  String _loDeSiempreTexto = '';
+  bool _yaUseSugerencia = false;
   String? _motivoSinHuecos;
   bool _cargandoHuecos = false;
   bool _guardando = false;
@@ -55,6 +65,8 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     _dia = widget.diaSugerido ?? _catalogo.hoy;
   }
 
+
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -66,6 +78,8 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     _especialistaId = widget.especialistaSugerido ??
         (elegibles.any((e) => e.id == yo) ? yo : null) ??
         (elegibles.isEmpty ? null : elegibles.first.id);
+
+    if (_clienta?.id case final id?) _cargarLoDeSiempre(id);
   }
 
   @override
@@ -127,6 +141,18 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
         _huecos = huecos;
         _motivoSinHuecos = datos['motivo'] as String?;
         if (_hora != null && !huecos.any((h) => h.hora == _hora)) _hora = null;
+
+        // Si se llegó tocando un hueco del calendario y a esa hora cabe,
+        // no hay nada más que elegir.
+        if (!_yaUseSugerencia && _hora == null) {
+          _yaUseSugerencia = true;
+          if (widget.minutoSugerido case final minuto?) {
+            final buscada =
+                '${(minuto ~/ 60).toString().padLeft(2, '0')}:'
+                '${(minuto % 60).toString().padLeft(2, '0')}';
+            if (huecos.any((h) => h.hora == buscada)) _hora = buscada;
+          }
+        }
       });
     } on ErrorApi catch (e) {
       if (mounted && id == _peticion) {
@@ -138,6 +164,46 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     } finally {
       if (mounted && id == _peticion) setState(() => _cargandoHuecos = false);
     }
+  }
+
+  /// Lee la última visita de la clienta para poder repetirla de un toque.
+  /// Si falla, simplemente no aparece el atajo.
+  Future<void> _cargarLoDeSiempre(String? clientaId) async {
+    setState(() {
+      _loDeSiempre = [];
+      _loDeSiempreTexto = '';
+    });
+    if (clientaId == null) return;
+
+    try {
+      final datos = await Sesion.de(context).obtener('/api/v1/clientas/$clientaId');
+      final historial = datos['historial'] as List;
+      if (historial.isEmpty || !mounted) return;
+
+      final ultima = historial.first as Map<String, dynamic>;
+      final ids = [
+        for (final s in (ultima['servicioIds'] as List? ?? const [])) s as String,
+      ].where((id) => _catalogo.servicios.any((s) => s.id == id)).toList();
+      if (ids.isEmpty) return;
+
+      setState(() {
+        _loDeSiempre = ids;
+        _loDeSiempreTexto = [
+          for (final s in (ultima['servicios'] as List)) s as String,
+        ].join(' + ');
+      });
+    } on ErrorApi {
+      // El atajo es una comodidad: sin él la pantalla funciona igual.
+    }
+  }
+
+  void _repetirLoDeSiempre() {
+    setState(() {
+      _servicioIds
+        ..clear()
+        ..addAll(_loDeSiempre);
+    });
+    _recargarHuecos();
   }
 
   void _alternarServicio(String id) {
@@ -201,13 +267,26 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
             hijo: _SelectorClienta(
               clienta: _clienta,
               prefijo: _catalogo.negocio.prefijo,
-              alElegir: (c) => setState(() => _clienta = c),
+              alElegir: (c) {
+                setState(() => _clienta = c);
+                _cargarLoDeSiempre(c?.id);
+              },
             ),
           ),
+          if (_loDeSiempre.isNotEmpty && _servicioIds.isEmpty)
+            _Seccion(
+              rotulo: 'Lo de siempre',
+              subtitulo: 'Lo que se llevó la última vez',
+              hijo: _Atajo(
+                texto: _loDeSiempreTexto,
+                alTocar: _repetirLoDeSiempre,
+              ),
+            ),
           _Seccion(
             rotulo: 'Elige el servicio',
             subtitulo: 'Puedes combinar más de uno. El tiempo se suma solo.',
             hijo: _ListaServicios(
+              masPedidos: _catalogo.masPedidos,
               servicios: _catalogo.servicios,
               seleccionados: _servicioIds,
               tasa: _catalogo.tasa,
@@ -450,12 +529,14 @@ class _ListaServicios extends StatelessWidget {
   const _ListaServicios({
     required this.servicios,
     required this.seleccionados,
+    required this.masPedidos,
     required this.tasa,
     required this.alAlternar,
   });
 
   final List<Servicio> servicios;
   final List<String> seleccionados;
+  final List<String> masPedidos;
   final double tasa;
   final ValueChanged<String> alAlternar;
 
@@ -467,9 +548,48 @@ class _ListaServicios extends StatelessWidget {
       grupos.putIfAbsent(s.categoriaNombre, () => []).add(s);
     }
 
+    // Lo que más se pide, arriba del todo: casi siempre la cita es una de
+    // estas, y así no hay que recorrer el catálogo entero.
+    final frecuentes = [
+      for (final id in masPedidos)
+        if (servicios.where((s) => s.id == id).firstOrNull case final s?) s,
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (frecuentes.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Text('LOS MÁS PEDIDOS', style: micro()),
+          ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final servicio in frecuentes)
+                ChoiceChip(
+                  label: Text('${servicio.nombre}  ·  ${dinero(servicio.precioCentavos)}'),
+                  selected: seleccionados.contains(servicio.id),
+                  showCheckmark: false,
+                  onSelected: (_) => alAlternar(servicio.id),
+                  labelStyle: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    color: seleccionados.contains(servicio.id)
+                        ? Colors.white
+                        : Marca.texto,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text('TODO EL CATÁLOGO', style: micro()),
+          ),
+        ],
         for (final entrada in grupos.entries) ...[
           Padding(
             padding: const EdgeInsets.only(bottom: 8, top: 4),
@@ -498,7 +618,7 @@ class _ListaServicios extends StatelessWidget {
           ),
           for (final s in entrada.value)
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 10),
               child: _FilaServicio(
                 servicio: s,
                 elegido: seleccionados.contains(s.id),
@@ -764,7 +884,7 @@ class _ListaHoras extends StatelessWidget {
         for (final (clave, etiqueta) in _franjas)
           if (huecos.any((h) => h.franja == clave)) ...[
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 10),
               child: Text(
                 etiqueta.toUpperCase(),
                 style: const TextStyle(
@@ -910,6 +1030,49 @@ class _BarraResumen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Repetir la última cita de la clienta. En un estudio, la mayoría de las
+/// citas son la de antes otra vez.
+class _Atajo extends StatelessWidget {
+  const _Atajo({required this.texto, required this.alTocar});
+
+  final String texto;
+  final VoidCallback alTocar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Marca.dorado.withValues(alpha: 0.14),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: alTocar,
+        borderRadius: BorderRadius.circular(14),
+        hoverColor: Marca.dorado.withValues(alpha: 0.22),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+          child: Row(
+            children: [
+              const Icon(Ico.repetir, size: 18, color: Marca.negro),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  texto,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text('Repetir', style: sutil(13, peso: FontWeight.w700)),
+            ],
+          ),
+        ),
       ),
     );
   }
