@@ -32,7 +32,37 @@ function daysAhead(n: number, hh = 10, mm = 0) {
   return daysAgo(-n, hh, mm);
 }
 
+/**
+ * El seed BORRA TODO y vuelve a escribir datos de ejemplo. Una vez que el
+ * estudio empieza a usar la app de verdad, correrlo sin querer se lleva por
+ * delante meses de trabajo. Por eso se planta si encuentra datos que no
+ * puso él, salvo que se le insista con `npm run seed -- --forzar`.
+ */
+async function comprobarQueEsSeguro() {
+  if (process.argv.includes("--forzar")) return;
+
+  const [citas, ventas] = await Promise.all([
+    prisma.appointment.count(),
+    prisma.sale.count(),
+  ]);
+  if (citas === 0 && ventas === 0) return;
+
+  console.error("");
+  console.error("  La base ya tiene " + citas + " citas y " + ventas + " ventas.");
+  console.error("  El seed las borraría todas y pondría datos de ejemplo.");
+  console.error("");
+  console.error("  Si quieres empezar de cero conservando el catálogo:");
+  console.error("      npm run limpiar");
+  console.error("");
+  console.error("  Si de verdad quieres los datos de ejemplo otra vez:");
+  console.error("      npm run seed -- --forzar");
+  console.error("");
+  process.exit(1);
+}
+
 async function main() {
+  await comprobarQueEsSeguro();
+
   console.log("Limpiando base de datos…");
   await prisma.reminderLog.deleteMany();
   await prisma.payment.deleteMany();

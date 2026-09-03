@@ -34,17 +34,29 @@ export function parseDay(value: string | null | undefined) {
   return new Date(Date.UTC(y, m - 1, d, 12));
 }
 
-/** Numeración correlativa. SQLite no da autoincrement fuera del id. */
-export async function nextSaleNumber() {
-  const last = await prisma.sale.findFirst({
+/**
+ * Lo mínimo que necesitamos de un cliente Prisma: sirve tanto el global como
+ * el de dentro de una transacción.
+ */
+type ClientePrisma = Pick<typeof prisma, "sale" | "purchase">;
+
+/**
+ * Numeración correlativa. SQLite no da autoincrement fuera del id.
+ *
+ * Recibe el cliente porque, si se llama desde dentro de una transacción, hay
+ * que usar el de la transacción: consultar con el global mientras hay una
+ * escritura abierta bloquea la base y la transacción muere por tiempo.
+ */
+export async function nextSaleNumber(db: ClientePrisma = prisma) {
+  const last = await db.sale.findFirst({
     orderBy: { number: "desc" },
     select: { number: true },
   });
   return (last?.number ?? 0) + 1;
 }
 
-export async function nextPurchaseNumber() {
-  const last = await prisma.purchase.findFirst({
+export async function nextPurchaseNumber(db: ClientePrisma = prisma) {
+  const last = await db.purchase.findFirst({
     orderBy: { number: "desc" },
     select: { number: true },
   });
@@ -113,7 +125,7 @@ export async function createSaleRecord(input: CreateSaleInput) {
   return prisma.$transaction(async (tx) => {
     const created = await tx.sale.create({
       data: {
-        number: await nextSaleNumber(),
+        number: await nextSaleNumber(tx),
         date: parseDay(input.date) ?? new Date(),
         clientId: input.clientId,
         specialistId: input.specialistId || null,

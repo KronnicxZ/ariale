@@ -58,3 +58,6 @@ next-env.d.ts
 # SDK de Flutter: vive aquí por comodidad, pero no es parte del proyecto.
 # Lo suyo es moverlo fuera del proyecto y quitarlo de esta carpeta.
 /flutter/
+
+# Respaldos de la base: son datos del estudio, no del proyecto.
+/respaldos
