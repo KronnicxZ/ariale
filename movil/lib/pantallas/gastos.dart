@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -156,7 +158,7 @@ class _PantallaGastosState extends State<PantallaGastos> {
                         const Seccion('Movimientos'),
                         if (datos.gastos.isEmpty)
                           const Vacio(
-                            icono: Icons.receipt_outlined,
+                            icono: Ico.ventas,
                             titulo: 'Sin gastos en este periodo',
                             descripcion:
                                 'Anota el alquiler, el material y los servicios '
@@ -197,7 +199,7 @@ class _PantallaGastosState extends State<PantallaGastos> {
                                     IconButton(
                                       tooltip: 'Borrar',
                                       onPressed: () => _borrar(g),
-                                      icon: const Icon(Icons.delete_outline, size: 19),
+                                      icon: const Icon(Ico.borrar, size: 19),
                                       color: Marca.textoSuave,
                                     ),
                                   ],
@@ -222,7 +224,7 @@ class _PantallaGastosState extends State<PantallaGastos> {
               : null,
           backgroundColor: Marca.dorado,
           foregroundColor: Marca.negro,
-          icon: const Icon(Icons.add),
+          icon: const Icon(Ico.agregar),
           label: const Text('Anotar gasto'),
         ),
       ),

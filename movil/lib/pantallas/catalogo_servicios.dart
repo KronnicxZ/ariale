@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -81,7 +83,7 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
               onPressed: () => _editarServicio(null),
               backgroundColor: Marca.dorado,
               foregroundColor: Marca.negro,
-              icon: const Icon(Icons.add),
+              icon: const Icon(Ico.agregar),
               label: const Text('Nuevo servicio'),
             ),
       body: SafeArea(
@@ -206,7 +208,7 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         children: [
           const Aviso(
-            icono: Icons.info_outline,
+            icono: Ico.info,
             texto: 'Un bono son sesiones pagadas por adelantado. Al cobrarlas '
                 'se descuentan solas.',
             color: Marca.lavanda,
@@ -214,7 +216,7 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
           const SizedBox(height: 14),
           if (datos.bonos.isEmpty)
             const Vacio(
-              icono: Icons.card_giftcard_outlined,
+              icono: Ico.bonos,
               titulo: 'Todavía no hay bonos',
               descripcion: 'Se crean desde el panel web, con los servicios que cubren.',
             )

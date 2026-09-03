@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../sesion.dart';
@@ -74,7 +76,7 @@ class _PantallaInicioState extends State<PantallaInicio> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.cloud_off, size: 40, color: Marca.textoSuave),
+                const Icon(Ico.sinConexion, size: 40, color: Marca.textoSuave),
                 const SizedBox(height: 16),
                 Text(
                   _errorCatalogo!,
@@ -115,28 +117,28 @@ class _PantallaInicioState extends State<PantallaInicio> {
         onDestinationSelected: (i) => setState(() => _indice = i),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
+            icon: Icon(Ico.hoy),
+            selectedIcon: Icon(Ico.hoy),
             label: 'Hoy',
           ),
           NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
+            icon: Icon(Ico.agenda),
+            selectedIcon: Icon(Ico.agenda),
             label: 'Agenda',
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
+            icon: Icon(Ico.clientas),
+            selectedIcon: Icon(Ico.clientas),
             label: 'Clientas',
           ),
           NavigationDestination(
-            icon: Icon(Icons.payments_outlined),
-            selectedIcon: Icon(Icons.payments),
+            icon: Icon(Ico.cobrar),
+            selectedIcon: Icon(Ico.cobrar),
             label: 'Cobrar',
           ),
           NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view),
+            icon: Icon(Ico.mas),
+            selectedIcon: Icon(Ico.mas),
             label: 'Más',
           ),
         ],

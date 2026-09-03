@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -94,7 +96,7 @@ class _PantallaComprasState extends State<PantallaCompras> {
         onPressed: _nuevaCompra,
         backgroundColor: Marca.dorado,
         foregroundColor: Marca.negro,
-        icon: const Icon(Icons.add),
+        icon: const Icon(Ico.agregar),
         label: const Text('Nueva compra'),
       ),
       body: SafeArea(
@@ -171,8 +173,8 @@ class _PantallaComprasState extends State<PantallaCompras> {
                         if (datos.compras.isEmpty)
                           Vacio(
                             icono: _porPagar
-                                ? Icons.check_circle_outline
-                                : Icons.inventory_2_outlined,
+                                ? Ico.bien
+                                : Ico.compras,
                             titulo: _porPagar
                                 ? 'No le debes nada a nadie'
                                 : 'Sin compras en este periodo',
@@ -280,7 +282,7 @@ class _TarjetaCompra extends StatelessWidget {
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: alPagar,
-                icon: const Icon(Icons.payments_outlined, size: 19),
+                icon: const Icon(Ico.cobrar, size: 19),
                 label: const Text('Pagar'),
                 style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
               ),
@@ -511,7 +513,7 @@ class _HojaCompraState extends State<_HojaCompra> {
                 );
                 if (elegida != null) setState(() => _vence = elegida);
               },
-              icon: const Icon(Icons.event_outlined, size: 18),
+              icon: const Icon(Ico.agenda, size: 18),
               label: Text(
                 _vence == null
                     ? 'Fecha de vencimiento (opcional)'

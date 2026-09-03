@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
@@ -80,11 +82,11 @@ class _PantallaClientasState extends State<PantallaClientas> {
                     onSubmitted: (_) => _refrescar(),
                     decoration: InputDecoration(
                       hintText: 'Buscar por nombre o teléfono',
-                      prefixIcon: const Icon(Icons.search, size: 20),
+                      prefixIcon: const Icon(Ico.buscar, size: 20),
                       suffixIcon: _busqueda.text.isEmpty
                           ? null
                           : IconButton(
-                              icon: const Icon(Icons.close, size: 18),
+                              icon: const Icon(Ico.cerrar, size: 18),
                               onPressed: () {
                                 _busqueda.clear();
                                 _refrescar();
@@ -145,7 +147,7 @@ class _PantallaClientasState extends State<PantallaClientas> {
                     return const Padding(
                       padding: EdgeInsets.all(16),
                       child: Vacio(
-                        icono: Icons.people_outline,
+                        icono: Ico.clientas,
                         titulo: 'No encontramos a nadie',
                         descripcion: 'Prueba con otro nombre o cambia el filtro.',
                       ),
@@ -277,7 +279,7 @@ class _TarjetaClienta extends StatelessWidget {
                       '¡Hola ${primerNombre(clienta.nombre)}! 💅',
                       prefijo: prefijo,
                     ),
-                    icon: const Icon(Icons.chat_bubble_outline, size: 20),
+                    icon: const Icon(Ico.whatsapp, size: 20),
                     color: Marca.exito,
                     style: IconButton.styleFrom(
                       backgroundColor: Marca.exito.withValues(alpha: 0.12),
@@ -324,7 +326,7 @@ class _TarjetaClienta extends StatelessWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: alAgendar,
-                  icon: const Icon(Icons.calendar_month_outlined, size: 18),
+                  icon: const Icon(Ico.agenda, size: 18),
                   label: const Text('Agendar'),
                 ),
               ),
@@ -347,17 +349,9 @@ class _Dato extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(
-            rotulo.toUpperCase(),
-            style: const TextStyle(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-              color: Marca.textoSuave,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(valor, style: cifra(14)),
+          Text(rotulo.toUpperCase(), style: micro()),
+          const SizedBox(height: 3),
+          Text(valor, style: cifra(15.5, peso: FontWeight.w700)),
         ],
       ),
     );

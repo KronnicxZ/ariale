@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../sesion.dart';
 import '../tema.dart';
 import 'compras.dart';
@@ -36,28 +38,28 @@ class PantallaMas extends StatelessWidget {
             const SizedBox(height: 18),
             const _Grupo('Caja', [
               _Entrada(
-                icono: Icons.receipt_long_outlined,
+                icono: Ico.ventas,
                 rotulo: 'Ventas',
                 apoyo: 'Lo que vendiste y lo que te pagaron',
                 color: Marca.dorado,
                 crear: PantallaVentas.new,
               ),
               _Entrada(
-                icono: Icons.trending_down,
+                icono: Ico.bajada,
                 rotulo: 'Gastos',
                 apoyo: 'En qué se va el dinero',
                 color: Marca.durazno,
                 crear: PantallaGastos.new,
               ),
               _Entrada(
-                icono: Icons.inventory_2_outlined,
+                icono: Ico.compras,
                 rotulo: 'Compras y pagos',
                 apoyo: 'Material y lo que le debes a alguien',
                 color: Marca.cielo,
                 crear: PantallaCompras.new,
               ),
               _Entrada(
-                icono: Icons.local_shipping_outlined,
+                icono: Ico.proveedores,
                 rotulo: 'Proveedores',
                 apoyo: 'A quién le compras',
                 color: Marca.textoSuave,
@@ -66,7 +68,7 @@ class PantallaMas extends StatelessWidget {
             ]),
             const _Grupo('Clientas', [
               _Entrada(
-                icono: Icons.notifications_active_outlined,
+                icono: Ico.recordatorios,
                 rotulo: 'Recordatorios',
                 apoyo: 'Mensajes de WhatsApp listos para enviar',
                 color: Marca.exito,
@@ -75,28 +77,28 @@ class PantallaMas extends StatelessWidget {
             ]),
             const _Grupo('El estudio', [
               _Entrada(
-                icono: Icons.insights_outlined,
+                icono: Ico.reportes,
                 rotulo: 'Reportes',
                 apoyo: 'Cómo va el negocio',
                 color: Marca.lavanda,
                 crear: PantallaReportes.new,
               ),
               _Entrada(
-                icono: Icons.spa_outlined,
+                icono: Ico.servicios,
                 rotulo: 'Servicios y bonos',
                 apoyo: 'Precios, duraciones y paquetes',
                 color: Marca.rosa,
                 crear: PantallaCatalogoServicios.new,
               ),
               _Entrada(
-                icono: Icons.groups_outlined,
+                icono: Ico.equipo,
                 rotulo: 'Equipo',
                 apoyo: 'Especialistas y sus claves',
                 color: Marca.salvia,
                 crear: PantallaEquipo.new,
               ),
               _Entrada(
-                icono: Icons.storefront_outlined,
+                icono: Ico.negocio,
                 rotulo: 'Mi negocio',
                 apoyo: 'Datos, horario y agenda',
                 color: Marca.negro,
@@ -114,7 +116,7 @@ class PantallaMas extends StatelessWidget {
             Center(
               child: TextButton.icon(
                 onPressed: () => _confirmarSalida(context),
-                icon: const Icon(Icons.logout, size: 18),
+                icon: const Icon(Ico.salir, size: 18),
                 label: const Text('Cerrar sesión'),
                 style: TextButton.styleFrom(foregroundColor: Marca.textoSuave),
               ),
@@ -168,15 +170,7 @@ class _Grupo extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8, top: 14),
-          child: Text(
-            rotulo.toUpperCase(),
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.9,
-              color: Marca.textoTenue,
-            ),
-          ),
+          child: Text(rotulo.toUpperCase(), style: micro()),
         ),
         Card(
           child: Column(
@@ -230,7 +224,7 @@ class _Entrada extends StatelessWidget {
         ),
       ),
       subtitle: Text(apoyo, style: sutil(12.5, color: Marca.textoTenue)),
-      trailing: const Icon(Icons.chevron_right, size: 20, color: Marca.textoTenue),
+      trailing: const Icon(Ico.siguiente, size: 20, color: Marca.textoTenue),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(builder: (_) => crear()),
       ),

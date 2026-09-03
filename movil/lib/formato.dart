@@ -38,6 +38,12 @@ String fechaCorta(DateTime fecha) => DateFormat('d MMM', 'es').format(fecha);
 String fechaLarga(DateTime fecha) => DateFormat("EEEE d 'de' MMMM", 'es').format(fecha);
 String fechaNumerica(DateTime fecha) => DateFormat('dd/MM/yyyy', 'es').format(fecha);
 
+/// "Miércoles 2". El mes ya lo dice el título de arriba.
+String diaYNumero(DateTime fecha) {
+  final texto = DateFormat('EEEE d', 'es').format(fecha);
+  return texto[0].toUpperCase() + texto.substring(1);
+}
+
 /// "Septiembre 2026", con mayúscula: es un título.
 String mesYAno(DateTime fecha) {
   final texto = DateFormat('MMMM yyyy', 'es').format(fecha);

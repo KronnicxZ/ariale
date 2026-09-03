@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
@@ -66,7 +68,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
         appBar: AppBar(
           title: const Text('Cita'),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Ico.atras),
             onPressed: () => Navigator.pop(context, _huboCambios),
           ),
         ),
@@ -182,7 +184,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                                 ),
                                 prefijo: negocio?.prefijo ?? '+58',
                               ),
-                              icon: const Icon(Icons.chat_bubble_outline),
+                              icon: const Icon(Ico.whatsapp),
                               color: Marca.exito,
                               style: IconButton.styleFrom(
                                 backgroundColor: Marca.exito.withValues(alpha: 0.12),
@@ -275,7 +277,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.health_and_safety_outlined,
+                                const Icon(Ico.alergia,
                                     size: 18, color: Marca.alerta),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -303,19 +305,19 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                       if (cita.porConfirmar)
                         FilledButton.icon(
                           onPressed: () => _cambiarEstado('CONFIRMED'),
-                          icon: const Icon(Icons.check_circle_outline),
+                          icon: const Icon(Ico.bien),
                           label: const Text('Confirmar'),
                         ),
                       if (!cita.atendida && !cita.cancelada)
                         OutlinedButton.icon(
                           onPressed: () => _cambiarEstado('ATTENDED'),
-                          icon: const Icon(Icons.check, size: 18),
+                          icon: const Icon(Ico.listo, size: 18),
                           label: const Text('Atendida'),
                         ),
                       if (!cita.cancelada)
                         OutlinedButton.icon(
                           onPressed: () => _cambiarEstado('CANCELLED'),
-                          icon: const Icon(Icons.block, size: 18),
+                          icon: const Icon(Ico.anular, size: 18),
                           label: const Text('Cancelar'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Marca.error,
@@ -329,7 +331,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        const Icon(Icons.receipt_long_outlined,
+                        const Icon(Ico.ventas,
                             size: 18, color: Marca.textoSuave),
                         const SizedBox(width: 10),
                         Expanded(

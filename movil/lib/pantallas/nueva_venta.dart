@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
@@ -215,7 +217,7 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
           children: [
             Card(
               child: ListTile(
-                leading: const Icon(Icons.person_outline),
+                leading: const Icon(Ico.clienta),
                 title: Text(
                   _clienta?.nombre ?? 'Elegir clienta',
                   style: TextStyle(
@@ -226,19 +228,19 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
                 subtitle: _clienta == null
                     ? null
                     : Text(telefonoBonito(_clienta!.telefono)),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const Icon(Ico.siguiente),
                 onTap: _elegirClienta,
               ),
             ),
             const Seccion('Servicios'),
             if (_lineas.isEmpty)
               Vacio(
-                icono: Icons.spa_outlined,
+                icono: Ico.servicios,
                 titulo: 'Sin servicios todavía',
                 descripcion: 'Agrega lo que se llevó la clienta.',
                 accion: OutlinedButton.icon(
                   onPressed: _agregarServicio,
-                  icon: const Icon(Icons.add, size: 18),
+                  icon: const Icon(Ico.agregar, size: 18),
                   label: const Text('Agregar servicio'),
                 ),
               )
@@ -282,8 +284,8 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
                           }),
                           icon: Icon(
                             linea.cantidad > 1
-                                ? Icons.remove_circle_outline
-                                : Icons.delete_outline,
+                                ? Ico.restarUno
+                                : Ico.borrar,
                             size: 20,
                           ),
                         ),
@@ -293,7 +295,7 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
                             linea.cantidad++;
                             _sincronizarCobro();
                           }),
-                          icon: const Icon(Icons.add_circle_outline, size: 20),
+                          icon: const Icon(Ico.sumarUno, size: 20),
                         ),
                         SizedBox(
                           width: 64,
@@ -310,7 +312,7 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
               ),
               OutlinedButton.icon(
                 onPressed: _agregarServicio,
-                icon: const Icon(Icons.add, size: 18),
+                icon: const Icon(Ico.agregar, size: 18),
                 label: const Text('Agregar otro'),
               ),
             ],
@@ -435,7 +437,7 @@ class _HojaServiciosState extends State<_HojaServicios> {
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(
                 hintText: 'Buscar servicio',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(Ico.buscar),
               ),
             ),
           ),

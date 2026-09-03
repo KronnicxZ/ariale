@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -60,7 +62,7 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
         onPressed: () => _editar(),
         backgroundColor: Marca.dorado,
         foregroundColor: Marca.negro,
-        icon: const Icon(Icons.add),
+        icon: const Icon(Ico.agregar),
         label: const Text('Nuevo'),
       ),
       body: SafeArea(
@@ -98,7 +100,7 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
                   const SizedBox(height: 14),
                   if (proveedores.isEmpty)
                     const Vacio(
-                      icono: Icons.local_shipping_outlined,
+                      icono: Ico.proveedores,
                       titulo: 'Todavía no hay proveedores',
                       descripcion:
                           'Anota a quién le compras el material para llevar '
@@ -143,7 +145,7 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
                                     '${Sesion.catalogo?.negocio.nombre ?? 'Arialé Studio'}.',
                                     prefijo: prefijo,
                                   ),
-                                  icon: const Icon(Icons.chat_bubble_outline, size: 19),
+                                  icon: const Icon(Ico.whatsapp, size: 19),
                                   color: Marca.exito,
                                 ),
                             ],

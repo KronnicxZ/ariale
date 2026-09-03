@@ -51,24 +51,37 @@ class Marca {
       fondo.computeLuminance() > 0.55 ? negro : Colors.white;
 }
 
-/// Una sola familia en toda la app, con el peso y el tamaño haciendo la
-/// jerarquía. Cuanto más grande el texto, más apretado: es lo que hace que
-/// un título grande se lea como una pieza y no como palabras sueltas.
+/// Dos cortes de la misma familia, como hace el sistema de Apple con SF Pro
+/// Display y SF Pro Text: el contraste sale del corte, del peso y del
+/// interletrado, no de mezclar dos tipografías que se pelean.
+///
+/// Cuanto más grande el texto, más apretado: es lo que hace que un título
+/// se lea como una pieza y no como palabras sueltas.
 double _apretado(double tamano) {
-  if (tamano >= 30) return -0.9;
-  if (tamano >= 24) return -0.6;
-  if (tamano >= 19) return -0.4;
-  return -0.2;
+  if (tamano >= 30) return -1.4;
+  if (tamano >= 24) return -1;
+  if (tamano >= 19) return -0.6;
+  return -0.3;
 }
 
-/// Títulos. Grandes y en negrita, sin adornos.
-TextStyle titulo(double tamano, {Color? color, FontWeight peso = FontWeight.w700}) =>
-    GoogleFonts.inter(
+/// Títulos, en Inter Tight: más estrecha y con más carácter que la de texto.
+/// A partir de 24 va en extranegrita, que es de donde viene el contraste.
+TextStyle titulo(double tamano, {Color? color, FontWeight? peso}) =>
+    GoogleFonts.interTight(
       fontSize: tamano,
-      fontWeight: peso,
+      fontWeight: peso ?? (tamano >= 24 ? FontWeight.w800 : FontWeight.w700),
       color: color ?? Marca.texto,
-      height: 1.14,
+      height: 1.08,
       letterSpacing: _apretado(tamano),
+    );
+
+/// Rótulo diminuto en versales para encabezar una sección o una columna.
+/// Es el escalón que faltaba entre el título y el texto gris.
+TextStyle micro({Color? color}) => GoogleFonts.inter(
+      fontSize: 10.5,
+      fontWeight: FontWeight.w700,
+      color: color ?? Marca.textoTenue,
+      letterSpacing: 0.8,
     );
 
 /// Cifras con espaciado tabular: el dinero se lee de un vistazo y las
@@ -220,7 +233,7 @@ ThemeData construirTema() {
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       iconTheme: WidgetStateProperty.resolveWith(
         (states) => IconThemeData(
-          size: 23,
+          size: 22,
           color: states.contains(WidgetState.selected)
               ? Marca.texto
               : Marca.textoSuave,

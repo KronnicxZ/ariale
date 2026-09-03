@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -172,7 +174,7 @@ class _PantallaRecordatoriosState extends State<PantallaRecordatorios> {
                   const SizedBox(height: 14),
                   if (visibles.isEmpty)
                     const Vacio(
-                      icono: Icons.mark_email_read_outlined,
+                      icono: Ico.sinPendientes,
                       titulo: 'Nada pendiente por avisar',
                       descripcion:
                           'Cuando haya citas cercanas, saldos vencidos o '
@@ -207,10 +209,10 @@ class _TarjetaRecordatorio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (icono, color) = switch (recordatorio.tipo) {
-      'APPOINTMENT' => (Icons.event_available_outlined, Marca.dorado),
-      'DEBT' => (Icons.payments_outlined, Marca.error),
-      'NEXT_SESSION' => (Icons.autorenew, Marca.lavanda),
-      _ => (Icons.cake_outlined, Marca.rosa),
+      'APPOINTMENT' => (Ico.hoy, Marca.dorado),
+      'DEBT' => (Ico.cobrar, Marca.error),
+      'NEXT_SESSION' => (Ico.repetir, Marca.lavanda),
+      _ => (Ico.cumple, Marca.rosa),
     };
 
     return Card(
@@ -266,7 +268,7 @@ class _TarjetaRecordatorio extends StatelessWidget {
             IconButton(
               tooltip: 'Abrir WhatsApp',
               onPressed: alEnviar,
-              icon: const Icon(Icons.chat_bubble_outline, size: 20),
+              icon: const Icon(Ico.whatsapp, size: 20),
               color: Marca.exito,
               style: IconButton.styleFrom(
                 backgroundColor: Marca.exito.withValues(alpha: 0.12),

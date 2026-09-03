@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/modelos.dart';
 import '../formato.dart';
 import '../tema.dart';
@@ -98,7 +100,7 @@ class Aviso extends StatelessWidget {
                 ),
               ),
               if (alTocar != null)
-                const Icon(Icons.chevron_right, size: 20, color: Marca.textoTenue),
+                const Icon(Ico.siguiente, size: 20, color: Marca.textoTenue),
             ],
           ),
         ),
@@ -165,13 +167,13 @@ class ErrorConReintento extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off, size: 30, color: Marca.textoTenue),
+            const Icon(Ico.sinConexion, size: 30, color: Marca.textoTenue),
             const SizedBox(height: 14),
             Text(mensaje, textAlign: TextAlign.center, style: sutil(14)),
             const SizedBox(height: 18),
             OutlinedButton.icon(
               onPressed: alReintentar,
-              icon: const Icon(Icons.refresh, size: 18),
+              icon: const Icon(Ico.reintentar, size: 18),
               label: const Text('Reintentar'),
             ),
           ],
@@ -225,12 +227,7 @@ class TiraDias extends StatelessWidget {
                   children: [
                     Text(
                       esHoy ? 'HOY' : _nombres[dia.diaSemana].toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
-                        color: activo ? Colors.white70 : Marca.textoTenue,
-                      ),
+                      style: micro(color: activo ? Colors.white70 : Marca.textoTenue),
                     ),
                     const SizedBox(height: 3),
                     Text(
@@ -400,7 +397,7 @@ class TarjetaCita extends StatelessWidget {
                     ),
                     prefijo: prefijo,
                   ),
-                  icon: const Icon(Icons.chat_bubble_outline, size: 19),
+                  icon: const Icon(Ico.whatsapp, size: 19),
                   color: Marca.exito,
                   visualDensity: VisualDensity.compact,
                 ),
@@ -441,9 +438,9 @@ class Cabecera extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(etiqueta, style: sutil(12.5)),
-                  const SizedBox(height: 3),
-                  Text(valor, style: cifra(28, color: colorValor)),
+                  Text(etiqueta.toUpperCase(), style: micro()),
+                  const SizedBox(height: 5),
+                  Text(valor, style: cifra(29, color: colorValor, peso: FontWeight.w700)),
                   if (apoyo != null) ...[
                     const SizedBox(height: 2),
                     Text(apoyo!, style: sutil(12.5, color: Marca.textoTenue)),

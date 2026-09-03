@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -212,7 +214,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                         Expanded(
                           child: FilledButton.icon(
                             onPressed: () => _abonar(venta),
-                            icon: const Icon(Icons.payments_outlined, size: 20),
+                            icon: const Icon(Ico.cobrar, size: 20),
                             label: const Text('Me pagó'),
                           ),
                         ),
@@ -228,7 +230,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                               ),
                               prefijo: negocio?.prefijo ?? '+58',
                             ),
-                            icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                            icon: const Icon(Ico.whatsapp, size: 18),
                             label: const Text('Recordar'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Marca.exito,
@@ -291,7 +293,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                     Center(
                       child: TextButton.icon(
                         onPressed: () => _anular(venta),
-                        icon: const Icon(Icons.block, size: 18),
+                        icon: const Icon(Ico.anular, size: 18),
                         label: const Text('Anular esta venta'),
                         style: TextButton.styleFrom(foregroundColor: Marca.error),
                       ),

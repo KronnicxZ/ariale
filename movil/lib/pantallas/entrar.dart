@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../sesion.dart';
 import '../tema.dart';
@@ -139,7 +141,7 @@ class _PantallaEntrarState extends State<PantallaEntrar> {
                         labelText: 'Contraseña',
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _verContrasena ? Icons.visibility_off : Icons.visibility,
+                            _verContrasena ? Ico.ocultar : Ico.ver,
                             color: Marca.textoSuave,
                           ),
                           onPressed: () =>
@@ -154,7 +156,7 @@ class _PantallaEntrarState extends State<PantallaEntrar> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.error_outline, size: 18, color: Marca.error),
+                          const Icon(Ico.error, size: 18, color: Marca.error),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../sesion.dart';
 import '../tema.dart';
@@ -144,7 +146,7 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                             alignment: Alignment.centerRight,
                             child: TextButton.icon(
                               onPressed: () => _editarDatos(a),
-                              icon: const Icon(Icons.edit_outlined, size: 17),
+                              icon: const Icon(Ico.editar, size: 17),
                               label: const Text('Editar datos'),
                             ),
                           ),
@@ -264,7 +266,7 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                             const Padding(
                               padding: EdgeInsets.only(top: 8),
                               child: Aviso(
-                                icono: Icons.schedule,
+                                icono: Ico.hora,
                                 texto: 'La tasa no es de hoy. Se actualiza desde el panel web.',
                                 color: Marca.alerta,
                               ),

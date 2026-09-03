@@ -72,12 +72,7 @@ class Calendario extends StatelessWidget {
                 child: Center(
                   child: Text(
                     inicial,
-                    style: const TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                      color: Marca.textoTenue,
-                    ),
+                    style: micro(),
                   ),
                 ),
               ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
@@ -107,7 +109,7 @@ class _PantallaElegirClientaState extends State<PantallaElegirClienta> {
               autofocus: true,
               decoration: const InputDecoration(
                 hintText: 'Buscar por nombre o teléfono',
-                prefixIcon: Icon(Icons.search, size: 20),
+                prefixIcon: Icon(Ico.buscar, size: 20),
               ),
             ),
           ),
@@ -219,7 +221,7 @@ class _PantallaElegirClientaState extends State<PantallaElegirClienta> {
               padding: const EdgeInsets.all(16),
               child: OutlinedButton.icon(
                 onPressed: _clientaNueva,
-                icon: const Icon(Icons.person_add_alt, size: 19),
+                icon: const Icon(Ico.nuevaClienta, size: 19),
                 label: const Text('Registrar clienta nueva'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),

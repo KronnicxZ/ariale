@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -100,7 +102,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
               builder: (context, snap) => IconButton(
                 tooltip: 'Editar',
                 onPressed: snap.hasData ? () => _editar(snap.data!) : null,
-                icon: const Icon(Icons.edit_outlined),
+                icon: const Icon(Ico.editar),
               ),
             ),
           ],
@@ -160,7 +162,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                   if (f.alergias != null && f.alergias!.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     Aviso(
-                      icono: Icons.warning_amber_rounded,
+                      icono: Ico.atencion,
                       texto: 'Alergias: ${f.alergias}',
                       color: Marca.error,
                     ),
@@ -171,7 +173,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: () => _agendar(f),
-                          icon: const Icon(Icons.add, size: 19),
+                          icon: const Icon(Ico.agregar, size: 19),
                           label: const Text('Agendar'),
                         ),
                       ),
@@ -184,7 +186,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                             'Te escribo de ${negocio?.nombre ?? 'Arialé Studio'}.',
                             prefijo: prefijo,
                           ),
-                          icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                          icon: const Icon(Ico.whatsapp, size: 18),
                           label: const Text('Escribir'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Marca.exito,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
@@ -154,7 +156,7 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
         onPressed: () => _agendar(),
         backgroundColor: Marca.dorado,
         foregroundColor: Marca.negro,
-        icon: const Icon(Icons.add),
+        icon: const Icon(Ico.agregar),
         label: const Text('Agendar'),
       ),
       body: SafeArea(
@@ -166,7 +168,7 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
                 children: [
                   IconButton(
                     onPressed: () => _saltarMes(-1),
-                    icon: const Icon(Icons.chevron_left),
+                    icon: const Icon(Ico.anterior),
                     tooltip: 'Mes anterior',
                   ),
                   Expanded(
@@ -181,7 +183,7 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
                   ),
                   IconButton(
                     onPressed: () => _saltarMes(1),
-                    icon: const Icon(Icons.chevron_right),
+                    icon: const Icon(Ico.siguiente),
                     tooltip: 'Mes siguiente',
                   ),
                   if (!esHoy)
@@ -296,10 +298,7 @@ class _Cabecera extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  fechaLarga(fecha),
-                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
-                ),
+                child: Text(diaYNumero(fecha), style: titulo(17)),
               ),
               Text(
                 datos.citas.isEmpty
@@ -308,7 +307,7 @@ class _Cabecera extends StatelessWidget {
                         '${datos.total == 1 ? 'cita' : 'citas'}'
                         '${datos.porConfirmar > 0 ? ' · ${datos.porConfirmar} por confirmar' : ''}'
                         ' · ${dinero(datos.previstoCentavos)}',
-                style: const TextStyle(fontSize: 12, color: Marca.textoSuave),
+                style: sutil(12.5),
               ),
             ],
           ),
@@ -371,7 +370,7 @@ class _Cerrado extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.bedtime_outlined, size: 36, color: Marca.textoSuave),
+            const Icon(Ico.cerrado, size: 36, color: Marca.textoSuave),
             const SizedBox(height: 12),
             Text('El estudio está cerrado', style: titulo(21)),
             const SizedBox(height: 4),
@@ -383,7 +382,7 @@ class _Cerrado extends StatelessWidget {
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: alAgendar,
-              icon: const Icon(Icons.add, size: 18),
+              icon: const Icon(Ico.agregar, size: 18),
               label: const Text('Agendar de todos modos'),
             ),
           ],

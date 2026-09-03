@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -105,63 +107,33 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
                 children: [
                   Text('Por cobrar', style: titulo(29)),
                   const SizedBox(height: 12),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Te deben en total',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Marca.textoSuave,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  dinero(datos.saldoCentavos),
-                                  style: cifra(24),
-                                ),
-                                Text(
-                                  '${datos.cuentas.length} '
-                                  '${datos.cuentas.length == 1 ? 'deuda' : 'deudas'}'
-                                  '${datos.vencidas > 0 ? ' · ${datos.vencidas} vencidas' : ''}',
-                                  style: const TextStyle(
-                                    fontSize: 12.5,
-                                    color: Marca.textoSuave,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          FilterChip(
-                            label: const Text('Solo vencidas'),
-                            selected: _soloVencidas,
-                            onSelected: (v) {
-                              setState(() => _soloVencidas = v);
-                              _refrescar();
-                            },
-                            backgroundColor: Marca.fondo,
-                            selectedColor: Marca.texto,
-                            labelStyle: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: -0.2,
-                              color: _soloVencidas ? Colors.white : Marca.textoSuave,
-                            ),
-                          ),
-                        ],
+                  Cabecera(
+                    etiqueta: 'Te deben en total',
+                    valor: dinero(datos.saldoCentavos),
+                    apoyo: '${datos.cuentas.length} '
+                        '${datos.cuentas.length == 1 ? 'deuda' : 'deudas'}'
+                        '${datos.vencidas > 0 ? ' · ${datos.vencidas} vencidas' : ''}',
+                    accion: FilterChip(
+                      label: const Text('Solo vencidas'),
+                      selected: _soloVencidas,
+                      onSelected: (v) {
+                        setState(() => _soloVencidas = v);
+                        _refrescar();
+                      },
+                      backgroundColor: Marca.fondo,
+                      selectedColor: Marca.texto,
+                      labelStyle: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                        color: _soloVencidas ? Colors.white : Marca.textoSuave,
                       ),
                     ),
                   ),
                   const SizedBox(height: 14),
                   if (datos.cuentas.isEmpty)
                     const Vacio(
-                      icono: Icons.celebration_outlined,
+                      icono: Ico.celebrar,
                       titulo: 'No hay nada por cobrar',
                       descripcion: 'Todas las clientas están al día. Bien hecho.',
                     )
@@ -273,7 +245,7 @@ class _TarjetaCuenta extends StatelessWidget {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: alCobrar,
-                  icon: const Icon(Icons.payments_outlined, size: 18),
+                  icon: const Icon(Ico.cobrar, size: 18),
                   label: const Text('Cobrar'),
                   style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
                 ),
@@ -290,7 +262,7 @@ class _TarjetaCuenta extends StatelessWidget {
                     ),
                     prefijo: prefijo,
                   ),
-                  icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                  icon: const Icon(Ico.whatsapp, size: 18),
                   label: const Text('Recordar'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 44),

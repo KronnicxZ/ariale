@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
@@ -100,14 +102,14 @@ class _PantallaHoyState extends State<PantallaHoy> {
                             );
                             if (creada == true) _refrescar();
                           },
-                          icon: const Icon(Icons.calendar_month_outlined),
+                          icon: const Icon(Ico.agenda),
                           label: const Text('Agendar una cita'),
                         ),
                         if (datos.porConfirmar > 0 || datos.vencidas > 0) ...[
                           const SizedBox(height: 14),
                           if (datos.porConfirmar > 0)
                             Aviso(
-                              icono: Icons.schedule,
+                              icono: Ico.hora,
                               color: Marca.dorado,
                               texto: '${datos.porConfirmar} '
                                   '${datos.porConfirmar == 1 ? 'cita sin confirmar' : 'citas sin confirmar'}',
@@ -117,7 +119,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                             const SizedBox(height: 8),
                           if (datos.vencidas > 0)
                             Aviso(
-                              icono: Icons.warning_amber_rounded,
+                              icono: Ico.atencion,
                               color: Marca.alerta,
                               texto: '${datos.vencidas} '
                                   '${datos.vencidas == 1 ? 'clienta te debe' : 'clientas te deben'}'
@@ -164,7 +166,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Vacio(
-                        icono: Icons.event_available_outlined,
+                        icono: Ico.hoy,
                         titulo: 'Hoy no hay nada agendado',
                         descripcion:
                             'Buen momento para escribirle a las clientas que no vienen '
@@ -197,7 +199,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: OutlinedButton.icon(
                       onPressed: () => widget.alIrAAgenda(datos.hoy),
-                      icon: const Icon(Icons.calendar_today_outlined, size: 18),
+                      icon: const Icon(Ico.agenda, size: 18),
                       label: const Text('Ver toda la agenda'),
                     ),
                   ),

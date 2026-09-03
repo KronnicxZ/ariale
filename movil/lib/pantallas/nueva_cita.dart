@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
@@ -287,7 +289,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.error_outline, size: 18, color: Marca.error),
+                  const Icon(Ico.error, size: 18, color: Marca.error),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -388,7 +390,7 @@ class _SelectorClienta extends StatelessWidget {
           );
           if (elegida != null) alElegir(elegida);
         },
-        icon: const Icon(Icons.person_search_outlined, size: 20),
+        icon: const Icon(Ico.buscarClienta, size: 20),
         label: const Text('Elegir clienta'),
         style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 54)),
       );
@@ -435,7 +437,7 @@ class _SelectorClienta extends StatelessWidget {
           ),
           IconButton(
             onPressed: () => alElegir(null),
-            icon: const Icon(Icons.close, size: 20),
+            icon: const Icon(Ico.cerrar, size: 20),
             tooltip: 'Cambiar de clienta',
           ),
         ],
@@ -552,7 +554,7 @@ class _FilaServicio extends StatelessWidget {
                   ),
                 ),
                 child: elegido
-                    ? const Icon(Icons.check, size: 15, color: Marca.negro)
+                    ? const Icon(Ico.listo, size: 15, color: Marca.negro)
                     : null,
               ),
               const SizedBox(width: 12),
@@ -714,7 +716,7 @@ class _BotonCalendario extends StatelessWidget {
           child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.calendar_today_outlined, size: 17, color: Marca.textoSuave),
+              Icon(Ico.agenda, size: 17, color: Marca.textoSuave),
               SizedBox(height: 5),
               Text(
                 'Otro día',

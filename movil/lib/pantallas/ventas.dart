@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -65,7 +67,7 @@ class _PantallaVentasState extends State<PantallaVentas> {
         onPressed: _nuevaVenta,
         backgroundColor: Marca.dorado,
         foregroundColor: Marca.negro,
-        icon: const Icon(Icons.add),
+        icon: const Icon(Ico.agregar),
         label: const Text('Nueva venta'),
       ),
       body: SafeArea(
@@ -155,7 +157,7 @@ class _PantallaVentasState extends State<PantallaVentas> {
                         const SizedBox(height: 14),
                         if (datos.ventas.isEmpty)
                           const Vacio(
-                            icono: Icons.receipt_long_outlined,
+                            icono: Ico.ventas,
                             titulo: 'Sin ventas en este periodo',
                             descripcion:
                                 'Cuando cobres una cita aparecerá aquí, con su saldo.',

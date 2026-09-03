@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -72,7 +74,7 @@ class _PantallaEquipoState extends State<PantallaEquipo> {
         onPressed: () => _editar(),
         backgroundColor: Marca.dorado,
         foregroundColor: Marca.negro,
-        icon: const Icon(Icons.person_add_alt),
+        icon: const Icon(Ico.nuevaClienta),
         label: const Text('Agregar'),
       ),
       body: SafeArea(
@@ -99,7 +101,7 @@ class _PantallaEquipoState extends State<PantallaEquipo> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                 children: [
                   const Aviso(
-                    icono: Icons.lock_outline,
+                    icono: Ico.clave,
                     texto: 'La clave de 4 dígitos es la que usa cada especialista '
                         'para entrar a ver solo su agenda.',
                     color: Marca.lavanda,

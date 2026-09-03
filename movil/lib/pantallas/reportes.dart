@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../iconos.dart';
+
 import '../api/cliente.dart';
 import '../formato.dart';
 import '../sesion.dart';
@@ -296,7 +298,7 @@ class _Kpi extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    sube ? Icons.trending_up : Icons.trending_down,
+                    sube ? Ico.subida : Ico.bajada,
                     size: 14,
                     color: bueno ? Marca.exito : Marca.error,
                   ),
