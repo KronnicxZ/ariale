@@ -315,7 +315,6 @@ class _FilaServicio extends StatelessWidget {
             Switch(
               value: servicio.activo,
               onChanged: (_) => alAlternar(),
-              activeThumbColor: Marca.dorado,
             ),
           ],
         ),
@@ -415,7 +414,9 @@ class _HojaServicioState extends State<_HojaServicio> {
         left: 20,
         right: 20,
         top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).viewPadding.bottom +
+            24,
       ),
       child: SingleChildScrollView(
         child: Column(

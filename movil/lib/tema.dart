@@ -308,11 +308,13 @@ ThemeData construirTema() {
         color: Colors.white,
       ),
     ),
+    // Encendido en negro, no en verde: el verde traía un color que no está
+    // en la marca y peleaba con el dorado del pulsador.
     switchTheme: SwitchThemeData(
       thumbColor: const WidgetStatePropertyAll(Colors.white),
       trackColor: WidgetStateProperty.resolveWith(
         (states) => states.contains(WidgetState.selected)
-            ? Marca.exito
+            ? Marca.texto
             : const Color(0xFFDEDDD9),
       ),
       trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),

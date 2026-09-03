@@ -142,7 +142,6 @@ class _PantallaEquipoState extends State<PantallaEquipo> {
                           trailing: Switch(
                             value: m.activa,
                             onChanged: (_) => _alternar(m),
-                            activeThumbColor: Marca.dorado,
                           ),
                           onTap: () => _editar(m),
                         ),
@@ -236,7 +235,9 @@ class _HojaMiembroState extends State<_HojaMiembro> {
         left: 20,
         right: 20,
         top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).viewPadding.bottom +
+            24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

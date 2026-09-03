@@ -162,7 +162,6 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                           if (i > 0) const Divider(height: 1),
                           SwitchListTile(
                             value: a.horario[i].abierto,
-                            activeThumbColor: Marca.dorado,
                             onChanged: (v) => _guardar({
                               'horario': [
                                 {
@@ -208,7 +207,6 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                       children: [
                         SwitchListTile(
                           value: a.confirmarAuto,
-                          activeThumbColor: Marca.dorado,
                           onChanged: (v) => _guardar({'confirmarAuto': v}),
                           title: const Text(
                             'Confirmar sin preguntarte',
@@ -337,7 +335,9 @@ class _HojaDatosState extends State<_HojaDatos> {
         left: 20,
         right: 20,
         top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).viewPadding.bottom +
+            24,
       ),
       child: SingleChildScrollView(
         child: Column(

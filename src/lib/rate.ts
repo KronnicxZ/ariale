@@ -9,24 +9,29 @@ import { dayKey, startOfDayUtc } from "@/lib/date";
  * MANUAL, manda el valor que cargó la dueña y no se consulta nada.
  */
 
+/**
+ * Fuentes gratuitas y sin registro, en orden de preferencia. Todas dan la
+ * tasa OFICIAL del BCV, que es la que factura el estudio; la paralela no
+ * sirve aquí aunque venga en la misma respuesta.
+ *
+ * pydolarve dejó de responder (404 en todos sus endpoints) y salió de la
+ * lista. Si dolarapi también cae, la app se queda con la última tasa
+ * guardada y lo dice, que es mejor que enseñar un número inventado.
+ */
 const SOURCES: { name: string; url: string; pick: (json: unknown) => number | null }[] = [
   {
-    name: "pydolarve",
-    url: "https://pydolarve.org/api/v2/tipo-cambio?currency=usd",
-    pick: (json) => num((json as Record<string, unknown>)?.price),
-  },
-  {
-    name: "pydolarve-bcv",
-    url: "https://pydolarve.org/api/v1/dollar?page=bcv",
-    pick: (json) => {
-      const monitors = (json as { monitors?: Record<string, { price?: unknown }> })?.monitors;
-      return num(monitors?.usd?.price);
-    },
-  },
-  {
-    name: "dolarapi",
+    name: "DolarAPI",
     url: "https://ve.dolarapi.com/v1/dolares/oficial",
     pick: (json) => num((json as Record<string, unknown>)?.promedio),
+  },
+  {
+    name: "DolarAPI",
+    url: "https://ve.dolarapi.com/v1/dolares",
+    pick: (json) => {
+      const lista = json as { fuente?: string; promedio?: unknown }[] | undefined;
+      const oficial = lista?.find((d) => d.fuente === "oficial");
+      return num(oficial?.promedio);
+    },
   },
 ];
 

@@ -698,15 +698,9 @@ async function main() {
     await prisma.expense.create({ data: { ...data, userId: cuentaAlejandra.id, method: "CASH_USD" } });
   }
 
-  console.log("Tasa BCV de referencia…");
-  const today = new Date();
-  await prisma.exchangeRate.create({
-    data: {
-      date: caracas(today.getFullYear(), today.getMonth() + 1, today.getDate()),
-      rate: 243.17,
-      source: "seed",
-    },
-  });
+  // La tasa del día NO se siembra: la app la pide sola a DolarAPI la
+  // primera vez que alguien abre el panel. Sembrarla dejaba una tasa
+  // inventada en caché y la de verdad no se consultaba nunca.
 
   console.log("Listo:", {
     clientas: await prisma.client.count(),

@@ -313,6 +313,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
                     ChoiceChip(
                       label: Text(e.nombre),
                       selected: _especialistaActivo == e.id,
+                      showCheckmark: false,
                       onSelected: (_) {
                         setState(() => _especialistaId = e.id);
                         _recargarHuecos();
@@ -321,7 +322,14 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
                         backgroundColor: Marca.desdeHex(e.color),
                         radius: 7,
                       ),
-                      selectedColor: Marca.dorado.withValues(alpha: 0.25),
+                      labelStyle: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                        color: _especialistaActivo == e.id
+                            ? Colors.white
+                            : Marca.textoSuave,
+                      ),
                     ),
                 ],
               ),

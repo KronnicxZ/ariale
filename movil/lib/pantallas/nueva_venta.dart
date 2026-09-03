@@ -353,7 +353,6 @@ class _PantallaNuevaVentaState extends State<PantallaNuevaVenta> {
             SwitchListTile(
               value: _cobraAhora,
               onChanged: (v) => setState(() => _cobraAhora = v),
-              activeThumbColor: Marca.dorado,
               contentPadding: EdgeInsets.zero,
               title: const Text('¿Te pagó ahora?'),
               subtitle: Text(

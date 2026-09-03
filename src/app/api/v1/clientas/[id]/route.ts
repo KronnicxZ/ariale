@@ -120,4 +120,24 @@ export const PATCH = withUserParams<{ id: string }, unknown>(async ({ request, p
   return { guardado: true };
 });
 
+/**
+ * Borra la clienta. Si tiene historial no se borra de verdad: se desactiva,
+ * porque las ventas y las citas que ya pasaron tienen que seguir cuadrando
+ * en los reportes. Una clienta desactivada desaparece de la lista.
+ */
+export const DELETE = withUserParams<{ id: string }, unknown>(async ({ params }) => {
+  const [citas, ventas] = await Promise.all([
+    prisma.appointment.count({ where: { clientId: params.id } }),
+    prisma.sale.count({ where: { clientId: params.id } }),
+  ]);
+
+  if (citas > 0 || ventas > 0) {
+    await prisma.client.update({ where: { id: params.id }, data: { active: false } });
+    return { borrada: false, desactivada: true };
+  }
+
+  await prisma.client.delete({ where: { id: params.id } });
+  return { borrada: true, desactivada: false };
+});
+
 export { OPTIONS } from "@/lib/api";
