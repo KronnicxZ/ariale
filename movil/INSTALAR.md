@@ -29,6 +29,11 @@ la PC del estudio y la app apunta a `http://192.168.x.x:3000`, la IP de esa
 PC en el wifi del local. Más simple, pero solo funciona dentro del salón y
 con la computadora encendida.
 
+> Para saber la IP: `ipconfig` en la terminal, y busca "Dirección IPv4" del
+> adaptador que uses (Ethernet o Wi-Fi). Antes de compilar, abre esa
+> dirección **desde el navegador del teléfono**: si no carga, es el
+> Firewall de Windows o una VPN activa, no la app.
+
 Anota la dirección que elijas: la vas a usar en el paso 3.
 
 ---
@@ -37,7 +42,10 @@ Anota la dirección que elijas: la vas a usar en el paso 3.
 
 1. Instala **Android Studio** desde <https://developer.android.com/studio>.
    Son unos 10 GB; se usa solo para compilar, nadie más lo necesita.
-2. Ábrelo una vez y deja que descargue el *Android SDK* que te ofrece.
+2. **Ábrelo una vez y termina el asistente de bienvenida.** Este paso es el
+   que descarga de verdad el *Android SDK*; con instalar el programa no
+   basta. Al terminar debe existir la carpeta
+   `C:UsersTU_USUARIOAppDataLocalAndroidSdk`.
 3. Acepta las licencias desde la terminal, en la carpeta del proyecto:
 
    ```powershell

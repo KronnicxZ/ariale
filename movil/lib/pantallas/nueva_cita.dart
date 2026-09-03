@@ -253,9 +253,18 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     }
   }
 
+  /// Qué falta para poder confirmar, en el mismo orden en que se pide.
+  /// Null cuando ya no falta nada.
+  String? get _queFalta {
+    if (_clienta == null) return 'Elige la clienta';
+    if (_servicioIds.isEmpty) return 'Elige el servicio';
+    if (_hora == null) return 'Elige la hora';
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final listo = _clienta != null && _servicioIds.isNotEmpty && _hora != null;
+    final listo = _queFalta == null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nueva cita')),
@@ -388,6 +397,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
         tasa: _catalogo.tasa,
         hora: _hora,
         listo: listo,
+        falta: _queFalta,
         guardando: _guardando,
         alConfirmar: _guardar,
       ),
@@ -945,6 +955,7 @@ class _BarraResumen extends StatelessWidget {
     required this.listo,
     required this.guardando,
     required this.alConfirmar,
+    required this.falta,
   });
 
   final String servicios;
@@ -955,6 +966,9 @@ class _BarraResumen extends StatelessWidget {
   final bool listo;
   final bool guardando;
   final VoidCallback alConfirmar;
+
+  /// Lo primero que falta para poder confirmar, en el orden en que se pide.
+  final String? falta;
 
   @override
   Widget build(BuildContext context) {
@@ -980,20 +994,25 @@ class _BarraResumen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      servicios.isEmpty ? 'Elige un servicio' : servicios,
+                      servicios.isEmpty ? 'Sin servicios todavía' : servicios,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
+                        letterSpacing: -0.2,
                       ),
                     ),
                     Text(
-                      servicios.isEmpty
-                          ? 'Servicio, día y hora'
-                          : '${duracion(duracionMin)}'
-                              '${hora != null ? ' · hora elegida' : ' · elige la hora'}',
-                      style: const TextStyle(color: Marca.textoSuave, fontSize: 12),
+                      falta ??
+                          '${duracion(duracionMin)} · todo listo',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: sutil(
+                        12.5,
+                        color: falta == null ? Marca.exito : Marca.alerta,
+                        peso: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -1026,7 +1045,7 @@ class _BarraResumen extends StatelessWidget {
                         color: Marca.negro,
                       ),
                     )
-                  : const Text('Confirmar cita'),
+                  : Text(falta ?? 'Confirmar cita'),
             ),
           ),
         ],

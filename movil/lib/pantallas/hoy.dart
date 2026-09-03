@@ -83,16 +83,34 @@ class _PantallaHoyState extends State<PantallaHoy> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '$saludo${quien == null ? '' : ', ${primerNombre(quien)}'}',
-                          style: sutil(14.5),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '$saludo${quien == null ? '' : ', ${primerNombre(quien)}'}',
+                                    style: sutil(14.5),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _capitalizar(fechaLarga(DateTime.parse(datos.hoy))),
+                                    style: titulo(29),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            _Campana(
+                              porConfirmar: datos.porConfirmar,
+                              vencidas: datos.vencidas,
+                              alAbrir: () => _abrirAvisos(datos),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _capitalizar(fechaLarga(DateTime.parse(datos.hoy))),
-                          style: titulo(29),
-                        ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
                         FilledButton.icon(
                           onPressed: () async {
                             final creada = await Navigator.push<bool>(
@@ -106,28 +124,6 @@ class _PantallaHoyState extends State<PantallaHoy> {
                           icon: const Icon(Ico.agenda),
                           label: const Text('Agendar una cita'),
                         ),
-                        if (datos.porConfirmar > 0 || datos.vencidas > 0) ...[
-                          const SizedBox(height: 14),
-                          if (datos.porConfirmar > 0)
-                            Aviso(
-                              icono: Ico.hora,
-                              color: Marca.dorado,
-                              texto: '${datos.porConfirmar} '
-                                  '${datos.porConfirmar == 1 ? 'cita sin confirmar' : 'citas sin confirmar'}',
-                              alTocar: () => widget.alIrAAgenda(datos.hoy),
-                            ),
-                          if (datos.porConfirmar > 0 && datos.vencidas > 0)
-                            const SizedBox(height: 8),
-                          if (datos.vencidas > 0)
-                            Aviso(
-                              icono: Ico.atencion,
-                              color: Marca.alerta,
-                              texto: '${datos.vencidas} '
-                                  '${datos.vencidas == 1 ? 'clienta te debe' : 'clientas te deben'}'
-                                  ' desde hace tiempo',
-                              alTocar: widget.alIrACobrar,
-                            ),
-                        ],
                       ],
                     ),
                   ),
@@ -222,6 +218,62 @@ class _PantallaHoyState extends State<PantallaHoy> {
     );
   }
 
+  /// Los avisos ya no ocupan la portada: se abren desde la campana, que
+  /// lleva el número encima para que se vea que hay algo sin atender.
+  Future<void> _abrirAvisos(ResumenHoy datos) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Marca.fondo,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (hoja) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Pendientes', style: titulo(24)),
+              const SizedBox(height: 16),
+              if (datos.porConfirmar > 0) ...[
+                Aviso(
+                  icono: Ico.hora,
+                  color: Marca.dorado,
+                  texto: '${datos.porConfirmar} '
+                      '${datos.porConfirmar == 1 ? 'cita sin confirmar' : 'citas sin confirmar'}',
+                  alTocar: () {
+                    Navigator.pop(hoja);
+                    widget.alIrAAgenda(datos.hoy);
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
+              if (datos.vencidas > 0)
+                Aviso(
+                  icono: Ico.atencion,
+                  color: Marca.alerta,
+                  texto: '${datos.vencidas} '
+                      '${datos.vencidas == 1 ? 'clienta te debe' : 'clientas te deben'}'
+                      ' desde hace tiempo',
+                  alTocar: () {
+                    Navigator.pop(hoja);
+                    widget.alIrACobrar();
+                  },
+                ),
+              if (datos.porConfirmar == 0 && datos.vencidas == 0)
+                const Vacio(
+                  icono: Ico.bien,
+                  titulo: 'Nada pendiente',
+                  descripcion: 'Todo está confirmado y al día.',
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _saludo() {
     final h = DateTime.now().hour;
     if (h >= 5 && h < 12) return 'Buenos días';
@@ -283,6 +335,50 @@ class _Cifra extends StatelessWidget {
           const SizedBox(height: 3),
           Text(dineroCorto(centavos), style: cifra(18, color: color)),
         ],
+      ),
+    );
+  }
+}
+
+
+/// Campana con el número de cosas sin atender. Ocupa una esquina en vez de
+/// dos tarjetas, y deja el botón de agendar donde llega el pulgar.
+class _Campana extends StatelessWidget {
+  const _Campana({
+    required this.porConfirmar,
+    required this.vencidas,
+    required this.alAbrir,
+  });
+
+  final int porConfirmar;
+  final int vencidas;
+  final VoidCallback alAbrir;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = porConfirmar + vencidas;
+    // Si hay deudas vencidas el aviso es más serio que una cita por confirmar.
+    final color = vencidas > 0 ? Marca.alerta : Marca.dorado;
+
+    return Material(
+      color: Marca.tarjeta,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: alAbrir,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(11),
+          child: Badge(
+            isLabelVisible: total > 0,
+            backgroundColor: color,
+            textColor: Marca.contrasteSobre(color),
+            label: Text(
+              total > 99 ? '99+' : '$total',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+            ),
+            child: const Icon(Ico.recordatorios, size: 21, color: Marca.texto),
+          ),
+        ),
       ),
     );
   }
