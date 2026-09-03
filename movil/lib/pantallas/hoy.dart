@@ -97,7 +97,7 @@ class _PantallaHoyState extends State<PantallaHoy> {
                                   const SizedBox(height: 2),
                                   Text(
                                     _capitalizar(fechaLarga(DateTime.parse(datos.hoy))),
-                                    style: titulo(29),
+                                    style: titulo(24),
                                   ),
                                 ],
                               ),

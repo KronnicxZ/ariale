@@ -146,7 +146,7 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(f.nombre, style: titulo(25)),
+                            Text(f.nombre, style: titulo(22)),
                             Text(
                               telefonoBonito(f.telefono, prefijo),
                               style: const TextStyle(

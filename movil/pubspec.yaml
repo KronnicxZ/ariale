@@ -30,6 +30,7 @@ dependencies:
   # Cormorant Garamond para títulos e Inter para el resto, igual que la web.
   google_fonts: ^6.2.1
   lucide_icons_flutter: ^3.1.17
+  font_awesome_flutter: ^11.0.0
 
 dev_dependencies:
   flutter_test:

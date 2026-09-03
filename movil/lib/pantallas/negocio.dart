@@ -124,7 +124,7 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
                 children: [
-                  Text(a.nombre, style: titulo(28)),
+                  Text(a.nombre, style: titulo(24)),
                   Text(
                     a.lema,
                     style: const TextStyle(fontSize: 13.5, color: Marca.textoSuave),

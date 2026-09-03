@@ -145,7 +145,7 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(venta.clientaNombre, style: titulo(26)),
+                            Text(venta.clientaNombre, style: titulo(22)),
                             const SizedBox(height: 2),
                             Text(
                               'Venta #${venta.numero} · ${fechaLarga(venta.fecha)}',

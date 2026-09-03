@@ -116,7 +116,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                                   const SizedBox(height: 2),
                                   Text(
                                     '${hora(cita.inicio)} — ${hora(cita.fin)}',
-                                    style: titulo(26),
+                                    style: titulo(22),
                                   ),
                                   Text(
                                     duracion(cita.duracionMin),
@@ -298,30 +298,27 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                 if (_guardando)
                   const Center(child: CircularProgressIndicator())
                 else
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
+                  Row(
                     children: [
                       if (cita.porConfirmar)
-                        FilledButton.icon(
-                          onPressed: () => _cambiarEstado('CONFIRMED'),
-                          icon: const Icon(Ico.bien),
-                          label: const Text('Confirmar'),
+                        _Accion(
+                          icono: Ico.bien,
+                          rotulo: 'Confirmar',
+                          principal: true,
+                          alTocar: () => _cambiarEstado('CONFIRMED'),
                         ),
                       if (!cita.atendida && !cita.cancelada)
-                        OutlinedButton.icon(
-                          onPressed: () => _cambiarEstado('ATTENDED'),
-                          icon: const Icon(Ico.listo, size: 18),
-                          label: const Text('Atendida'),
+                        _Accion(
+                          icono: Ico.listo,
+                          rotulo: 'Atendida',
+                          alTocar: () => _cambiarEstado('ATTENDED'),
                         ),
                       if (!cita.cancelada)
-                        OutlinedButton.icon(
-                          onPressed: () => _cambiarEstado('CANCELLED'),
-                          icon: const Icon(Ico.anular, size: 18),
-                          label: const Text('Cancelar'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Marca.error,
-                          ),
+                        _Accion(
+                          icono: Ico.anular,
+                          rotulo: 'Cancelar',
+                          color: Marca.error,
+                          alTocar: () => _cambiarEstado('CANCELLED'),
                         ),
                     ],
                   ),
@@ -402,6 +399,64 @@ class _Detalle {
       ventaEstado: venta?['estado'] as String?,
       ventaNumero: venta?['numero'] as int?,
       ventaCobradoCentavos: venta?['cobradoCentavos'] as int?,
+    );
+  }
+}
+
+
+/// Una de las tres acciones de una cita. Van en fila y a partes iguales:
+/// son la misma decisión tomada de tres maneras.
+class _Accion extends StatelessWidget {
+  const _Accion({
+    required this.icono,
+    required this.rotulo,
+    required this.alTocar,
+    this.principal = false,
+    this.color,
+  });
+
+  final IconData icono;
+  final String rotulo;
+  final VoidCallback alTocar;
+  final bool principal;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final tinte = color ?? (principal ? Marca.negro : Marca.texto);
+
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Material(
+          color: principal ? Marca.dorado : Marca.tarjeta,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: alTocar,
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                children: [
+                  Icon(icono, size: 19, color: tinte),
+                  const SizedBox(height: 5),
+                  Text(
+                    rotulo,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                      color: tinte,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

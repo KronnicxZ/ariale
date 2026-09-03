@@ -573,30 +573,19 @@ class _ListaServicios extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 10),
             child: Text('LOS MÁS PEDIDOS', style: micro()),
           ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final servicio in frecuentes)
-                ChoiceChip(
-                  label: Text('${servicio.nombre}  ·  ${dinero(servicio.precioCentavos)}'),
-                  selected: seleccionados.contains(servicio.id),
-                  showCheckmark: false,
-                  onSelected: (_) => alAlternar(servicio.id),
-                  labelStyle: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.2,
-                    color: seleccionados.contains(servicio.id)
-                        ? Colors.white
-                        : Marca.texto,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 22),
+          for (final servicio in frecuentes.take(4))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _FilaServicio(
+                servicio: servicio,
+                elegido: seleccionados.contains(servicio.id),
+                tasa: tasa,
+                alTocar: () => alAlternar(servicio.id),
+              ),
+            ),
+          const SizedBox(height: 18),
           Padding(
-            padding: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.only(bottom: 10),
             child: Text('TODO EL CATÁLOGO', style: micro()),
           ),
         ],
@@ -614,15 +603,7 @@ class _ListaServicios extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  entrada.key.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    color: Marca.textoSuave,
-                  ),
-                ),
+                Text(entrada.key.toUpperCase(), style: micro()),
               ],
             ),
           ),

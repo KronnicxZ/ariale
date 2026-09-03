@@ -62,71 +62,57 @@ class Marca {
       fondo.computeLuminance() > 0.55 ? negro : Colors.white;
 }
 
-/// El sistema tipográfico tiene tres voces y una regla para cada una.
+/// Dos tipografías y una regla sola.
 ///
-/// Instrument Serif, de contraste alto, solo en los títulos grandes: es de
-/// donde sale la elegancia. No es una script ni una cursiva —cada letra va
-/// suelta y en vertical—, sino una serif moderna de las que usan las marcas
-/// de belleza en portada.
+/// Montserrat, en extranegrita, para todo lo que titula: el nombre de la
+/// pantalla, la fecha grande, los encabezados de sección. Es ancha y de
+/// trazo firme, así que un título tiene peso aunque sea corto.
 ///
-/// Manrope en todo lo demás: encabezados de sección, texto y cifras. Es
-/// geométrica y limpia, y aguanta bien el tamaño pequeño, que es donde una
-/// serif de contraste alto se rompe.
+/// Poppins, ligera, para todo lo demás: texto, apoyos y cifras. Es más
+/// estrecha y redonda, y al ir en peso normal deja respirar al título.
 ///
-/// A partir de este tamaño, un título se lee como una pieza y puede ir en
-/// serif. Por debajo es un rótulo de trabajo y va en sans.
-const _tamanoSerif = 22.0;
-
+/// El contraste sale del peso y del ancho, no de mezclar géneros: las dos
+/// son geométricas y se llevan bien.
 double _apretado(double tamano) {
-  if (tamano >= 30) return -0.8;
-  if (tamano >= 24) return -0.6;
-  if (tamano >= 19) return -0.4;
-  return -0.2;
+  if (tamano >= 30) return -1.1;
+  if (tamano >= 24) return -0.8;
+  return -0.3;
 }
 
-TextStyle titulo(double tamano, {Color? color, FontWeight? peso}) {
-  if (tamano >= _tamanoSerif) {
-    return GoogleFonts.instrumentSerif(
-      fontSize: tamano * 1.12,
-      fontWeight: peso ?? FontWeight.w400,
+/// Títulos y encabezados. Siempre en Montserrat y siempre con peso.
+TextStyle titulo(double tamano, {Color? color, FontWeight? peso}) =>
+    GoogleFonts.montserrat(
+      fontSize: tamano,
+      fontWeight: peso ?? (tamano >= 24 ? FontWeight.w800 : FontWeight.w700),
       color: color ?? Marca.texto,
-      height: 1.06,
+      height: tamano >= 24 ? 1.12 : 1.2,
       letterSpacing: _apretado(tamano),
-    );
-  }
-  return GoogleFonts.manrope(
-    fontSize: tamano,
-    fontWeight: peso ?? FontWeight.w700,
-    color: color ?? Marca.texto,
-    height: 1.15,
-    letterSpacing: _apretado(tamano),
-  );
-}
-
-/// Rótulo diminuto en versales para encabezar una sección o una columna.
-/// Es el escalón que faltaba entre el título y el texto gris.
-TextStyle micro({Color? color}) => GoogleFonts.manrope(
-      fontSize: 10.5,
-      fontWeight: FontWeight.w700,
-      color: color ?? Marca.textoTenue,
-      letterSpacing: 0.8,
     );
 
 /// Cifras con espaciado tabular: el dinero se lee de un vistazo y las
 /// columnas de números no bailan al cambiar de valor.
 TextStyle cifra(double tamano, {Color? color, FontWeight peso = FontWeight.w600}) =>
-    GoogleFonts.manrope(
+    GoogleFonts.poppins(
       fontSize: tamano,
       fontWeight: peso,
       color: color ?? Marca.texto,
-      letterSpacing: _apretado(tamano),
+      letterSpacing: -0.4,
       fontFeatures: const [FontFeature.tabularFigures()],
+    );
+
+/// Rótulo diminuto en versales para encabezar una cifra o una columna. Es
+/// el escalón entre el título y el texto gris.
+TextStyle micro({Color? color}) => GoogleFonts.poppins(
+      fontSize: 10,
+      fontWeight: FontWeight.w600,
+      color: color ?? Marca.textoTenue,
+      letterSpacing: 0.9,
     );
 
 /// Rótulo pequeño y gris para lo secundario. Se llama `sutil` y no `apoyo`
 /// porque varios widgets ya tienen un campo con ese nombre.
 TextStyle sutil(double tamano, {Color? color, FontWeight peso = FontWeight.w400}) =>
-    GoogleFonts.manrope(
+    GoogleFonts.poppins(
       fontSize: tamano,
       fontWeight: peso,
       color: color ?? Marca.textoSuave,
@@ -161,7 +147,7 @@ ThemeData construirTema() {
     ),
   );
 
-  final texto = GoogleFonts.manropeTextTheme(base.textTheme).apply(
+  final texto = GoogleFonts.poppinsTextTheme(base.textTheme).apply(
     bodyColor: Marca.texto,
     displayColor: Marca.texto,
   );
@@ -177,7 +163,7 @@ ThemeData construirTema() {
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.manrope(
+      titleTextStyle: GoogleFonts.poppins(
         fontSize: 16.5,
         fontWeight: FontWeight.w600,
         color: Marca.texto,
@@ -200,7 +186,7 @@ ThemeData construirTema() {
         minimumSize: const Size(0, 52),
         elevation: 0,
         overlayColor: Marca.negro,
-        textStyle: GoogleFonts.manrope(
+        textStyle: GoogleFonts.poppins(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -217,7 +203,7 @@ ThemeData construirTema() {
         minimumSize: const Size(0, 48),
         side: BorderSide.none,
         overlayColor: Marca.texto,
-        textStyle: GoogleFonts.manrope(
+        textStyle: GoogleFonts.poppins(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -228,7 +214,7 @@ ThemeData construirTema() {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: Marca.texto,
-        textStyle: GoogleFonts.manrope(
+        textStyle: GoogleFonts.poppins(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -251,9 +237,9 @@ ThemeData construirTema() {
         borderRadius: BorderRadius.circular(13),
         borderSide: const BorderSide(color: Marca.dorado, width: 1.6),
       ),
-      labelStyle: GoogleFonts.manrope(color: Marca.textoSuave, fontSize: 14),
-      helperStyle: GoogleFonts.manrope(color: Marca.textoSuave, fontSize: 12),
-      hintStyle: GoogleFonts.manrope(color: Marca.textoTenue, fontSize: 15),
+      labelStyle: GoogleFonts.poppins(color: Marca.textoSuave, fontSize: 14),
+      helperStyle: GoogleFonts.poppins(color: Marca.textoSuave, fontSize: 12),
+      hintStyle: GoogleFonts.poppins(color: Marca.textoTenue, fontSize: 15),
     ),
     // Barra inferior sin pastilla de selección: el icono lleno y el texto
     // en negro bastan para saber dónde estás.
@@ -280,7 +266,7 @@ ThemeData construirTema() {
         ),
       ),
       labelTextStyle: WidgetStateProperty.resolveWith(
-        (states) => GoogleFonts.manrope(
+        (states) => GoogleFonts.poppins(
           fontSize: 10.5,
           fontWeight: states.contains(WidgetState.selected)
               ? FontWeight.w600
@@ -309,13 +295,13 @@ ThemeData construirTema() {
       showCheckmark: false,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-      labelStyle: GoogleFonts.manrope(
+      labelStyle: GoogleFonts.poppins(
         fontSize: 13.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
         color: Marca.textoSuave,
       ),
-      secondaryLabelStyle: GoogleFonts.manrope(
+      secondaryLabelStyle: GoogleFonts.poppins(
         fontSize: 13.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
@@ -338,7 +324,7 @@ ThemeData construirTema() {
       focusElevation: 2,
       hoverElevation: 2,
       highlightElevation: 2,
-      extendedTextStyle: GoogleFonts.manrope(
+      extendedTextStyle: GoogleFonts.poppins(
         fontSize: 15.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
@@ -350,7 +336,7 @@ ThemeData construirTema() {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      titleTextStyle: GoogleFonts.manrope(
+      titleTextStyle: GoogleFonts.poppins(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         color: Marca.texto,
@@ -365,7 +351,7 @@ ThemeData construirTema() {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: Marca.negro,
-      contentTextStyle: GoogleFonts.manrope(
+      contentTextStyle: GoogleFonts.poppins(
         color: Colors.white,
         fontSize: 14,
         letterSpacing: -0.2,

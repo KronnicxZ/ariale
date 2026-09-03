@@ -44,7 +44,15 @@ class Ico {
   static const clienta = LucideIcons.user300;
   static const buscarClienta = LucideIcons.userSearch300;
   static const nuevaClienta = LucideIcons.userPlus300;
-  static const whatsapp = LucideIcons.messageCircle300;
+  /// La marca de WhatsApp, no un bocadillo genérico: es el gesto que más
+  /// se repite en la app y conviene que se reconozca de un vistazo. Se
+  /// declara a mano porque FontAwesome la envuelve en un tipo propio que no
+  /// sirve donde se pide un IconData constante.
+  static const whatsapp = IconData(
+    0xf232,
+    fontFamily: 'FontAwesomeBrands',
+    fontPackage: 'font_awesome_flutter',
+  );
   static const cumple = LucideIcons.cake300;
   static const alergia = LucideIcons.heartPulse300;
   static const nota = LucideIcons.notebookPen300;
