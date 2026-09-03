@@ -9,7 +9,14 @@ export type ServiceOption = {
   categoryId: string;
   categoryName: string;
   categoryColor: string;
+  /** Define el área (uñas/pies o depilación) y con ello a quién le toca. */
+  categoryKind: "MANICURE" | "PEDICURE" | "DEPILATION" | "OTHER";
 };
+
+/** Dos áreas en el estudio: Alejandra lleva uñas y pies; Arianny, depilación. */
+export function areaDe(kind: ServiceOption["categoryKind"]) {
+  return kind === "DEPILATION" ? "depilacion" : "unas";
+}
 
 export type SpecialistOption = {
   id: string;

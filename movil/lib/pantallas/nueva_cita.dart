@@ -97,9 +97,11 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
 
   int get _duracionMin => _seleccionados.fold(0, (suma, s) => suma + s.duracionMin);
 
-  /// Solo ofrecemos a quien sabe hacer todo lo seleccionado.
+  /// Solo ofrecemos a quien sabe hacer todo lo seleccionado. Con reparto no
+  /// se elige a nadie: van las dos.
   List<Especialista> get _especialistasElegibles {
     if (_servicioIds.isEmpty) return _catalogo.especialistas;
+    if (_reparteEntreDos) return const [];
     return _catalogo.especialistas.where((e) => e.puedeHacer(_servicioIds)).toList();
   }
 
@@ -110,25 +112,39 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     return elegibles.isEmpty ? null : elegibles.first.id;
   }
 
-  /// Nadie hace las dos áreas: Alejandra las uñas, Arianny la depilación. Si
-  /// se combinan servicios de ambas, no hay una sola persona para elegir —
-  /// se reparte sola, cada quien lo suyo, a la misma hora.
-  bool get _reparteEntreDos =>
-      _servicioIds.isNotEmpty && _especialistasElegibles.isEmpty;
+  /// Dos áreas en el estudio: uñas y pies (Alejandra) y depilación (Arianny).
+  /// Si la cita mezcla las dos, se reparte por área —aunque alguna sepa
+  /// hacer algo de la otra, como las cejas— y cada quien atiende lo suyo a
+  /// la misma hora. Misma regla que aplica el servidor en la web.
+  Set<String> get _areas => {for (final s in _seleccionados) s.area};
 
-  /// A quién le toca cada servicio, cuando hace falta repartir.
+  bool get _reparteEntreDos {
+    if (_areas.length < 2) return false;
+    return _gruposReparto.length >= 2 || _serviciosSinDueno.isNotEmpty;
+  }
+
+  /// Para cada área, quien cubra todo lo pedido de esa área prefiriendo a
+  /// la que menos hace de la otra: la especialista de verdad.
   Map<Especialista, List<Servicio>> get _gruposReparto {
     final mapa = <Especialista, List<Servicio>>{};
-    for (final s in _seleccionados) {
-      Especialista? dueno;
+    if (_areas.length < 2) return mapa;
+
+    for (final area in _areas) {
+      final delArea = _seleccionados.where((s) => s.area == area).toList();
+      final otras = _seleccionados.where((s) => s.area != area).toList();
+
+      Especialista? mejor;
+      var peso = 1 << 30;
       for (final e in _catalogo.especialistas) {
-        if (e.servicioIds.contains(s.id)) {
-          dueno = e;
-          break;
+        if (!delArea.every((s) => e.puedeHacer([s.id]))) continue;
+        final p = otras.where((s) => e.puedeHacer([s.id])).length;
+        if (p < peso) {
+          mejor = e;
+          peso = p;
         }
       }
-      if (dueno == null) continue;
-      mapa.putIfAbsent(dueno, () => []).add(s);
+      if (mejor == null) continue;
+      mapa.putIfAbsent(mejor, () => []).addAll(delArea);
     }
     return mapa;
   }

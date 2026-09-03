@@ -85,10 +85,10 @@ async function book(
     const reparto =
       forceSpecialistId || input.specialistId ? null : await repartirServicios(input.serviceIds);
 
+    if (reparto?.huerfanos.length) {
+      throw new Error("Nadie del equipo hace uno de los servicios elegidos.");
+    }
     if (reparto && reparto.grupos.length >= 2) {
-      if (reparto.huerfanos.length > 0) {
-        throw new Error("Nadie del equipo hace uno de los servicios elegidos.");
-      }
       const citas = [];
       for (const grupo of reparto.grupos) {
         citas.push(

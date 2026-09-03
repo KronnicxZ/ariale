@@ -7,7 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { ServicePicker } from "@/components/booking/service-picker";
 import { DayPicker } from "@/components/booking/day-picker";
 import { SlotPicker, prettyTime, type SlotOption } from "@/components/booking/slot-picker";
-import type { PackageBalance, ServiceOption, SpecialistOption } from "@/components/booking/types";
+import {
+  areaDe,
+  type PackageBalance,
+  type ServiceOption,
+  type SpecialistOption,
+} from "@/components/booking/types";
 import { fetchSlotsAction } from "@/actions/appointments";
 import { formatBs, formatUsd } from "@/lib/money";
 import { fmtDuration } from "@/lib/date";
@@ -103,11 +108,44 @@ export function BookingWizard({
     return set;
   }, [packages]);
 
-  // Solo ofrecemos especialistas que sepan hacer todo lo seleccionado.
+  // Dos áreas (uñas/pies y depilación): si la cita mezcla las dos, se
+  // reparte por área aunque alguien sepa hacer algo de la otra —cada quien
+  // lo suyo, a la misma hora. Para cada área, quien cubra todo lo pedido
+  // prefiriendo a la que menos hace de la otra. Misma regla que el servidor.
+  const reparto = useMemo(() => {
+    if (lockedSpecialistId || selected.length === 0) return null;
+    const areas = [...new Set(selected.map((s) => areaDe(s.categoryKind)))];
+    if (areas.length < 2) return null;
+
+    const grupos = new Map<string, { specialist: SpecialistOption; services: ServiceOption[] }>();
+    for (const area of areas) {
+      const delArea = selected.filter((s) => areaDe(s.categoryKind) === area);
+      const otras = selected.filter((s) => areaDe(s.categoryKind) !== area);
+      let mejor: SpecialistOption | null = null;
+      let peso = Number.POSITIVE_INFINITY;
+      for (const e of specialists) {
+        if (!delArea.every((s) => e.serviceIds.includes(s.id))) continue;
+        const p = otras.filter((s) => e.serviceIds.includes(s.id)).length;
+        if (p < peso) {
+          mejor = e;
+          peso = p;
+        }
+      }
+      if (!mejor) return null; // algo que nadie hace: el servidor lo explicará
+      const g = grupos.get(mejor.id) ?? { specialist: mejor, services: [] };
+      g.services.push(...delArea);
+      grupos.set(mejor.id, g);
+    }
+    return grupos.size >= 2 ? [...grupos.values()] : null;
+  }, [lockedSpecialistId, selected, specialists]);
+
+  // Solo ofrecemos especialistas que sepan hacer todo lo seleccionado; con
+  // reparto no se elige a nadie: van las dos.
   const eligibleSpecialists = useMemo(() => {
     if (serviceIds.length === 0) return specialists;
+    if (reparto) return [];
     return specialists.filter((s) => serviceIds.every((id) => s.serviceIds.includes(id)));
-  }, [specialists, serviceIds]);
+  }, [specialists, serviceIds, reparto]);
 
   // Si la elegida deja de poder hacer todo lo seleccionado, la corregimos
   // durante el render en vez de guardar un estado que habría que sincronizar.
@@ -118,23 +156,6 @@ export function BookingWizard({
       : allowAnySpecialist
         ? null
         : (eligibleSpecialists[0]?.id ?? null);
-
-  // Nadie hace todo lo elegido: se reparte, cada quien lo suyo, a la misma
-  // hora. El servidor crea una cita por especialista con este mismo criterio.
-  const reparto = useMemo(() => {
-    if (lockedSpecialistId || serviceIds.length === 0 || eligibleSpecialists.length > 0) {
-      return null;
-    }
-    const grupos = new Map<string, { specialist: SpecialistOption; services: ServiceOption[] }>();
-    for (const service of selected) {
-      const dueno = specialists.find((s) => s.serviceIds.includes(service.id));
-      if (!dueno) return null; // algo que nadie hace: el servidor lo explicará
-      const grupo = grupos.get(dueno.id) ?? { specialist: dueno, services: [] };
-      grupo.services.push(service);
-      grupos.set(dueno.id, grupo);
-    }
-    return grupos.size >= 2 ? [...grupos.values()] : null;
-  }, [lockedSpecialistId, serviceIds.length, eligibleSpecialists.length, selected, specialists]);
 
   // El paso "con quién" existe si hay algo que decidir, o algo que explicar.
   const preguntaQuien =
@@ -284,7 +305,7 @@ export function BookingWizard({
           <header>
             <h2 className="font-display text-2xl font-semibold">¿Con quién?</h2>
             <p className="text-muted-foreground text-sm">
-              Nadie hace las dos cosas: se reparte sola, cada quien lo suyo.
+              Llevas de las dos áreas: van las dos, cada quien lo suyo.
             </p>
           </header>
           <div className="surface space-y-3 p-4">

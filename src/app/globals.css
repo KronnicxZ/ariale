@@ -273,4 +273,78 @@
       transparent 70%
     );
   }
+
+  /* ---------------------------------------------------------------------
+     Portada editorial: negro y dorado. Solo la usa la landing pública.
+     --------------------------------------------------------------------- */
+
+  /* Franja oscura con un velo dorado muy tenue arriba. */
+  .noche {
+    background-color: oklch(0.14 0.004 85);
+    color: oklch(0.96 0.004 85);
+    background-image: radial-gradient(
+      120% 60% at 50% 0%,
+      color-mix(in oklab, var(--brand) 10%, transparent) 0%,
+      transparent 65%
+    );
+  }
+
+  /* Texto en dorado con brillo de metal, para las cifras y rótulos. */
+  .oro {
+    background-image: linear-gradient(
+      100deg,
+      color-mix(in oklab, var(--brand) 78%, black) 0%,
+      var(--brand) 42%,
+      color-mix(in oklab, var(--brand) 55%, white) 70%,
+      var(--brand) 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Filo dorado de 1px entre secciones oscuras. */
+  .filo-oro {
+    border-color: color-mix(in oklab, var(--brand) 28%, transparent);
+  }
+
+  /* Cinta infinita: el contenido va duplicado y se desplaza media pista. */
+  .cinta {
+    animation: cinta-corre var(--cinta-duracion, 40s) linear infinite;
+  }
+  .cinta-lenta {
+    --cinta-duracion: 70s;
+  }
+  .cinta:hover {
+    animation-play-state: paused;
+  }
+  @keyframes cinta-corre {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  /* Acercamiento lentísimo de la foto del hero. */
+  .respira {
+    animation: respira-zoom 26s ease-in-out infinite alternate;
+  }
+  @keyframes respira-zoom {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.12);
+    }
+  }
+
+  /* Quien pidió menos movimiento no ve ninguno. */
+  @media (prefers-reduced-motion: reduce) {
+    .cinta,
+    .respira {
+      animation: none;
+    }
+  }
 }

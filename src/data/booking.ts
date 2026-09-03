@@ -12,7 +12,9 @@ export async function getBookingOptions() {
     prisma.service.findMany({
       where: { active: true },
       orderBy: [{ category: { order: "asc" } }, { order: "asc" }, { name: "asc" }],
-      include: { category: { select: { id: true, name: true, color: true, order: true } } },
+      include: {
+        category: { select: { id: true, name: true, color: true, kind: true, order: true } },
+      },
     }),
     prisma.specialist.findMany({
       where: { active: true },
@@ -32,6 +34,7 @@ export async function getBookingOptions() {
     categoryId: service.category.id,
     categoryName: service.category.name,
     categoryColor: service.category.color,
+    categoryKind: service.category.kind,
   }));
 
   const specialistOptions: SpecialistOption[] = specialists.map((specialist) => ({

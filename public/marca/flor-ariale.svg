@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-140 -140 280 280" role="img" aria-label="Arialé Studio">
+  <!--
+    La flor de la marca, redibujada como vector. La original era un PNG de
+    128 px: al ampliarla (ícono adaptativo de Android, que además es el
+    splash en Android 12+, y el hero de la web) salía pixelada. El viewBox
+    va ajustado al dibujo para que llene el lienzo sin margen sobrante.
+  -->
+  <defs>
+    <linearGradient id="petalo" x1="0.5" y1="1" x2="0.5" y2="0">
+      <stop offset="0" stop-color="#C28E15" />
+      <stop offset="0.5" stop-color="#E4AF1D" />
+      <stop offset="1" stop-color="#F6D06B" />
+    </linearGradient>
+  </defs>
+
+  <g fill="url(#petalo)">
+    <!-- Cinco pétalos en almendra llena, uno cada 72°. -->
+    <path d="M0 16C-48 -18 -53 -73 0 -124C53 -73 48 -18 0 16Z" />
+    <path d="M0 16C-48 -18 -53 -73 0 -124C53 -73 48 -18 0 16Z" transform="rotate(72)" />
+    <path d="M0 16C-48 -18 -53 -73 0 -124C53 -73 48 -18 0 16Z" transform="rotate(144)" />
+    <path d="M0 16C-48 -18 -53 -73 0 -124C53 -73 48 -18 0 16Z" transform="rotate(216)" />
+    <path d="M0 16C-48 -18 -53 -73 0 -124C53 -73 48 -18 0 16Z" transform="rotate(288)" />
+  </g>
+
+  <!-- La hojita del logo, en el hueco de arriba a la izquierda. -->
+  <g transform="rotate(-36) translate(0 -74)" fill="#D3A024">
+    <path d="M0 4C-13 -12 -14 -33 0 -54C14 -33 13 -12 0 4Z" />
+  </g>
+</svg>

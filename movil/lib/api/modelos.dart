@@ -155,6 +155,7 @@ class Servicio {
     required this.categoriaId,
     required this.categoriaNombre,
     required this.categoriaColor,
+    this.categoriaTipo = 'OTHER',
     this.zona,
     this.requierePrueba = false,
   });
@@ -166,8 +167,15 @@ class Servicio {
   final String categoriaId;
   final String categoriaNombre;
   final String categoriaColor;
+
+  /// MANICURE, PEDICURE, DEPILATION u OTHER: define el área y, con ella,
+  /// a quién le toca.
+  final String categoriaTipo;
   final String? zona;
   final bool requierePrueba;
+
+  /// Dos áreas en el estudio: uñas y pies, o depilación.
+  String get area => categoriaTipo == 'DEPILATION' ? 'depilacion' : 'unas';
 
   factory Servicio.desdeJson(Map<String, dynamic> j) => Servicio(
         id: j['id'] as String,
@@ -177,6 +185,7 @@ class Servicio {
         categoriaId: j['categoriaId'] as String,
         categoriaNombre: j['categoriaNombre'] as String,
         categoriaColor: j['categoriaColor'] as String,
+        categoriaTipo: j['categoriaTipo'] as String? ?? 'OTHER',
         zona: j['zona'] as String?,
         requierePrueba: j['requierePrueba'] as bool? ?? false,
       );

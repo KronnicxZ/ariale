@@ -209,10 +209,15 @@ export type GrupoReparto = {
 };
 
 /**
- * Nadie hace las dos áreas: Alejandra las uñas, Arianny la depilación. Si
- * una cita mezcla servicios de ambas, se reparte: cada quien lo suyo, a la
- * misma hora. Devuelve null cuando una sola persona puede con todo (o no
- * hay nada que repartir), y `huerfanos` con lo que nadie del equipo hace.
+ * Dos áreas en el estudio: uñas y pies (Alejandra) y depilación (Arianny).
+ * Si una cita mezcla las dos, se reparte por área —aunque alguna sepa hacer
+ * algo de la otra, como las cejas— y cada quien atiende lo suyo a la misma
+ * hora. Para cada área se elige a quien cubra todo lo pedido de esa área
+ * prefiriendo a la que menos hace de la otra: la especialista de verdad.
+ *
+ * Devuelve null cuando no hay reparto (una sola área, o la misma persona
+ * queda mejor para las dos), y `huerfanos` con lo que nadie del equipo hace.
+ * La app del teléfono aplica exactamente esta regla.
  */
 export async function repartirServicios(serviceIds: string[]): Promise<{
   grupos: GrupoReparto[];
@@ -228,38 +233,57 @@ export async function repartirServicios(serviceIds: string[]): Promise<{
     }),
     prisma.service.findMany({
       where: { id: { in: serviceIds } },
-      select: { id: true, durationMin: true },
+      select: { id: true, durationMin: true, category: { select: { kind: true } } },
     }),
   ]);
 
-  const sabe = (s: (typeof equipo)[number]) => s.skills.map((k) => k.serviceId);
-  const unaSola = equipo.some((s) => {
-    const k = sabe(s);
-    return k.length === 0 || serviceIds.every((id) => k.includes(id));
-  });
-  if (unaSola) return null;
+  const areaDe = (kind: string) => (kind === "DEPILATION" ? "depilacion" : "unas");
+  const porArea = new Map<string, typeof servicios>();
+  for (const s of servicios) {
+    const area = areaDe(s.category.kind);
+    porArea.set(area, [...(porArea.get(area) ?? []), s]);
+  }
+  if (porArea.size < 2) return null;
 
-  const duracion = new Map(servicios.map((s) => [s.id, s.durationMin]));
+  const sabe = (e: (typeof equipo)[number], id: string) => {
+    const k = e.skills.map((x) => x.serviceId);
+    return k.length === 0 || k.includes(id);
+  };
+
   const grupos = new Map<string, GrupoReparto>();
   const huerfanos: string[] = [];
 
-  for (const id of serviceIds) {
-    const dueno = equipo.find((s) => sabe(s).includes(id));
-    if (!dueno) {
-      huerfanos.push(id);
+  for (const [area, delArea] of porArea) {
+    const otras = servicios.filter((s) => areaDe(s.category.kind) !== area);
+    let mejor: (typeof equipo)[number] | null = null;
+    let peso = Number.POSITIVE_INFINITY;
+    for (const e of equipo) {
+      if (!delArea.every((s) => sabe(e, s.id))) continue;
+      const p = otras.filter((s) => sabe(e, s.id)).length;
+      if (p < peso) {
+        mejor = e;
+        peso = p;
+      }
+    }
+    if (!mejor) {
+      huerfanos.push(...delArea.map((s) => s.id));
       continue;
     }
-    const grupo = grupos.get(dueno.id) ?? {
-      specialistId: dueno.id,
-      specialistName: dueno.name,
+    const grupo = grupos.get(mejor.id) ?? {
+      specialistId: mejor.id,
+      specialistName: mejor.name,
       serviceIds: [],
       durationMin: 0,
     };
-    grupo.serviceIds.push(id);
-    grupo.durationMin += duracion.get(id) ?? 0;
-    grupos.set(dueno.id, grupo);
+    for (const s of delArea) {
+      grupo.serviceIds.push(s.id);
+      grupo.durationMin += s.durationMin;
+    }
+    grupos.set(mejor.id, grupo);
   }
 
+  // La misma persona quedó mejor para las dos áreas: es una cita normal.
+  if (grupos.size < 2 && huerfanos.length === 0) return null;
   return { grupos: [...grupos.values()], huerfanos };
 }
 

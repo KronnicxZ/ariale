@@ -10,7 +10,14 @@ import { prisma } from "@/lib/db";
  */
 function admin() {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!raw) return null;
+  if (!raw) {
+    // Sin credenciales no se puede enviar. Se dice en voz alta porque si no,
+    // el síntoma es "agendé y no me llegó nada" sin ninguna pista.
+    console.warn(
+      "[push] falta FIREBASE_SERVICE_ACCOUNT: no se envía el aviso de cita nueva.",
+    );
+    return null;
+  }
 
   if (getApps().length === 0) {
     const credentials = JSON.parse(raw) as {
@@ -47,7 +54,10 @@ export async function avisarNuevaCita(input: {
     where: { user: { active: true } },
     select: { id: true, token: true },
   });
-  if (devices.length === 0) return;
+  if (devices.length === 0) {
+    console.warn("[push] ningún teléfono registrado todavía; nadie a quien avisar.");
+    return;
+  }
 
   const response = await messaging.sendEachForMulticast({
     tokens: devices.map((d) => d.token),

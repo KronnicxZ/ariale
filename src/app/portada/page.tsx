@@ -1,43 +1,28 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  CalendarCheck,
-  CalendarPlus,
-  Clock,
-  Droplets,
-  Footprints,
-  MapPin,
-  Sparkles,
-  UserCheck,
-} from "lucide-react";
+import { CalendarCheck, CalendarPlus, Clock, MapPin, Sparkles, UserCheck } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { getSettings, getWorkingHours } from "@/lib/settings";
 import { waLink } from "@/lib/whatsapp";
 import { DAY_SHORT, fmtDuration } from "@/lib/date";
 import { formatUsd } from "@/lib/money";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
-import { cn } from "@/lib/utils";
 import { Reveal } from "./reveal";
+import { CintaFotos, CintaPalabras } from "./cinta";
+import { Galeria, type Foto } from "./galeria";
+import { Servicios, type AreaServicio } from "./servicios";
 import type { CategoryKind } from "@/generated/prisma/client";
 
 export const metadata = { title: "Inicio" };
-// Horario, precios y fotos salen del panel: si algo cambia ahí, se tiene
-// que ver aquí sin esperar a un redeploy.
+// Horario, precios y servicios salen del panel: si cambian ahí, se tienen
+// que ver aquí sin esperar a un redespliegue.
 export const dynamic = "force-dynamic";
 
-const ICONO_POR_TIPO: Record<CategoryKind, typeof Sparkles> = {
-  MANICURE: Sparkles,
-  PEDICURE: Footprints,
-  DEPILATION: Droplets,
-  OTHER: Sparkles,
-};
-
-// Las mismas palabras que usan ellas para describir su trabajo.
 const DESCRIPCION_POR_TIPO: Record<CategoryKind, string> = {
-  MANICURE: "Arte y cuidado para tus manos.",
-  PEDICURE: "Pedicura spa y semipermanente.",
-  DEPILATION: "Diseñando la mirada que siempre soñaste.",
-  OTHER: "Consulta el detalle al reservar.",
+  MANICURE: "Esmaltado, sistemas y diseño. Arte y cuidado para tus manos, con la forma y el largo que tú quieras.",
+  PEDICURE: "Pedicura spa y semipermanente, sin prisa, para que los pies queden tan cuidados como las manos.",
+  DEPILATION: "Cejas diseñadas según tu rostro, y cera donde la necesites. Diseñando la mirada que siempre soñaste.",
+  OTHER: "Consulta el detalle al agendar.",
 };
 
 const FOTO_POR_TIPO: Record<CategoryKind, string> = {
@@ -53,7 +38,7 @@ const ESPECIALISTAS_WA = [
   { nombre: "Arianny", telefono: "4246678187" },
 ];
 
-const GALERIA = [
+const GALERIA: Foto[] = [
   { src: "/trabajos/manicure-rojo-oro.jpg", alt: "Manicura roja con acento dorado" },
   { src: "/trabajos/manicure-blanco-floral.jpg", alt: "Manicura blanca con diseño floral en dorado" },
   { src: "/trabajos/depilacion-cejas.jpg", alt: "Laminado de cejas" },
@@ -74,7 +59,7 @@ const RAZONES = [
   {
     icono: UserCheck,
     titulo: "Cada quien en lo suyo",
-    texto: "Alejandra lleva uñas; Arianny, depilación. Nada de generalistas.",
+    texto: "Alejandra lleva uñas; Arianny, cejas y depilación. Nada de generalistas.",
   },
   {
     icono: Sparkles,
@@ -83,7 +68,7 @@ const RAZONES = [
   },
 ];
 
-/** Botón de WhatsApp con el glifo real, legible a cualquier tamaño. */
+/** Botón de WhatsApp con el glifo real, legible sobre claro y sobre oscuro. */
 function WaPill({
   href,
   nombre,
@@ -100,7 +85,7 @@ function WaPill({
       rel="noreferrer"
       className={
         tono === "oscuro"
-          ? "inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/12 py-2.5 pr-5 pl-2.5 text-[15px] font-medium text-white backdrop-blur transition hover:bg-white/22"
+          ? "inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 py-2.5 pr-5 pl-2.5 text-[15px] font-medium text-white backdrop-blur transition hover:bg-white/20"
           : "border-border/70 bg-card inline-flex items-center gap-2.5 rounded-full border py-2.5 pr-5 pl-2.5 text-[15px] font-medium transition hover:border-[#25D366]/50"
       }
     >
@@ -112,28 +97,44 @@ function WaPill({
   );
 }
 
-/** Rótulo pequeño en versalitas + título grande, la misma pareja en cada sección. */
+function BotonAgendar({ ancho = false }: { ancho?: boolean }) {
+  return (
+    <Link
+      href="/reservar"
+      className={`brand-gradient text-primary-foreground inline-flex items-center justify-center gap-2.5 rounded-full px-8 py-4 text-base font-semibold shadow-lg transition hover:brightness-105 active:scale-[0.99] ${
+        ancho ? "w-full sm:w-auto" : ""
+      }`}
+    >
+      <CalendarPlus className="size-5" />
+      Agendar mi cita
+    </Link>
+  );
+}
+
+/** Rótulo en versalitas doradas + título serif grande. */
 function Titulo({
   rotulo,
   titulo,
   bajada,
   alinear = "center",
+  oscuro = false,
 }: {
   rotulo: string;
   titulo: string;
   bajada?: string;
   alinear?: "center" | "left";
+  oscuro?: boolean;
 }) {
   const centro = alinear === "center";
   return (
     <div className={centro ? "text-center" : "text-center sm:text-left"}>
-      <p className="label-caps text-primary">{rotulo}</p>
-      <h2 className="font-display mt-2 text-3xl sm:text-4xl lg:text-5xl">{titulo}</h2>
+      <p className="label-caps oro">{rotulo}</p>
+      <h2 className="font-display mt-3 text-4xl text-balance sm:text-5xl lg:text-6xl">{titulo}</h2>
       {bajada ? (
         <p
-          className={`text-muted-foreground mt-3 text-base text-balance lg:text-lg ${
-            centro ? "mx-auto max-w-xl" : "max-w-xl"
-          }`}
+          className={`mt-4 text-base text-balance lg:text-lg ${
+            oscuro ? "text-white/65" : "text-muted-foreground"
+          } ${centro ? "mx-auto max-w-2xl" : "max-w-2xl"}`}
         >
           {bajada}
         </p>
@@ -143,23 +144,18 @@ function Titulo({
 }
 
 export default async function PortadaPage() {
-  const [settings, workingHours, categories, servicios] = await Promise.all([
+  const [settings, workingHours, servicios] = await Promise.all([
     getSettings(),
     getWorkingHours(),
-    prisma.category.findMany({
-      where: { active: true, services: { some: { active: true } } },
-      orderBy: { order: "asc" },
-      select: { id: true, name: true, kind: true },
-    }),
     prisma.service.findMany({
-      where: { active: true },
+      where: { active: true, category: { active: true } },
       orderBy: [{ category: { order: "asc" } }, { order: "asc" }],
       select: {
         id: true,
         name: true,
         priceCents: true,
         durationMin: true,
-        category: { select: { id: true, name: true, kind: true } },
+        category: { select: { id: true, name: true, kind: true, order: true } },
       },
     }),
   ]);
@@ -177,64 +173,71 @@ export default async function PortadaPage() {
     ),
   }));
 
-  const serviciosPorCategoria = new Map<
-    string,
-    { nombre: string; kind: CategoryKind; items: typeof servicios }
-  >();
+  // Un bloque por categoría, con sus servicios y precios reales.
+  const porCategoria = new Map<string, AreaServicio>();
   for (const s of servicios) {
-    const key = s.category.id;
-    if (!serviciosPorCategoria.has(key)) {
-      serviciosPorCategoria.set(key, { nombre: s.category.name, kind: s.category.kind, items: [] });
-    }
-    serviciosPorCategoria.get(key)!.items.push(s);
+    const area = porCategoria.get(s.category.id) ?? {
+      id: s.category.id,
+      nombre: s.category.name,
+      descripcion: DESCRIPCION_POR_TIPO[s.category.kind],
+      foto: FOTO_POR_TIPO[s.category.kind],
+      servicios: [],
+    };
+    area.servicios.push({
+      id: s.id,
+      nombre: s.name,
+      duracion: fmtDuration(s.durationMin),
+      precio: formatUsd(s.priceCents),
+    });
+    porCategoria.set(s.category.id, area);
   }
-  const grupos = [...serviciosPorCategoria.values()];
+  const areas = [...porCategoria.values()];
+
+  // La cinta mezcla las áreas con los servicios que más las definen, para
+  // que no sean tres palabras dando vueltas.
+  const palabrasCinta = [
+    ...areas.map((a) => a.nombre),
+    ...servicios.slice(0, 6).map((s) => s.name),
+  ].filter((p, i, todas) => todas.indexOf(p) === i);
 
   return (
-    <div className="flex-1">
-      {/* Hero: foto real del estudio, la marca, y las tres únicas salidas */}
-      <section className="relative flex min-h-[640px] items-center overflow-hidden sm:min-h-[720px] lg:min-h-[85vh]">
-        <Image
-          src="/trabajos/estudio-ambiente.jpg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/45" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-
-        <div className="relative z-10 mx-auto w-full max-w-md px-5 py-16 text-center text-white sm:max-w-xl lg:max-w-3xl lg:py-24">
-          {/* La flor es cuadrada de origen; el logotipo completo es 2.5:1 y
-              en un círculo se deformaba. */}
+    <div className="flex-1 overflow-x-hidden">
+      {/* ------------------------------------------------------------------
+          Hero: la foto del estudio respirando, la marca y las tres salidas
+          ------------------------------------------------------------------ */}
+      <section className="relative flex min-h-[92vh] items-center overflow-hidden">
+        <div className="absolute inset-0">
           <Image
-            src="/marca/flor-ariale.png"
+            src="/trabajos/estudio-ambiente.jpg"
             alt=""
-            width={128}
-            height={128}
-            className="mx-auto size-14 sm:size-16 lg:size-20"
+            fill
+            priority
+            sizes="100vw"
+            className="respira object-cover"
           />
-          <h1 className="font-display mt-5 text-5xl sm:text-6xl lg:text-7xl">
+        </div>
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
+
+        <div className="relative z-10 mx-auto w-full max-w-4xl px-5 py-20 text-center text-white">
+          <Image
+            src="/marca/flor-ariale.svg"
+            alt=""
+            width={96}
+            height={96}
+            className="mx-auto size-16 sm:size-20 lg:size-24"
+            priority
+          />
+          <h1 className="font-display mt-6 text-5xl leading-[1.05] text-balance sm:text-7xl lg:text-8xl">
             {settings.businessName}
           </h1>
-          <p className="mt-4 text-lg text-balance text-white/85 sm:text-xl lg:text-2xl">
+          <p className="mx-auto mt-5 max-w-xl text-lg text-balance text-white/75 sm:text-xl">
             {settings.tagline}
           </p>
 
-          <div className="mx-auto mt-10 max-w-sm sm:max-w-md">
-            <Link
-              href="/reservar"
-              className="brand-gradient text-primary-foreground inline-flex w-full items-center justify-center gap-2.5 rounded-2xl px-8 py-4 text-base font-semibold shadow-lg transition hover:brightness-105 active:scale-[0.99] sm:text-lg"
-            >
-              <CalendarPlus className="size-5" />
-              Agendar mi cita
-            </Link>
-
-            <p className="mt-7 text-[0.7rem] font-semibold tracking-[0.2em] text-white/70 uppercase">
-              O escríbele directo
-            </p>
-            <div className="mt-3 flex flex-wrap justify-center gap-3">
+          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <BotonAgendar ancho />
+            <div className="flex items-center gap-3">
               {waEspecialistas.map((e) => (
                 <WaPill key={e.nombre} href={e.href} nombre={e.nombre} tono="oscuro" />
               ))}
@@ -243,9 +246,13 @@ export default async function PortadaPage() {
         </div>
       </section>
 
-      {/* Por qué agendar con nosotras */}
-      <section className="px-5 py-14 sm:py-20 lg:py-24">
-        <div className="mx-auto grid max-w-7xl gap-8 sm:grid-cols-3 lg:gap-12">
+      <CintaPalabras palabras={palabrasCinta} />
+
+      {/* ------------------------------------------------------------------
+          Por qué agendar con ellas
+          ------------------------------------------------------------------ */}
+      <section className="px-5 py-16 sm:py-24">
+        <div className="mx-auto grid max-w-7xl gap-10 sm:grid-cols-3 lg:gap-14">
           {RAZONES.map((r, i) => {
             const Icono = r.icono;
             return (
@@ -263,168 +270,67 @@ export default async function PortadaPage() {
         </div>
       </section>
 
-      {/* Qué hacemos, con foto real por categoría */}
-      {categories.length > 0 ? (
-        <section className="px-5 pb-14 sm:pb-20 lg:pb-24">
-          <div className="mx-auto max-w-7xl">
-            <Reveal>
+      {/* ------------------------------------------------------------------
+          Servicios contados al bajar, con sus precios reales
+          ------------------------------------------------------------------ */}
+      {areas.length > 0 ? (
+        <section className="px-5 pb-16 sm:pb-24">
+          <Reveal>
+            <div className="mx-auto max-w-7xl pb-12 lg:pb-16">
               <Titulo
                 rotulo="Qué hacemos"
                 titulo="Uñas, pies y cejas"
-                bajada="Tres áreas, cada una con su especialista y su propio catálogo."
+                bajada="Tres áreas, cada una con su especialista. Estos son los mismos precios que verás al agendar."
               />
-            </Reveal>
-            <div className="mt-10 grid gap-4 sm:grid-cols-3 lg:gap-6">
-              {categories.map((categoria, i) => {
-                const Icono = ICONO_POR_TIPO[categoria.kind];
-                return (
-                  <Reveal key={categoria.id} delay={i * 100}>
-                    <div className="group relative aspect-[3/4] overflow-hidden rounded-3xl sm:aspect-[4/5]">
-                      <Image
-                        src={FOTO_POR_TIPO[categoria.kind]}
-                        alt=""
-                        fill
-                        sizes="(min-width: 640px) 33vw, 100vw"
-                        className="object-cover transition duration-700 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      <div className="absolute inset-x-0 bottom-0 p-6 lg:p-8">
-                        <span className="mb-3 inline-flex size-9 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur">
-                          <Icono className="size-4" />
-                        </span>
-                        <p className="font-display text-2xl text-white sm:text-3xl lg:text-4xl">
-                          {categoria.name}
-                        </p>
-                        <p className="mt-1.5 text-sm text-white/85 lg:text-base">
-                          {DESCRIPCION_POR_TIPO[categoria.kind]}
-                        </p>
-                      </div>
-                    </div>
-                  </Reveal>
-                );
-              })}
             </div>
-          </div>
+          </Reveal>
+          <Servicios areas={areas} />
         </section>
       ) : null}
 
-      {/* Servicios y precios reales, agrupados como en el estudio */}
-      {grupos.length > 0 ? (
-        <section className="bg-card/60 border-y px-5 py-14 sm:py-20 lg:py-24">
-          <div className="mx-auto max-w-7xl">
-            <Reveal>
-              <Titulo
-                rotulo="Servicios y precios"
-                titulo="Lo que hacemos y cuánto cuesta"
-                bajada="Los mismos precios que verás al agendar, sin sorpresas."
-              />
-            </Reveal>
+      <CintaFotos fotos={GALERIA} />
 
-            <div className="mt-10 grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-              {grupos.map((grupo, i) => {
-                const Icono = ICONO_POR_TIPO[grupo.kind];
-                return (
-                  <Reveal key={grupo.nombre} delay={i * 100}>
-                    <div className="surface p-6 lg:p-7">
-                      <div className="flex items-center gap-3">
-                        <span className="bg-primary/12 text-primary grid size-10 place-items-center rounded-full">
-                          <Icono className="size-4.5" />
-                        </span>
-                        <h3 className="font-display text-2xl">{grupo.nombre}</h3>
-                      </div>
-                      <ul className="mt-5 space-y-3.5">
-                        {grupo.items.map((s) => (
-                          <li key={s.id} className="flex items-baseline justify-between gap-3">
-                            <span className="min-w-0">
-                              <span className="block truncate text-[15px] font-medium">
-                                {s.name}
-                              </span>
-                              <span className="text-muted-foreground text-xs">
-                                {fmtDuration(s.durationMin)}
-                              </span>
-                            </span>
-                            <span className="border-border/70 mx-1 hidden flex-1 border-b border-dotted sm:block" />
-                            <span className="font-numeric shrink-0 text-[15px]">
-                              {formatUsd(s.priceCents)}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </Reveal>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {/* Galería: el trabajo real, no un catálogo de stock */}
-      <section className="px-5 py-14 sm:py-20 lg:py-24">
+      {/* ------------------------------------------------------------------
+          Galería sobre negro: las fotos mandan
+          ------------------------------------------------------------------ */}
+      <section className="noche px-5 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl">
           <Reveal>
             <Titulo
               rotulo="Nuestro trabajo"
               titulo="Lo que ya hicimos"
-              bajada="Cada diseño sale distinto según la clienta. Esto no es un catálogo: son manos reales."
+              bajada="Cada diseño sale distinto según la clienta. Esto no es un catálogo: son manos reales. Tócalas para verlas grandes."
+              oscuro
             />
           </Reveal>
-          {/* Cuadrícula, no masonry: las fotos vienen en proporciones distintas
-              (las cejas son 9:16) y en columnas una siempre quedaba más larga.
-              Todas al mismo aspecto con recorte; en el teléfono la primera va a
-              doble ancho para que nueve cierren en filas de dos. */}
-          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:gap-5">
-            {GALERIA.map((foto, i) => (
-              <Reveal
-                key={foto.src}
-                delay={(i % 3) * 80}
-                className={i === 0 ? "col-span-2 sm:col-span-1" : undefined}
-              >
-                <div
-                  className={cn(
-                    "group relative overflow-hidden rounded-2xl",
-                    i === 0 ? "aspect-[3/2] sm:aspect-[3/4]" : "aspect-[3/4]",
-                  )}
-                >
-                  <Image
-                    src={foto.src}
-                    alt={foto.alt}
-                    fill
-                    sizes="(min-width: 640px) 33vw, 100vw"
-                    className="object-cover transition duration-700 group-hover:scale-105"
-                  />
-                </div>
-              </Reveal>
-            ))}
+          <div className="mt-12">
+            <Galeria fotos={GALERIA} />
           </div>
         </div>
       </section>
 
-      {/* El equipo: dos personas, no una franquicia */}
-      <section className="bg-card/60 border-y px-5 py-14 sm:py-20 lg:py-24">
+      {/* ------------------------------------------------------------------
+          El equipo: dos personas, no una franquicia
+          ------------------------------------------------------------------ */}
+      <section className="px-5 py-16 sm:py-24">
         <Reveal>
-          <div className="mx-auto grid max-w-6xl items-center gap-10 sm:grid-cols-[minmax(0,320px)_1fr] lg:grid-cols-[minmax(0,420px)_1fr] lg:gap-16">
-            <div className="mx-auto w-56 overflow-hidden rounded-3xl shadow-lg sm:w-full">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 sm:grid-cols-[minmax(0,320px)_1fr] lg:grid-cols-[minmax(0,440px)_1fr] lg:gap-16">
+            <div className="relative mx-auto aspect-[3/4] w-60 overflow-hidden rounded-3xl shadow-xl sm:w-full">
               <Image
                 src="/equipo/alejandra-arianny.webp"
                 alt={`Alejandra y Arianny, ${settings.businessName}`}
-                width={560}
-                height={746}
-                sizes="(min-width: 1024px) 420px, (min-width: 640px) 320px, 224px"
-                className="w-full"
+                fill
+                sizes="(min-width: 1024px) 440px, (min-width: 640px) 320px, 240px"
+                className="object-cover"
               />
             </div>
             <div>
-              <Titulo
-                rotulo="Quiénes somos"
-                titulo="Alejandra & Arianny"
-                alinear="left"
-              />
+              <Titulo rotulo="Quiénes somos" titulo="Alejandra & Arianny" alinear="left" />
               <p className="text-muted-foreground mt-5 text-center text-base text-balance sm:text-left lg:text-lg">
-                Un sueño hecho realidad con amor, fe y mucho profesionalismo. Alejandra lleva
-                las uñas: arte y cuidado para tus manos. Arianny lleva las cejas: diseñando la
-                mirada que siempre soñaste. Cada quien en lo suyo, para que a ti te toque lo
-                mejor de las dos.
+                Un sueño hecho realidad con amor, fe y mucho profesionalismo. Alejandra lleva las
+                uñas: arte y cuidado para tus manos. Arianny lleva las cejas: diseñando la mirada
+                que siempre soñaste. Cada quien en lo suyo, para que a ti te toque lo mejor de las
+                dos.
               </p>
               <div className="mt-7 flex flex-wrap justify-center gap-3 sm:justify-start">
                 {waEspecialistas.map((e) => (
@@ -436,38 +342,36 @@ export default async function PortadaPage() {
         </Reveal>
       </section>
 
-      {/* Cierre: agendar de nuevo, las dos vías por WhatsApp, y dónde encontrarnos */}
-      <section className="px-5 pt-14 pb-28 sm:py-20 lg:py-24">
-        <Reveal>
-          <div className="surface mx-auto max-w-4xl p-7 sm:p-10 lg:p-12">
-            <div className="grid gap-8 sm:grid-cols-[1.2fr_1fr] sm:gap-12">
+      {/* ------------------------------------------------------------------
+          Cierre: agendar, escribir, y dónde encontrarlas
+          ------------------------------------------------------------------ */}
+      <section className="noche filo-oro border-t px-5 py-16 pb-28 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <Reveal>
+            <div className="grid gap-12 sm:grid-cols-[1.15fr_1fr] sm:gap-16">
               <div className="text-center sm:text-left">
-                <h2 className="font-display text-3xl sm:text-4xl">¿Lista para tu cita?</h2>
-                <p className="text-muted-foreground mt-2 text-base">
-                  Agenda en línea o escríbele directo a quien necesitas.
+                <Titulo rotulo="Tu turno" titulo="¿Lista para tu cita?" alinear="left" />
+                <p className="mt-4 text-base text-white/65">
+                  Agenda en línea en un minuto, o escríbele directo a quien necesitas.
                 </p>
-                <Link
-                  href="/reservar"
-                  className="brand-gradient text-primary-foreground mt-6 inline-flex w-full items-center justify-center gap-2.5 rounded-2xl px-8 py-4 text-base font-semibold shadow-sm transition hover:brightness-105 active:scale-[0.99] sm:w-auto"
-                >
-                  <CalendarPlus className="size-5" />
-                  Agendar mi cita
-                </Link>
+                <div className="mt-8">
+                  <BotonAgendar ancho />
+                </div>
                 <div className="mt-4 flex flex-wrap justify-center gap-3 sm:justify-start">
                   {waEspecialistas.map((e) => (
-                    <WaPill key={e.nombre} href={e.href} nombre={e.nombre} />
+                    <WaPill key={e.nombre} href={e.href} nombre={e.nombre} tono="oscuro" />
                   ))}
                 </div>
               </div>
 
               {(abiertos.length > 0 || settings.address) && (
-                <div className="border-border/70 space-y-5 border-t pt-6 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-10">
+                <div className="filo-oro space-y-7 border-t pt-8 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-12">
                   {abiertos.length > 0 ? (
-                    <div className="flex gap-3">
+                    <div className="flex gap-3.5">
                       <Clock className="text-primary mt-0.5 size-5 shrink-0" />
-                      <div className="min-w-0">
-                        <p className="font-medium">Horario</p>
-                        <ul className="text-muted-foreground mt-1 space-y-0.5 text-sm">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-white">Horario</p>
+                        <ul className="mt-2 space-y-1 text-sm text-white/65">
                           {abiertos.map((h) => (
                             <li key={h.dayOfWeek} className="flex justify-between gap-4">
                               <span>{DAY_SHORT[h.dayOfWeek]}</span>
@@ -482,28 +386,28 @@ export default async function PortadaPage() {
                   ) : null}
 
                   {settings.address ? (
-                    <div className="flex gap-3">
+                    <div className="flex gap-3.5">
                       <MapPin className="text-primary mt-0.5 size-5 shrink-0" />
                       <div className="min-w-0">
-                        <p className="font-medium">Dónde estamos</p>
-                        <p className="text-muted-foreground mt-1 text-sm">{settings.address}</p>
+                        <p className="font-medium text-white">Dónde estamos</p>
+                        <p className="mt-1 text-sm text-white/65">{settings.address}</p>
                       </div>
                     </div>
                   ) : null}
                 </div>
               )}
             </div>
-          </div>
-        </Reveal>
+          </Reveal>
 
-        <p className="text-muted-foreground mt-10 text-center text-sm">
-          {settings.businessName}
-          {settings.instagram ? ` · @${settings.instagram}` : ""}
-        </p>
+          <p className="mt-16 text-center text-sm text-white/40">
+            {settings.businessName}
+            {settings.instagram ? ` · @${settings.instagram}` : ""}
+          </p>
+        </div>
       </section>
 
-      {/* Barra fija en el teléfono, para no tener que volver a subir a agendar */}
-      <div className="bg-card/95 fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-t px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
+      {/* Barra fija en el teléfono, para no tener que volver a subir. */}
+      <div className="bg-card/95 safe-bottom fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-t px-4 pt-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur sm:hidden">
         <Link
           href="/reservar"
           className="brand-gradient text-primary-foreground flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold"

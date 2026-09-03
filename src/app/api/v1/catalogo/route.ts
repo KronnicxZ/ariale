@@ -89,6 +89,8 @@ export const GET = withUser(async () => {
       categoriaId: s.categoryId,
       categoriaNombre: s.categoryName,
       categoriaColor: s.categoryColor,
+      // El área (uñas/pies o depilación) decide a quién le toca la cita.
+      categoriaTipo: s.categoryKind,
     })),
     especialistas: specialists.map((s) => ({
       id: s.id,
