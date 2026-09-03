@@ -96,13 +96,18 @@ async function main() {
   }
 
   // --- Filas ------------------------------------------------------------
-  // Las claves foráneas se desactivan mientras copiamos: así el orden de las
-  // tablas dejan de importar y no hay que resolver el grafo de dependencias.
-  await remoto.execute("PRAGMA foreign_keys = OFF");
+  // Se copia con `migrate`, que es el modo de libSQL que desactiva las
+  // claves foráneas durante el lote. Así el orden de las tablas deja de
+  // importar y no hay que resolver el grafo de dependencias.
+  //
+  // Un `PRAGMA foreign_keys = OFF` suelto no vale: cada petición HTTP puede
+  // ir por una conexión distinta y el pragma se queda en la anterior.
+  if (forzar) {
+    await remoto.migrate(tablas.map((t) => `DELETE FROM ${id(t)}`));
+  }
 
   let total = 0;
   for (const tabla of tablas) {
-    if (forzar) await remoto.execute(`DELETE FROM ${id(tabla)}`);
 
     const datos = await local.execute(`SELECT * FROM ${id(tabla)}`);
     if (datos.rows.length === 0) {
@@ -116,22 +121,19 @@ async function main() {
 
     // De cien en cien: un lote enorme se queda sin memoria en el servidor.
     for (let i = 0; i < datos.rows.length; i += 100) {
-      await remoto.batch(
+      await remoto.migrate(
         datos.rows.slice(i, i + 100).map((fila) => ({
           sql: inserta,
           args: columnas.map(
             (c) => ((fila as Record<string, unknown>)[c] ?? null) as InValue,
           ),
         })),
-        "write",
       );
     }
 
     total += datos.rows.length;
     console.log(`  ${tabla}: ${datos.rows.length} filas`);
   }
-
-  await remoto.execute("PRAGMA foreign_keys = ON");
 
   console.log("");
   console.log(`Listo: ${total} filas en ${tablas.length} tablas.`);
