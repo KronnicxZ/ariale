@@ -9,7 +9,12 @@ param(
     # Dirección del panel. La app la trae puesta de fábrica; igual se puede
     # cambiar desde la pantalla de acceso si algún día cambia el servidor.
     [Parameter(Mandatory = $true)]
-    [string]$Servidor
+    [string]$Servidor,
+
+    # Por defecto se compila solo para ARM64, que es lo que llevan todos los
+    # teléfonos de los últimos años: 22 MB en vez de 58. Con -Universal sale
+    # un APK que funciona también en teléfonos viejos de 32 bits.
+    [switch]$Universal
 )
 
 $ErrorActionPreference = 'Stop'
@@ -26,9 +31,14 @@ if ($Servidor -notmatch '^https?://') {
 # Sin barra final: la app concatena las rutas directamente.
 $Servidor = $Servidor.TrimEnd('/')
 
-Write-Host "Compilando contra $Servidor ..." -ForegroundColor Yellow
+$arquitectura = if ($Universal) { 'todos los procesadores' } else { 'ARM64' }
+Write-Host "Compilando contra $Servidor ($arquitectura)..." -ForegroundColor Yellow
 
-& $flutter build apk --release "--dart-define=SERVIDOR=$Servidor"
+if ($Universal) {
+    & $flutter build apk --release "--dart-define=SERVIDOR=$Servidor"
+} else {
+    & $flutter build apk --release --target-platform android-arm64 "--dart-define=SERVIDOR=$Servidor"
+}
 if ($LASTEXITCODE -ne 0) { throw "La compilación falló." }
 
 $apk = Join-Path $PSScriptRoot 'build\app\outputs\flutter-apk\app-release.apk'

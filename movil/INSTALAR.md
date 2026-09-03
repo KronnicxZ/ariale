@@ -101,7 +101,10 @@ Al terminar te dice dónde quedó el archivo:
 movil\build\app\outputs\flutter-apk\app-release.apk
 ```
 
-Ese archivo, de unos 25 MB, es la app.
+Ese archivo, de unos 22 MB, es la app. Va compilado solo para ARM64, que
+es lo que llevan todos los teléfonos de los últimos años. Si alguien del
+equipo tiene un teléfono viejo de 32 bits y no le instala, se compila con
+`-Universal`: pesa 58 MB pero funciona en cualquiera.
 
 ---
 
