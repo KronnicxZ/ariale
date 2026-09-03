@@ -126,17 +126,32 @@ export const PATCH = withUserParams<{ id: string }, unknown>(async ({ request, p
  * en los reportes. Una clienta desactivada desaparece de la lista.
  */
 export const DELETE = withUserParams<{ id: string }, unknown>(async ({ params }) => {
+  const clienta = await prisma.client.findUnique({
+    where: { id: params.id },
+    select: { active: true },
+  });
+  if (!clienta) return { borrada: true, desactivada: false };
+
   const [citas, ventas] = await Promise.all([
     prisma.appointment.count({ where: { clientId: params.id } }),
     prisma.sale.count({ where: { clientId: params.id } }),
   ]);
 
-  if (citas > 0 || ventas > 0) {
+  // Con historial y todavía activa: se archiva, para que las cuentas de
+  // antes sigan cuadrando. Si ya estaba archivada y se vuelve a borrar, es
+  // que de verdad se quiere fuera: se va con sus citas y sus ventas.
+  if ((citas > 0 || ventas > 0) && clienta.active) {
     await prisma.client.update({ where: { id: params.id }, data: { active: false } });
     return { borrada: false, desactivada: true };
   }
 
-  await prisma.client.delete({ where: { id: params.id } });
+  await prisma.$transaction([
+    prisma.reminderLog.deleteMany({ where: { clientId: params.id } }),
+    prisma.clientPackage.deleteMany({ where: { clientId: params.id } }),
+    prisma.sale.deleteMany({ where: { clientId: params.id } }),
+    prisma.appointment.deleteMany({ where: { clientId: params.id } }),
+    prisma.client.delete({ where: { id: params.id } }),
+  ]);
   return { borrada: true, desactivada: false };
 });
 

@@ -36,7 +36,7 @@ export default async function ReservarLayout({ children }: LayoutProps<"/reserva
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
         <div className="relative z-10 flex h-full flex-col justify-between p-10 text-white xl:p-14">
-          <Link href="/portada" className="inline-flex items-center gap-2.5">
+          <Link href="https://www.ariale.space/" className="inline-flex items-center gap-2.5">
             <Image
               src="/marca/logo-ariale.png"
               alt={settings.businessName}

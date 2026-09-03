@@ -57,6 +57,11 @@ export function toMessage(error: unknown, fallback = "Algo salió mal. Intenta d
   if (error instanceof Error) {
     if (error.message === "SESSION_EXPIRED") return "Tu sesión caducó. Entra de nuevo.";
     if (error.message.startsWith("Unique constraint")) return "Ese registro ya existe.";
+    // Los errores que lanzamos a propósito ("Ese horario se acaba de ocupar…")
+    // ya vienen explicados: taparlos con "algo salió mal" solo desorienta.
+    // Los del motor (Prisma, red, tipos) sí se esconden.
+    const tecnico = /prisma|invalid|constraint|ECONN|fetch failed|TypeError|undefined|null/i;
+    if (error.message.trim() && !tecnico.test(error.message)) return error.message;
   }
   return fallback;
 }

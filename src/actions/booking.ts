@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentClient, getCurrentSpecialist, getCurrentUser } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { createAppointment, findOrCreateClient } from "@/actions/appointments";
+import { repartirServicios } from "@/lib/slots";
 import { fmtDayLong, fmtTime } from "@/lib/date";
 import { toMessage } from "@/actions/shared";
 
@@ -77,6 +78,49 @@ async function book(
   forceSpecialistId?: string,
 ): Promise<BookingOutcome> {
   try {
+    const settings = await getSettings();
+
+    // Servicios de dos áreas y nadie fija: una cita por especialista, a la
+    // misma hora — el mismo criterio que usa la app del teléfono.
+    const reparto =
+      forceSpecialistId || input.specialistId ? null : await repartirServicios(input.serviceIds);
+
+    if (reparto && reparto.grupos.length >= 2) {
+      if (reparto.huerfanos.length > 0) {
+        throw new Error("Nadie del equipo hace uno de los servicios elegidos.");
+      }
+      const citas = [];
+      for (const grupo of reparto.grupos) {
+        citas.push(
+          await createAppointment({
+            clientId,
+            specialistId: grupo.specialistId,
+            serviceIds: grupo.serviceIds,
+            day: input.day,
+            time: input.time,
+            note: input.note,
+            source,
+          }),
+        );
+      }
+      const [primera] = citas;
+      return {
+        ok: true,
+        appointmentId: primera.id,
+        status: primera.status,
+        whenLabel: fmtDayLong(primera.startAt, settings.timezone),
+        timeLabel: fmtTime(primera.startAt, settings.timezone),
+        servicesLabel: citas
+          .flatMap((c) => c.services.map((s) => s.service.name))
+          .join(" + "),
+        totalCents: citas.reduce(
+          (sum, c) => sum + c.services.reduce((s, x) => s + x.priceCents, 0),
+          0,
+        ),
+        specialistName: citas.map((c) => c.specialist.name).join(" y "),
+      };
+    }
+
     const specialistId = forceSpecialistId ?? (await resolveSpecialist(input));
 
     const appointment = await createAppointment({
@@ -89,7 +133,6 @@ async function book(
       source,
     });
 
-    const settings = await getSettings();
     return {
       ok: true,
       appointmentId: appointment.id,

@@ -102,9 +102,13 @@ class _PantallaClientasState extends State<PantallaClientas> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(cuantas == 1 ? '¿Eliminar la clienta?' : '¿Eliminar $cuantas clientas?'),
-        content: const Text(
-          'Las que ya tengan citas o ventas no se borran del todo: se '
-          'archivan, para que las cuentas de antes sigan cuadrando.',
+        content: Text(
+          _filtro == 'inactivas'
+              ? 'Ya están archivadas: esta vez se borran de verdad, con sus '
+                  'citas y sus ventas. No se puede deshacer.'
+              : 'Las que ya tengan citas o ventas no se borran del todo: se '
+                  'archivan, para que las cuentas de antes sigan cuadrando. '
+                  'Desde "Archivadas" se pueden borrar del todo.',
         ),
         actions: [
           TextButton(

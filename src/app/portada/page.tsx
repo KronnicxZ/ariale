@@ -16,6 +16,7 @@ import { waLink } from "@/lib/whatsapp";
 import { DAY_SHORT, fmtDuration } from "@/lib/date";
 import { formatUsd } from "@/lib/money";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { cn } from "@/lib/utils";
 import { Reveal } from "./reveal";
 import type { CategoryKind } from "@/generated/prisma/client";
 
@@ -368,18 +369,29 @@ export default async function PortadaPage() {
               bajada="Cada diseño sale distinto según la clienta. Esto no es un catálogo: son manos reales."
             />
           </Reveal>
-          {/* Nueve fotos: en tres columnas cierran parejas, en cuatro queda una huérfana. */}
-          <div className="mt-10 columns-2 gap-3 sm:columns-3 sm:gap-4 lg:gap-5">
+          {/* Cuadrícula, no masonry: las fotos vienen en proporciones distintas
+              (las cejas son 9:16) y en columnas una siempre quedaba más larga.
+              Todas al mismo aspecto con recorte; en el teléfono la primera va a
+              doble ancho para que nueve cierren en filas de dos. */}
+          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:gap-5">
             {GALERIA.map((foto, i) => (
-              <Reveal key={foto.src} delay={(i % 4) * 80}>
-                <div className="surface-sm mb-3 overflow-hidden p-0 sm:mb-4 lg:mb-5">
+              <Reveal
+                key={foto.src}
+                delay={(i % 3) * 80}
+                className={i === 0 ? "col-span-2 sm:col-span-1" : undefined}
+              >
+                <div
+                  className={cn(
+                    "group relative overflow-hidden rounded-2xl",
+                    i === 0 ? "aspect-[3/2] sm:aspect-[3/4]" : "aspect-[3/4]",
+                  )}
+                >
                   <Image
                     src={foto.src}
                     alt={foto.alt}
-                    width={480}
-                    height={640}
-                    sizes="(min-width: 640px) 33vw, 50vw"
-                    className="w-full transition duration-700 hover:scale-105"
+                    fill
+                    sizes="(min-width: 640px) 33vw, 100vw"
+                    className="object-cover transition duration-700 group-hover:scale-105"
                   />
                 </div>
               </Reveal>

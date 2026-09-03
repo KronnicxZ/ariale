@@ -14,6 +14,7 @@ import '../widgets/animar.dart';
 import '../widgets/comunes.dart';
 import 'cita_detalle.dart';
 import 'nueva_cita.dart';
+import 'recordatorios.dart' show PantallaRecordatorios;
 
 /// Pantalla de arranque: el día de hoy manda, el dinero va resumido.
 class PantallaHoy extends StatefulWidget {
@@ -250,6 +251,21 @@ class _PantallaHoyState extends State<PantallaHoy> {
             children: [
               Text('Pendientes', style: titulo(24)),
               const SizedBox(height: 16),
+              // Siempre a la mano, haya o no algo urgente: los mensajes de
+              // WhatsApp listos para mandar (citas de mañana, deudas, cumples).
+              Aviso(
+                icono: Ico.whatsapp,
+                color: Marca.exito,
+                texto: 'Recordatorios por WhatsApp',
+                alTocar: () {
+                  Navigator.pop(hoja);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PantallaRecordatorios()),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
               if (datos.porConfirmar > 0) ...[
                 Aviso(
                   icono: Ico.hora,
@@ -276,10 +292,12 @@ class _PantallaHoyState extends State<PantallaHoy> {
                   },
                 ),
               if (datos.porConfirmar == 0 && datos.vencidas == 0)
-                const Vacio(
-                  icono: Ico.bien,
-                  titulo: 'Nada pendiente',
-                  descripcion: 'Todo está confirmado y al día.',
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    'Nada más pendiente: todo confirmado y al día.',
+                    style: sutil(13),
+                  ),
                 ),
             ],
           ),

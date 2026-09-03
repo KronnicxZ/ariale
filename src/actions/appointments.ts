@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
-import { getAvailability } from "@/lib/slots";
+import { getAvailability, getAvailabilityRepartida, repartirServicios } from "@/lib/slots";
 import { normalizePhone } from "@/lib/utils";
 import { fmtDayShort, fmtTime, tzDateTimeToUtc } from "@/lib/date";
 import { avisarNuevaCita } from "@/lib/push";
@@ -238,12 +238,24 @@ export async function fetchSlotsAction(input: {
   });
   const durationMin = services.reduce((sum, s) => sum + s.durationMin, 0) || 30;
 
-  const availability = await getAvailability({
-    day: input.day,
-    durationMin,
-    specialistId: input.specialistId ?? null,
-    excludeAppointmentId: input.excludeAppointmentId,
-  });
+  // Sin especialista fija y con servicios de dos áreas, la cita se reparte:
+  // valen las horas en las que las dos están libres a la vez.
+  const reparto = input.specialistId ? null : await repartirServicios(input.serviceIds);
+
+  const availability =
+    reparto && reparto.grupos.length >= 2 && reparto.huerfanos.length === 0
+      ? await getAvailabilityRepartida({
+          day: input.day,
+          grupos: reparto.grupos,
+          excludeAppointmentId: input.excludeAppointmentId,
+        })
+      : await getAvailability({
+          day: input.day,
+          durationMin,
+          specialistId: input.specialistId ?? null,
+          serviceIds: input.serviceIds,
+          excludeAppointmentId: input.excludeAppointmentId,
+        });
 
   return {
     ...availability,
