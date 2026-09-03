@@ -3,9 +3,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// El vocabulario de iconos de la app.
 ///
-/// Uno solo, de Lucide —la misma familia que usa el panel web—, de trazo
-/// fino y grosor uniforme. Estaban mezclados los rellenos y los contornos de
-/// Material, y eso se nota aunque no se sepa por qué.
+/// Uno solo, de Lucide —la misma familia que usa el panel web—, en su corte
+/// de trazo fino (300). Un icono más grueso que el texto que acompaña se
+/// lee como un botón; con este grosor se lee como una palabra más.
 ///
 /// Se nombran por lo que significan en el estudio, no por su dibujo: si
 /// mañana el icono de cobrar cambia, se cambia aquí y en ningún sitio más.
@@ -13,69 +13,69 @@ class Ico {
   const Ico._();
 
   // Acciones
-  static const agregar = LucideIcons.plus;
-  static const quitar = LucideIcons.minus;
-  static const sumarUno = LucideIcons.circlePlus;
-  static const restarUno = LucideIcons.circleMinus;
-  static const editar = LucideIcons.pencil;
-  static const borrar = LucideIcons.trash2;
-  static const buscar = LucideIcons.search;
-  static const cerrar = LucideIcons.x;
-  static const listo = LucideIcons.check;
-  static const reintentar = LucideIcons.refreshCw;
-  static const salir = LucideIcons.logOut;
-  static const anular = LucideIcons.ban;
-  static const atras = LucideIcons.arrowLeft;
-  static const siguiente = LucideIcons.chevronRight;
-  static const anterior = LucideIcons.chevronLeft;
-  static const ver = LucideIcons.eye;
-  static const ocultar = LucideIcons.eyeOff;
+  static const agregar = LucideIcons.plus300;
+  static const quitar = LucideIcons.minus300;
+  static const sumarUno = LucideIcons.circlePlus300;
+  static const restarUno = LucideIcons.circleMinus300;
+  static const editar = LucideIcons.pencil300;
+  static const borrar = LucideIcons.trash2300;
+  static const buscar = LucideIcons.search300;
+  static const cerrar = LucideIcons.x300;
+  static const listo = LucideIcons.check300;
+  static const reintentar = LucideIcons.refreshCw300;
+  static const salir = LucideIcons.logOut300;
+  static const anular = LucideIcons.ban300;
+  static const atras = LucideIcons.arrowLeft300;
+  static const siguiente = LucideIcons.chevronRight300;
+  static const anterior = LucideIcons.chevronLeft300;
+  static const ver = LucideIcons.eye300;
+  static const ocultar = LucideIcons.eyeOff300;
 
   // Agenda
-  static const hoy = LucideIcons.calendarCheck;
-  static const agenda = LucideIcons.calendarDays;
-  static const agendar = LucideIcons.calendarPlus;
-  static const hora = LucideIcons.clock;
-  static const cerrado = LucideIcons.moon;
-  static const repetir = LucideIcons.repeat;
+  static const hoy = LucideIcons.calendarCheck300;
+  static const agenda = LucideIcons.calendarDays300;
+  static const agendar = LucideIcons.calendarPlus300;
+  static const hora = LucideIcons.clock300;
+  static const cerrado = LucideIcons.moon300;
+  static const repetir = LucideIcons.repeat300;
 
   // Clientas
-  static const clientas = LucideIcons.users;
-  static const clienta = LucideIcons.user;
-  static const buscarClienta = LucideIcons.userSearch;
-  static const nuevaClienta = LucideIcons.userPlus;
-  static const whatsapp = LucideIcons.messageCircle;
-  static const cumple = LucideIcons.cake;
-  static const alergia = LucideIcons.heartPulse;
-  static const nota = LucideIcons.notebookPen;
+  static const clientas = LucideIcons.users300;
+  static const clienta = LucideIcons.user300;
+  static const buscarClienta = LucideIcons.userSearch300;
+  static const nuevaClienta = LucideIcons.userPlus300;
+  static const whatsapp = LucideIcons.messageCircle300;
+  static const cumple = LucideIcons.cake300;
+  static const alergia = LucideIcons.heartPulse300;
+  static const nota = LucideIcons.notebookPen300;
 
   // Dinero
-  static const cobrar = LucideIcons.banknote;
-  static const ventas = LucideIcons.receipt;
-  static const gastos = LucideIcons.trendingDown;
-  static const subida = LucideIcons.trendingUp;
-  static const bajada = LucideIcons.trendingDown;
-  static const compras = LucideIcons.package;
-  static const proveedores = LucideIcons.truck;
-  static const reportes = LucideIcons.chartColumn;
+  static const cobrar = LucideIcons.banknote300;
+  static const ventas = LucideIcons.receipt300;
+  static const gastos = LucideIcons.trendingDown300;
+  static const subida = LucideIcons.trendingUp300;
+  static const bajada = LucideIcons.trendingDown300;
+  static const compras = LucideIcons.package300;
+  static const proveedores = LucideIcons.truck300;
+  static const reportes = LucideIcons.chartColumn300;
 
   // El estudio
-  static const mas = LucideIcons.layoutGrid;
-  static const servicios = LucideIcons.sparkles;
-  static const bonos = LucideIcons.gift;
-  static const equipo = LucideIcons.users;
-  static const negocio = LucideIcons.store;
-  static const clave = LucideIcons.lock;
+  static const mas = LucideIcons.layoutGrid300;
+  static const servicios = LucideIcons.sparkles300;
+  static const bonos = LucideIcons.gift300;
+  static const equipo = LucideIcons.users300;
+  static const negocio = LucideIcons.store300;
+  static const clave = LucideIcons.lock300;
 
   // Avisos
-  static const recordatorios = LucideIcons.bell;
-  static const atencion = LucideIcons.triangleAlert;
-  static const error = LucideIcons.circleAlert;
-  static const info = LucideIcons.info;
-  static const bien = LucideIcons.circleCheck;
-  static const celebrar = LucideIcons.partyPopper;
-  static const sinPendientes = LucideIcons.mailCheck;
-  static const sinConexion = LucideIcons.cloudOff;
+  static const recordatorios = LucideIcons.bell300;
+  static const atencion = LucideIcons.triangleAlert300;
+  static const error = LucideIcons.circleAlert300;
+  static const info = LucideIcons.info300;
+  static const bien = LucideIcons.circleCheck300;
+  static const celebrar = LucideIcons.partyPopper300;
+  static const sinPendientes = LucideIcons.mailCheck300;
+  static const sinConexion = LucideIcons.cloudOff300;
 
   /// Lucide dibuja con el trazo centrado y sale algo más grande que Material
   /// al mismo tamaño nominal. Este ajuste iguala el peso óptico.

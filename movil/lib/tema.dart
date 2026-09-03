@@ -62,33 +62,50 @@ class Marca {
       fondo.computeLuminance() > 0.55 ? negro : Colors.white;
 }
 
-/// Dos cortes de la misma familia, como hace el sistema de Apple con SF Pro
-/// Display y SF Pro Text: el contraste sale del corte, del peso y del
-/// interletrado, no de mezclar dos tipografías que se pelean.
+/// El sistema tipográfico tiene tres voces y una regla para cada una.
 ///
-/// Cuanto más grande el texto, más apretado: es lo que hace que un título
-/// se lea como una pieza y no como palabras sueltas.
+/// Instrument Serif, de contraste alto, solo en los títulos grandes: es de
+/// donde sale la elegancia. No es una script ni una cursiva —cada letra va
+/// suelta y en vertical—, sino una serif moderna de las que usan las marcas
+/// de belleza en portada.
+///
+/// Manrope en todo lo demás: encabezados de sección, texto y cifras. Es
+/// geométrica y limpia, y aguanta bien el tamaño pequeño, que es donde una
+/// serif de contraste alto se rompe.
+///
+/// A partir de este tamaño, un título se lee como una pieza y puede ir en
+/// serif. Por debajo es un rótulo de trabajo y va en sans.
+const _tamanoSerif = 22.0;
+
 double _apretado(double tamano) {
-  if (tamano >= 30) return -1.4;
-  if (tamano >= 24) return -1;
-  if (tamano >= 19) return -0.6;
-  return -0.3;
+  if (tamano >= 30) return -0.8;
+  if (tamano >= 24) return -0.6;
+  if (tamano >= 19) return -0.4;
+  return -0.2;
 }
 
-/// Títulos, en Inter Tight: más estrecha y con más carácter que la de texto.
-/// A partir de 24 va en extranegrita, que es de donde viene el contraste.
-TextStyle titulo(double tamano, {Color? color, FontWeight? peso}) =>
-    GoogleFonts.interTight(
-      fontSize: tamano,
-      fontWeight: peso ?? (tamano >= 24 ? FontWeight.w800 : FontWeight.w700),
+TextStyle titulo(double tamano, {Color? color, FontWeight? peso}) {
+  if (tamano >= _tamanoSerif) {
+    return GoogleFonts.instrumentSerif(
+      fontSize: tamano * 1.12,
+      fontWeight: peso ?? FontWeight.w400,
       color: color ?? Marca.texto,
-      height: 1.08,
+      height: 1.06,
       letterSpacing: _apretado(tamano),
     );
+  }
+  return GoogleFonts.manrope(
+    fontSize: tamano,
+    fontWeight: peso ?? FontWeight.w700,
+    color: color ?? Marca.texto,
+    height: 1.15,
+    letterSpacing: _apretado(tamano),
+  );
+}
 
 /// Rótulo diminuto en versales para encabezar una sección o una columna.
 /// Es el escalón que faltaba entre el título y el texto gris.
-TextStyle micro({Color? color}) => GoogleFonts.inter(
+TextStyle micro({Color? color}) => GoogleFonts.manrope(
       fontSize: 10.5,
       fontWeight: FontWeight.w700,
       color: color ?? Marca.textoTenue,
@@ -98,7 +115,7 @@ TextStyle micro({Color? color}) => GoogleFonts.inter(
 /// Cifras con espaciado tabular: el dinero se lee de un vistazo y las
 /// columnas de números no bailan al cambiar de valor.
 TextStyle cifra(double tamano, {Color? color, FontWeight peso = FontWeight.w600}) =>
-    GoogleFonts.inter(
+    GoogleFonts.manrope(
       fontSize: tamano,
       fontWeight: peso,
       color: color ?? Marca.texto,
@@ -109,7 +126,7 @@ TextStyle cifra(double tamano, {Color? color, FontWeight peso = FontWeight.w600}
 /// Rótulo pequeño y gris para lo secundario. Se llama `sutil` y no `apoyo`
 /// porque varios widgets ya tienen un campo con ese nombre.
 TextStyle sutil(double tamano, {Color? color, FontWeight peso = FontWeight.w400}) =>
-    GoogleFonts.inter(
+    GoogleFonts.manrope(
       fontSize: tamano,
       fontWeight: peso,
       color: color ?? Marca.textoSuave,
@@ -144,7 +161,7 @@ ThemeData construirTema() {
     ),
   );
 
-  final texto = GoogleFonts.interTextTheme(base.textTheme).apply(
+  final texto = GoogleFonts.manropeTextTheme(base.textTheme).apply(
     bodyColor: Marca.texto,
     displayColor: Marca.texto,
   );
@@ -160,7 +177,7 @@ ThemeData construirTema() {
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.inter(
+      titleTextStyle: GoogleFonts.manrope(
         fontSize: 16.5,
         fontWeight: FontWeight.w600,
         color: Marca.texto,
@@ -183,7 +200,7 @@ ThemeData construirTema() {
         minimumSize: const Size(0, 52),
         elevation: 0,
         overlayColor: Marca.negro,
-        textStyle: GoogleFonts.inter(
+        textStyle: GoogleFonts.manrope(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -200,7 +217,7 @@ ThemeData construirTema() {
         minimumSize: const Size(0, 48),
         side: BorderSide.none,
         overlayColor: Marca.texto,
-        textStyle: GoogleFonts.inter(
+        textStyle: GoogleFonts.manrope(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -211,7 +228,7 @@ ThemeData construirTema() {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: Marca.texto,
-        textStyle: GoogleFonts.inter(
+        textStyle: GoogleFonts.manrope(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -234,9 +251,9 @@ ThemeData construirTema() {
         borderRadius: BorderRadius.circular(13),
         borderSide: const BorderSide(color: Marca.dorado, width: 1.6),
       ),
-      labelStyle: GoogleFonts.inter(color: Marca.textoSuave, fontSize: 14),
-      helperStyle: GoogleFonts.inter(color: Marca.textoSuave, fontSize: 12),
-      hintStyle: GoogleFonts.inter(color: Marca.textoTenue, fontSize: 15),
+      labelStyle: GoogleFonts.manrope(color: Marca.textoSuave, fontSize: 14),
+      helperStyle: GoogleFonts.manrope(color: Marca.textoSuave, fontSize: 12),
+      hintStyle: GoogleFonts.manrope(color: Marca.textoTenue, fontSize: 15),
     ),
     // Barra inferior sin pastilla de selección: el icono lleno y el texto
     // en negro bastan para saber dónde estás.
@@ -263,7 +280,7 @@ ThemeData construirTema() {
         ),
       ),
       labelTextStyle: WidgetStateProperty.resolveWith(
-        (states) => GoogleFonts.inter(
+        (states) => GoogleFonts.manrope(
           fontSize: 10.5,
           fontWeight: states.contains(WidgetState.selected)
               ? FontWeight.w600
@@ -292,13 +309,13 @@ ThemeData construirTema() {
       showCheckmark: false,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-      labelStyle: GoogleFonts.inter(
+      labelStyle: GoogleFonts.manrope(
         fontSize: 13.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
         color: Marca.textoSuave,
       ),
-      secondaryLabelStyle: GoogleFonts.inter(
+      secondaryLabelStyle: GoogleFonts.manrope(
         fontSize: 13.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
@@ -321,7 +338,7 @@ ThemeData construirTema() {
       focusElevation: 2,
       hoverElevation: 2,
       highlightElevation: 2,
-      extendedTextStyle: GoogleFonts.inter(
+      extendedTextStyle: GoogleFonts.manrope(
         fontSize: 15.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
@@ -333,7 +350,7 @@ ThemeData construirTema() {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      titleTextStyle: GoogleFonts.inter(
+      titleTextStyle: GoogleFonts.manrope(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         color: Marca.texto,
@@ -348,7 +365,7 @@ ThemeData construirTema() {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: Marca.negro,
-      contentTextStyle: GoogleFonts.inter(
+      contentTextStyle: GoogleFonts.manrope(
         color: Colors.white,
         fontSize: 14,
         letterSpacing: -0.2,
