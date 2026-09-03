@@ -10,6 +10,7 @@ import '../widgets/animar.dart';
 import '../widgets/comunes.dart';
 import 'clienta_detalle.dart';
 import 'elegir_clienta.dart';
+import 'importar_contactos.dart';
 import 'nueva_cita.dart';
 
 /// Directorio de clientas con búsqueda y filtros.
@@ -73,6 +74,14 @@ class _PantallaClientasState extends State<PantallaClientas> {
       _marcadas.clear();
     });
     await futuro;
+  }
+
+  Future<void> _importarDeContactos() async {
+    final trajoAlgo = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const PantallaImportarContactos()),
+    );
+    if (trajoAlgo == true) _refrescar();
   }
 
   void _alternarMarca(String id) {
@@ -162,6 +171,7 @@ class _PantallaClientasState extends State<PantallaClientas> {
                 _Buscador(
                   controlador: _busqueda,
                   alBuscar: _refrescar,
+                  alImportar: _importarDeContactos,
                 ),
               const SizedBox(height: 10),
               SizedBox(
@@ -296,10 +306,15 @@ class _PantallaClientasState extends State<PantallaClientas> {
 }
 
 class _Buscador extends StatelessWidget {
-  const _Buscador({required this.controlador, required this.alBuscar});
+  const _Buscador({
+    required this.controlador,
+    required this.alBuscar,
+    required this.alImportar,
+  });
 
   final TextEditingController controlador;
   final VoidCallback alBuscar;
+  final VoidCallback alImportar;
 
   @override
   Widget build(BuildContext context) {
@@ -308,7 +323,12 @@ class _Buscador extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Clientas', style: titulo(24)),
+          Row(
+            children: [
+              Expanded(child: Text('Clientas', style: titulo(24))),
+              _BotonImportar(alTocar: alImportar),
+            ],
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: controlador,
@@ -552,4 +572,28 @@ class _DatosClientas {
             Clienta.desdeJson(c as Map<String, dynamic>),
         ],
       );
+}
+
+/// Icono redondo que abre la importación de contactos. Va junto al título,
+/// donde se espera una acción rápida de la pantalla.
+class _BotonImportar extends StatelessWidget {
+  const _BotonImportar({required this.alTocar});
+
+  final VoidCallback alTocar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Marca.tarjeta,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: alTocar,
+        customBorder: const CircleBorder(),
+        child: const Padding(
+          padding: EdgeInsets.all(10),
+          child: Icon(Ico.nuevaClienta, size: 20, color: Marca.texto),
+        ),
+      ),
+    );
+  }
 }

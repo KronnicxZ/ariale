@@ -401,8 +401,8 @@ async function main() {
   });
 
   console.log("Clientas…");
-  // Un puñado de clientas de prueba: las justas para que las cifras de cada
-  // ficha —visitas, gastado, saldo— salgan creíbles.
+  // Tres, no ocho: lo justo para ver una ficha con historial, una con
+  // saldo pendiente y una con bono, sin que la lista se vuelva ruido.
   const clientSeed = [
     { name: "Camila Reyes", phone: "4241112233", email: "camila@gmail.com" },
     {
@@ -412,11 +412,6 @@ async function main() {
       allergies: "Sensible a la cera caliente",
     },
     { name: "Verónica Silva", phone: "4127778899" },
-    { name: "Laura Méndez", phone: "4264445566", email: "laura.m@gmail.com" },
-    { name: "Andrea Salas", phone: "4145556677" },
-    { name: "Sofía Herrera", phone: "4149990011" },
-    { name: "Mariana Ortiz", phone: "4248889900" },
-    { name: "Ángela Rivas", phone: "4142658907" },
   ];
   const clients: { id: string; name: string; phone: string }[] = [];
   for (const [i, data] of clientSeed.entries()) {
@@ -580,9 +575,10 @@ async function main() {
   const visits: Visit[] = [];
   const OPEN_MIN = 9 * 60;
 
-  // Cinco semanas de historial + los próximos diez días. Más historial
-  // haría que cada clienta acumulara visitas que no se sostienen.
-  for (let offset = -35; offset <= 10; offset++) {
+  // Diez días de historial + los próximos cinco. Con tres clientas es lo
+  // que da un puñado de citas y de ventas para ver, sin llenar la agenda
+  // de nombres repetidos ni inventar meses de trabajo que nunca pasaron.
+  for (let offset = -10; offset <= 5; offset++) {
     const date = new Date(Date.now() + offset * 86_400_000);
     if (date.getDay() === 0) continue; // domingo cerrado
     const saturday = date.getDay() === 6;
@@ -594,10 +590,10 @@ async function main() {
       { id: arianny.id, combos: WAX_COMBOS },
     ]) {
       let cursor = OPEN_MIN + Math.floor(rand() * 3) * 30;
-      // Dos citas al día por persona: cuatro en el estudio. La agenda se ve
-      // viva y sigue leyéndose de un vistazo.
+      // Como mucho una cita al día por persona, y no todos los días. Es
+      // una agenda de muestra, no la de un estudio a reventar.
       const carga = rand();
-      const target = carga < 0.2 ? 1 : carga > 0.9 ? 3 : 2;
+      const target = carga < 0.45 ? 0 : carga > 0.92 ? 2 : 1;
 
       for (let i = 0; i < target; i++) {
         const serviceNames = pick(person.combos);

@@ -1,5 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Para "Importar de mis contactos": lee la agenda del teléfono, que
+         es la misma que usa WhatsApp. No hay una lista de contactos propia
+         de WhatsApp a la que ninguna app pueda pedir acceso. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
 
     <application
         android:label="Arialé Studio"
