@@ -21,7 +21,7 @@ class PantallaVentas extends StatefulWidget {
 
 class _PantallaVentasState extends State<PantallaVentas> {
   // Al día 1 o 2 del mes, "este mes" saldría vacío: mejor 30 días.
-  String _periodo = 'last30';
+  String _periodo = 'today';
   String? _estado;
   late Future<_DatosVentas> _futuro;
 

@@ -128,6 +128,21 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
     );
   }
 
+  // Para no depender de tocar "siguiente" treinta veces cuando la fecha
+  // que se busca está lejos: un calendario completo con mes y año a mano.
+  Future<void> _saltarAFecha() async {
+    final elegido = await showDatePicker(
+      context: context,
+      initialDate: _dia,
+      firstDate: DateTime(_hoy.year - 2),
+      lastDate: DateTime(_hoy.year + 2),
+      helpText: 'Ir a una fecha',
+      cancelText: 'Cancelar',
+      confirmText: 'Ir',
+    );
+    if (elegido != null) _irA(elegido);
+  }
+
   Future<void> _agendar({String? especialistaId, int? minuto}) async {
     final creada = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -197,6 +212,11 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
                       ),
                       child: const Text('Hoy'),
                     ),
+                  IconButton(
+                    onPressed: _saltarAFecha,
+                    icon: const Icon(Ico.agenda),
+                    tooltip: 'Ir a una fecha',
+                  ),
                 ],
               ),
             ),

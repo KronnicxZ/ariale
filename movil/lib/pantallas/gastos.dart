@@ -19,7 +19,7 @@ class PantallaGastos extends StatefulWidget {
 
 class _PantallaGastosState extends State<PantallaGastos> {
   // Al día 1 o 2 del mes, "este mes" saldría vacío: mejor 30 días.
-  String _periodo = 'last30';
+  String _periodo = 'today';
   late Future<_DatosGastos> _futuro;
 
   @override

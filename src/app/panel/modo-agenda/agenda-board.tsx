@@ -8,6 +8,7 @@ import {
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
+  List,
   Maximize2,
   Minimize2,
   X,
@@ -218,6 +219,13 @@ export function AgendaBoard({
             aria-label="Nueva cita"
           >
             <CalendarPlus className="size-4" />
+          </Link>
+          <Link
+            href={`/panel/agenda?dia=${day}${specialistId ? `&especialista=${specialistId}` : ""}`}
+            className="surface-sm border-border hover:bg-accent grid size-9 place-items-center transition"
+            aria-label="Vista de lista"
+          >
+            <List className="size-4" />
           </Link>
           <button
             type="button"

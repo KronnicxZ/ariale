@@ -110,7 +110,9 @@ export default async function AgendaPage(props: PageProps<"/panel/agenda">) {
       {/* Accesos secundarios al final, sin competir con la agenda. */}
       <div className="flex flex-wrap gap-2 border-t pt-4">
         <Button asChild variant="ghost" size="sm">
-          <Link href={`/panel/modo-agenda?dia=${day}`}>
+          <Link
+            href={`/panel/modo-agenda?dia=${day}${specialistId ? `&especialista=${specialistId}` : ""}`}
+          >
             <LayoutGrid className="size-4" />
             Modo agenda
           </Link>

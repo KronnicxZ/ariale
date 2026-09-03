@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../iconos.dart';
@@ -5,6 +7,7 @@ import '../iconos.dart';
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
+import '../recordatorios.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import '../widgets/animar.dart';
@@ -38,7 +41,18 @@ class _PantallaHoyState extends State<PantallaHoy> {
 
   Future<ResumenHoy> _cargar() async {
     final datos = await Sesion.de(context).obtener('/api/v1/hoy');
-    return ResumenHoy.desdeJson(datos);
+    final resumen = ResumenHoy.desdeJson(datos);
+    // Al mismo tiempo que se ve el día, se rearman los avisos de hoy: así
+    // siempre reflejan lo último (citas nuevas, canceladas o movidas).
+    if (mounted) {
+      unawaited(
+        Recordatorios.sincronizar(
+          resumen.citas,
+          miEspecialistaId: Sesion.de(context).miEspecialistaId,
+        ),
+      );
+    }
+    return resumen;
   }
 
   Future<void> _refrescar() async {

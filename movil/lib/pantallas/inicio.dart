@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../iconos.dart';
 
 import '../api/cliente.dart';
 import '../api/modelos.dart';
+import '../push.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import 'agenda.dart';
@@ -45,6 +48,7 @@ class _PantallaInicioState extends State<PantallaInicio> {
       final datos = await Sesion.de(context).obtener('/api/v1/catalogo');
       Sesion.catalogo = Catalogo.desdeJson(datos);
       if (mounted) setState(() => _cargandoCatalogo = false);
+      if (mounted) unawaited(Push.registrar(context));
     } on ErrorApi catch (e) {
       if (mounted) {
         setState(() {

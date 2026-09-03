@@ -89,7 +89,22 @@ model User {
   specialistId String?     @unique
   specialist   Specialist? @relation(fields: [specialistId], references: [id])
 
-  expenses Expense[]
+  expenses     Expense[]
+  deviceTokens DeviceToken[]
+}
+
+/// El token de Firebase Cloud Messaging del teléfono donde tiene la app
+/// abierta. Uno por instalación: si se reinstala o cambia de teléfono,
+/// simplemente llega un token nuevo y el viejo deja de usarse.
+model DeviceToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 /// Quien presta el servicio. Entra a su agenda con un PIN de 4 dígitos,

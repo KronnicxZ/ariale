@@ -7,6 +7,7 @@ import '../api/modelos.dart';
 import '../formato.dart';
 import '../sesion.dart';
 import '../tema.dart';
+import '../widgets/comunes.dart';
 import 'elegir_clienta.dart';
 
 /// Agendar en cuatro decisiones: clienta, servicios, día y hora.
@@ -109,6 +110,49 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     return elegibles.isEmpty ? null : elegibles.first.id;
   }
 
+  /// Nadie hace las dos áreas: Alejandra las uñas, Arianny la depilación. Si
+  /// se combinan servicios de ambas, no hay una sola persona para elegir —
+  /// se reparte sola, cada quien lo suyo, a la misma hora.
+  bool get _reparteEntreDos =>
+      _servicioIds.isNotEmpty && _especialistasElegibles.isEmpty;
+
+  /// A quién le toca cada servicio, cuando hace falta repartir.
+  Map<Especialista, List<Servicio>> get _gruposReparto {
+    final mapa = <Especialista, List<Servicio>>{};
+    for (final s in _seleccionados) {
+      Especialista? dueno;
+      for (final e in _catalogo.especialistas) {
+        if (e.servicioIds.contains(s.id)) {
+          dueno = e;
+          break;
+        }
+      }
+      if (dueno == null) continue;
+      mapa.putIfAbsent(dueno, () => []).add(s);
+    }
+    return mapa;
+  }
+
+  /// Un servicio que nadie del equipo sabe hacer: no debería pasar, pero si
+  /// pasa hay que avisar en vez de dejar la cita coja.
+  List<Servicio> get _serviciosSinDueno {
+    final grupos = _gruposReparto;
+    final cubiertos = grupos.values.expand((l) => l).map((s) => s.id).toSet();
+    return _seleccionados.where((s) => !cubiertos.contains(s.id)).toList();
+  }
+
+  /// La duración que se le enseña a la clienta: si se reparte entre dos, lo
+  /// que tarda es lo que tarde la más larga de las dos, no la suma —
+  /// trabajan a la vez, no una detrás de otra.
+  int get _duracionMostrada {
+    if (!_reparteEntreDos) return _duracionMin;
+    final grupos = _gruposReparto.values;
+    if (grupos.isEmpty) return _duracionMin;
+    return grupos
+        .map((l) => l.fold(0, (suma, s) => suma + s.duracionMin))
+        .reduce((a, b) => a > b ? a : b);
+  }
+
   Future<void> _recargarHuecos() async {
     if (_servicioIds.isEmpty) {
       setState(() {
@@ -122,24 +166,35 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     setState(() => _cargandoHuecos = true);
 
     try {
-      final datos = await Sesion.de(context).obtener(
-        '/api/v1/huecos',
-        params: {
-          'dia': _dia,
-          'servicios': _servicioIds.join(','),
-          if (_especialistaActivo case final e?) 'especialista': e,
-        },
-      );
-      // Descartamos respuestas que llegan tarde.
-      if (id != _peticion || !mounted) return;
+      List<Hueco> huecos;
+      String? motivo;
 
-      final huecos = [
-        for (final h in (datos['huecos'] as List))
-          Hueco.desdeJson(h as Map<String, dynamic>),
-      ];
+      if (_reparteEntreDos) {
+        final resultado = await _huecosRepartidos();
+        if (id != _peticion || !mounted) return;
+        huecos = resultado.$1;
+        motivo = resultado.$2;
+      } else {
+        final datos = await Sesion.de(context).obtener(
+          '/api/v1/huecos',
+          params: {
+            'dia': _dia,
+            'servicios': _servicioIds.join(','),
+            if (_especialistaActivo case final e?) 'especialista': e,
+          },
+        );
+        // Descartamos respuestas que llegan tarde.
+        if (id != _peticion || !mounted) return;
+        huecos = [
+          for (final h in (datos['huecos'] as List))
+            Hueco.desdeJson(h as Map<String, dynamic>),
+        ];
+        motivo = datos['motivo'] as String?;
+      }
+
       setState(() {
         _huecos = huecos;
-        _motivoSinHuecos = datos['motivo'] as String?;
+        _motivoSinHuecos = motivo;
         if (_hora != null && !huecos.any((h) => h.hora == _hora)) _hora = null;
 
         // Si se llegó tocando un hueco del calendario y a esa hora cabe,
@@ -164,6 +219,48 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     } finally {
       if (mounted && id == _peticion) setState(() => _cargandoHuecos = false);
     }
+  }
+
+  /// Pide los huecos de cada especialista implicada por separado —cada una
+  /// con solo su parte de los servicios— y se queda con las horas en las que
+  /// las dos coinciden libres a la vez.
+  Future<(List<Hueco>, String?)> _huecosRepartidos() async {
+    final grupos = _gruposReparto;
+    if (grupos.length < 2 || _serviciosSinDueno.isNotEmpty) {
+      final quien =
+          _serviciosSinDueno.isEmpty ? null : _serviciosSinDueno.first.nombre;
+      return (
+        <Hueco>[],
+        quien != null
+            ? 'Nadie del equipo hace "$quien" todavía.'
+            : 'No hay quien haga esta combinación.',
+      );
+    }
+
+    final respuestas = await Future.wait([
+      for (final entrada in grupos.entries)
+        Sesion.de(context).obtener('/api/v1/huecos', params: {
+          'dia': _dia,
+          'servicios': entrada.value.map((s) => s.id).join(','),
+          'especialista': entrada.key.id,
+        }),
+    ]);
+
+    final listasDeHoras = [
+      for (final datos in respuestas)
+        {
+          for (final h in (datos['huecos'] as List)) (h as Map)['hora'] as String,
+        },
+    ];
+    final horasComunes = listasDeHoras.reduce((a, b) => a.intersection(b));
+
+    final huecos = [
+      for (final h in (respuestas.first['huecos'] as List))
+        Hueco.desdeJson(h as Map<String, dynamic>),
+    ].where((h) => horasComunes.contains(h.hora)).toList();
+
+    final nombres = grupos.keys.map((e) => e.nombre).join(' y ');
+    return (huecos, huecos.isEmpty ? '$nombres no coinciden libres ese día.' : null);
   }
 
   /// Lee la última visita de la clienta para poder repetirla de un toque.
@@ -219,6 +316,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
 
   Future<void> _guardar() async {
     if (_clienta == null || _servicioIds.isEmpty || _hora == null) return;
+    if (_reparteEntreDos && _serviciosSinDueno.isNotEmpty) return;
 
     setState(() {
       _guardando = true;
@@ -226,20 +324,28 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     });
 
     try {
-      await Sesion.de(context).enviar('/api/v1/citas', {
-        if (_clienta!.id != null) 'clientaId': _clienta!.id,
-        if (_clienta!.id == null) 'clientaNombre': _clienta!.nombre,
-        if (_clienta!.id == null) 'clientaTelefono': _clienta!.telefono,
-        'especialistaId': _especialistaActivo,
-        'servicioIds': _servicioIds,
-        'dia': _dia,
-        'hora': _hora,
-        if (_nota.text.trim().isNotEmpty) 'nota': _nota.text.trim(),
-      });
+      if (_reparteEntreDos) {
+        await _guardarRepartida();
+      } else {
+        await Sesion.de(context).enviar('/api/v1/citas', {
+          if (_clienta!.id != null) 'clientaId': _clienta!.id,
+          if (_clienta!.id == null) 'clientaNombre': _clienta!.nombre,
+          if (_clienta!.id == null) 'clientaTelefono': _clienta!.telefono,
+          'especialistaId': _especialistaActivo,
+          'servicioIds': _servicioIds,
+          'dia': _dia,
+          'hora': _hora,
+          if (_nota.text.trim().isNotEmpty) 'nota': _nota.text.trim(),
+        });
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cita agendada.')),
+        SnackBar(
+          content: Text(
+            _reparteEntreDos ? 'Quedaron las dos citas agendadas.' : 'Cita agendada.',
+          ),
+        ),
       );
       Navigator.pop(context, true);
     } on ErrorApi catch (e) {
@@ -250,6 +356,36 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
       }
     } finally {
       if (mounted) setState(() => _guardando = false);
+    }
+  }
+
+  /// Una cita por especialista, mismo día y misma hora —cada quien atiende
+  /// su parte a la vez—. La segunda reutiliza la clienta que acaba de crear
+  /// la primera, para no duplicarla si era nueva.
+  Future<void> _guardarRepartida() async {
+    String? clientaId = _clienta!.id;
+    final yaCreadas = <String>[];
+
+    try {
+      for (final entrada in _gruposReparto.entries) {
+        final respuesta = await Sesion.de(context).enviar('/api/v1/citas', {
+          if (clientaId != null) 'clientaId': clientaId,
+          if (clientaId == null) 'clientaNombre': _clienta!.nombre,
+          if (clientaId == null) 'clientaTelefono': _clienta!.telefono,
+          'especialistaId': entrada.key.id,
+          'servicioIds': [for (final s in entrada.value) s.id],
+          'dia': _dia,
+          'hora': _hora,
+          if (_nota.text.trim().isNotEmpty) 'nota': _nota.text.trim(),
+        });
+        clientaId ??= ((respuesta['cita'] as Map)['clienta'] as Map?)?['id'] as String?;
+        yaCreadas.add(entrada.key.nombre);
+      }
+    } on ErrorApi catch (e) {
+      if (yaCreadas.isEmpty) rethrow;
+      throw ErrorApi(
+        'Quedó agendado con ${yaCreadas.join(" y ")}, pero no con quien faltaba: ${e.mensaje}',
+      );
     }
   }
 
@@ -269,7 +405,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     return Scaffold(
       appBar: AppBar(title: const Text('Nueva cita')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
           _Seccion(
             rotulo: '¿Para quién?',
@@ -334,11 +470,27 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
                 ],
               ),
             ),
+          if (_reparteEntreDos && _serviciosSinDueno.isEmpty)
+            _Seccion(
+              rotulo: '¿Con quién?',
+              subtitulo: 'Nadie hace las dos cosas: se reparte sola.',
+              hijo: _Reparto(grupos: _gruposReparto),
+            ),
+          if (_reparteEntreDos && _serviciosSinDueno.isNotEmpty)
+            _Seccion(
+              rotulo: '¿Con quién?',
+              hijo: Aviso(
+                icono: Ico.atencion,
+                color: Marca.alerta,
+                texto:
+                    'Nadie del equipo hace "${_serviciosSinDueno.first.nombre}" todavía.',
+              ),
+            ),
           _Seccion(
             rotulo: 'Elige el día',
             subtitulo: _servicioIds.isEmpty
                 ? 'Primero elige al menos un servicio.'
-                : 'La cita dura ${duracion(_duracionMin)}.',
+                : 'La cita dura ${duracion(_duracionMostrada)}.',
             hijo: _SelectorDia(
               dia: _dia,
               desde: _catalogo.hoy,
@@ -398,16 +550,18 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
             ),
         ],
       ),
-      bottomSheet: _BarraResumen(
-        servicios: _seleccionados.map((s) => s.nombre).join(' + '),
-        duracionMin: _duracionMin,
-        totalCentavos: _totalCentavos,
-        tasa: _catalogo.tasa,
-        hora: _hora,
-        listo: listo,
-        falta: _queFalta,
-        guardando: _guardando,
-        alConfirmar: _guardar,
+      bottomNavigationBar: SafeArea(
+        child: _BarraResumen(
+          servicios: _seleccionados.map((s) => s.nombre).join(' + '),
+          duracionMin: _duracionMin,
+          totalCentavos: _totalCentavos,
+          tasa: _catalogo.tasa,
+          hora: _hora,
+          listo: listo,
+          falta: _queFalta,
+          guardando: _guardando,
+          alConfirmar: _guardar,
+        ),
       ),
     );
   }
@@ -437,6 +591,67 @@ class _Seccion extends StatelessWidget {
           ],
           const SizedBox(height: 12),
           hijo,
+        ],
+      ),
+    );
+  }
+}
+
+/// Quién hace qué, cuando la cita se reparte entre dos especialistas.
+class _Reparto extends StatelessWidget {
+  const _Reparto({required this.grupos});
+
+  final Map<Especialista, List<Servicio>> grupos;
+
+  @override
+  Widget build(BuildContext context) {
+    final entradas = grupos.entries.toList();
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Marca.tarjeta,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < entradas.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: CircleAvatar(
+                    backgroundColor: Marca.desdeHex(entradas[i].key.color),
+                    radius: 5,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: sutil(13.5),
+                      children: [
+                        TextSpan(
+                          text: '${entradas[i].key.nombre}: ',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: Marca.texto,
+                          ),
+                        ),
+                        TextSpan(
+                          text: entradas[i].value.map((s) => s.nombre).join(' + '),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text('Las dos citas quedan a la misma hora.', style: micro()),
         ],
       ),
     );
@@ -962,12 +1177,7 @@ class _BarraResumen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        12,
-        16,
-        12 + MediaQuery.of(context).padding.bottom,
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: const BoxDecoration(
         color: Marca.tarjeta,
         border: Border(top: BorderSide(color: Marca.borde)),

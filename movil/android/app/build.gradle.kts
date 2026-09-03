@@ -4,6 +4,8 @@ plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Avisos de citas próximas por push: lee google-services.json.
+    id("com.google.gms.google-services")
 }
 
 // Firma de release. Si existe android/key.properties se usa esa llave; si no,
@@ -23,6 +25,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Los avisos de citas próximas (flutter_local_notifications) lo piden
+        // para programar notificaciones en versiones viejas de Android.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -67,6 +72,10 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {

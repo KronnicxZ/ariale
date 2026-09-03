@@ -5,6 +5,12 @@
          de WhatsApp a la que ninguna app pueda pedir acceso. -->
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
 
+    <!-- Avisos de citas próximas. En Android 13+ hace falta pedirlo en
+         tiempo de ejecución además de declararlo aquí. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Los avisos siguen sonando aunque el teléfono esté en reposo. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
     <application
         android:label="Arialé Studio"
         android:name="${applicationName}"

@@ -5,7 +5,8 @@ import { prisma } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import { getAvailability } from "@/lib/slots";
 import { normalizePhone } from "@/lib/utils";
-import { tzDateTimeToUtc } from "@/lib/date";
+import { fmtDayShort, fmtTime, tzDateTimeToUtc } from "@/lib/date";
+import { avisarNuevaCita } from "@/lib/push";
 import {
   fail,
   ok,
@@ -86,6 +87,21 @@ export async function createAppointment(input: {
   revalidatePath("/panel");
   revalidatePath("/panel/agenda");
   revalidatePath("/panel/modo-agenda");
+
+  // Solo cuando agenda la clienta desde la web: si la crea el equipo desde
+  // el panel o la app, ya lo sabe de sobra.
+  if (input.source === "CLIENT") {
+    avisarNuevaCita({
+      clientName: appointment.client.name,
+      services: appointment.services.map((s) => s.service.name).join(" + "),
+      day: fmtDayShort(appointment.startAt, settings.timezone),
+      time: fmtTime(appointment.startAt, settings.timezone),
+    }).catch((error) => {
+      // El aviso es un extra: si Firebase falla, la cita ya quedó guardada.
+      console.error("[push] no se pudo avisar la nueva cita", error);
+    });
+  }
+
   return appointment;
 }
 

@@ -18,7 +18,7 @@ class PantallaReportes extends StatefulWidget {
 }
 
 class _PantallaReportesState extends State<PantallaReportes> {
-  String _periodo = 'last30';
+  String _periodo = 'today';
   late Future<_Reportes> _futuro;
 
   @override

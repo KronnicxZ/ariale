@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "194280334443",
+    "project_id": "ariale-studio",
+    "storage_bucket": "ariale-studio.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:194280334443:android:fe9079d7edbc3d7aa07d2e",
+        "android_client_info": {
+          "package_name": "com.arialestudio.ariale_movil"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCObI7IVmNejWPSXf9b2K0ppoYMxwm1z04"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

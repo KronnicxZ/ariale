@@ -26,7 +26,10 @@ class PantallaClientas extends StatefulWidget {
 
 class _PantallaClientasState extends State<PantallaClientas> {
   final _busqueda = TextEditingController();
-  String _filtro = 'todas';
+  // "Activas" por defecto: una clienta archivada (borrada, pero con
+  // historial que hay que conservar) no debe seguir apareciendo como si
+  // nada, o parece que borrar no hizo nada.
+  String _filtro = 'activas';
   late Future<_DatosClientas> _futuro;
 
   /// Vacío mientras no se esté seleccionando. Con algo dentro, la pantalla
@@ -35,11 +38,12 @@ class _PantallaClientasState extends State<PantallaClientas> {
   bool _borrando = false;
 
   static const _filtros = [
-    ('todas', 'Todas'),
+    ('activas', 'Activas'),
     ('con-cita', 'Con cita'),
     ('con-saldo', 'Con saldo'),
     ('con-bono', 'Con bono'),
     ('nuevas', 'Nuevas'),
+    ('inactivas', 'Archivadas'),
   ];
 
   bool get _seleccionando => _marcadas.isNotEmpty;

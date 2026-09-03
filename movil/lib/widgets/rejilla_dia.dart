@@ -311,6 +311,10 @@ class _Columna extends StatelessWidget {
                 cita: cita,
                 color: color,
                 compacto: cita.duracionMin * escala < 56,
+                // Un turno de media hora no deja sitio para el nombre y el
+                // servicio sin que la tarjeta redondeada se los coma por
+                // abajo: mejor mostrar solo el nombre, entero y legible.
+                soloNombre: cita.duracionMin * escala < 44,
                 alTocar: () => alTocarCita(cita),
               ),
             ),
@@ -325,12 +329,17 @@ class _Bloque extends StatelessWidget {
     required this.cita,
     required this.color,
     required this.compacto,
+    required this.soloNombre,
     required this.alTocar,
   });
 
   final Cita cita;
   final Color color;
   final bool compacto;
+
+  /// Media hora no da ni para el nombre y el servicio a la vez: se enseña
+  /// solo el nombre, centrado, en vez de que la tarjeta se lo coma.
+  final bool soloNombre;
   final VoidCallback alTocar;
 
   @override
@@ -367,6 +376,9 @@ class _Bloque extends StatelessWidget {
                   padding: EdgeInsets.fromLTRB(9, compacto ? 4 : 7, 8, 5),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: soloNombre
+                        ? MainAxisAlignment.center
+                        : MainAxisAlignment.start,
                     children: [
                       Row(
                         children: [
@@ -399,15 +411,17 @@ class _Bloque extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Expanded(
-                        child: Text(
-                          cita.resumenServicios,
-                          maxLines: compacto ? 1 : 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: sutil(11.5, color: Marca.textoSuave),
+                      if (!soloNombre) ...[
+                        const SizedBox(height: 2),
+                        Expanded(
+                          child: Text(
+                            cita.resumenServicios,
+                            maxLines: compacto ? 1 : 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: sutil(11.5, color: Marca.textoSuave),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

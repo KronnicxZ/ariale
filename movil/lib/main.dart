@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'api/cliente.dart';
 import 'pantallas/entrar.dart';
 import 'pantallas/inicio.dart';
+import 'recordatorios.dart';
 import 'sesion.dart';
 import 'tema.dart';
 
@@ -12,6 +13,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Sin esto, los nombres de días y meses salen en inglés.
   await initializeDateFormatting('es');
+  await Recordatorios.iniciar();
 
   final api = ClienteApi();
   await api.cargarSesion();
