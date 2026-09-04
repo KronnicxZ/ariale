@@ -4,8 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export type Foto = { src: string; alt: string };
+export type Foto = {
+  src: string;
+  alt: string;
+  /** Ocupa más alto en la cuadrícula, para romper la retícula. */
+  alta?: boolean;
+};
 
 /**
  * El trabajo real: cuadrícula en pantalla ancha, carrusel que se desliza en
@@ -61,20 +67,29 @@ export function Galeria({ fotos }: { fotos: Foto[] }) {
         ))}
       </div>
 
-      {/* Pantalla ancha: cuadrícula. */}
-      <div className="hidden gap-4 sm:grid sm:grid-cols-3 lg:gap-5">
+      {/* Pantalla ancha: mosaico de verdad. Va con columnas CSS y no con
+          `grid`, porque el navegador reparte las fotos solo para que las
+          columnas queden parejas de alto; con `grid` y filas fijas siempre
+          sobraba un hueco largo abajo. Unas fotos son más altas que otras:
+          de eso vive el mosaico. */}
+      <div className="hidden sm:block sm:columns-3 sm:gap-4 lg:columns-4 lg:gap-5">
         {fotos.map((foto, i) => (
           <button
             key={foto.src}
             type="button"
             onClick={() => setAbierta(i)}
-            className="group relative aspect-[3/4] overflow-hidden rounded-2xl"
+            // `break-inside-avoid` para que una foto no se parta en dos
+            // columnas, que es lo que hacen las columnas CSS si las dejas.
+            className={cn(
+              "group relative mb-4 block w-full break-inside-avoid overflow-hidden rounded-2xl lg:mb-5",
+              foto.alta ? "aspect-[3/4.6]" : "aspect-[3/3.6]",
+            )}
           >
             <Image
               src={foto.src}
               alt={foto.alt}
               fill
-              sizes="33vw"
+              sizes="(min-width: 1024px) 25vw, 33vw"
               className="object-cover transition duration-700 group-hover:scale-105"
             />
             <span className="absolute inset-0 bg-black/0 transition duration-500 group-hover:bg-black/15" />

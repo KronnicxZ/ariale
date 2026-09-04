@@ -5,7 +5,7 @@ import { getSettings } from "@/lib/settings";
 import { getCurrentClient } from "@/lib/auth";
 import { clientLogoutAction } from "@/actions/auth";
 import { getWorkingHours } from "@/lib/settings";
-import { DAY_SHORT } from "@/lib/date";
+import { DAY_SHORT, hora12 } from "@/lib/date";
 
 export default async function ReservarLayout({ children }: LayoutProps<"/reservar">) {
   const [settings, client, hours] = await Promise.all([
@@ -15,42 +15,59 @@ export default async function ReservarLayout({ children }: LayoutProps<"/reserva
   ]);
 
   const open = hours.filter((h) => h.enabled);
+  // En 12 h, como en la portada y como lo dice cualquiera aquí.
   const scheduleLabel =
     open.length === 0
       ? "Consúltanos el horario"
-      : `${DAY_SHORT[open[0].dayOfWeek]} a ${DAY_SHORT[open[open.length - 1].dayOfWeek]} · ${open[0].openTime} – ${open[0].closeTime}`;
+      : `${DAY_SHORT[open[0].dayOfWeek]} a ${DAY_SHORT[open[open.length - 1].dayOfWeek]} · ${hora12(open[0].openTime)} – ${hora12(open[0].closeTime)}`;
 
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       {/* En el teléfono esto es toda la pantalla: se siente como la app.
           A partir de lg, se vuelve un panel al lado, no una tarjeta perdida
           en medio de una página vacía. */}
-      <div className="relative hidden shrink-0 overflow-hidden lg:block lg:w-[42%] xl:w-[38%]">
+      {/* Pegado y del alto de la ventana: si crece la lista de servicios, el
+          panel no se estira detrás con el lema fuera de la pantalla. */}
+      <div className="relative hidden shrink-0 overflow-hidden lg:sticky lg:top-0 lg:block lg:h-dvh lg:w-[42%] xl:w-[38%]">
+        {/* El recorte va hacia la derecha: en una columna tan alta y estrecha,
+            el centro de la foto es la cortina negra y el estudio se queda
+            fuera de cuadro. */}
         <Image
           src="/trabajos/estudio-ambiente.jpg"
           alt=""
           fill
           priority
           sizes="42vw"
-          className="object-cover"
+          className="object-cover object-[78%_center]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" />
+        {/* Dos capas: una general que baja el brillo de la foto y otra que
+            oscurece de verdad los dos extremos, que es donde va el texto. */}
+        <div className="absolute inset-0 bg-black/35" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-transparent to-black/95" />
+
         <div className="relative z-10 flex h-full flex-col justify-between p-10 text-white xl:p-14">
-          <Link href="https://www.ariale.space/" className="inline-flex items-center gap-2.5">
+          {/* El logotipo entero, sin meterlo en un círculo: es de 1000×400 y
+              deformarlo a un cuadrado lo dejaba estirado. */}
+          <Link href="https://www.ariale.space/" className="inline-block">
             <Image
               src="/marca/logo-ariale.png"
               alt={settings.businessName}
-              width={44}
-              height={44}
-              className="rounded-full"
+              width={1000}
+              height={400}
+              sizes="320px"
+              className="h-auto w-60 xl:w-72"
             />
-            <span className="font-display text-lg">{settings.businessName}</span>
           </Link>
-          <div>
-            <p className="font-display text-4xl xl:text-5xl">{settings.tagline}</p>
-            <p className="mt-4 text-sm text-white/75">
-              {client ? "Tu espacio" : scheduleLabel}
-            </p>
+
+          <div className="max-w-sm">
+            {/* Sin `text-balance`: aquí el ancho es fijo y estrecho, y lo que
+                hacía era dejar una última línea de una sola palabra. */}
+            <p className="font-display text-3xl leading-[1.15] xl:text-4xl">{settings.tagline}</p>
+            <span className="bg-primary/70 mt-6 block h-px w-14" />
+            <p className="mt-5 text-sm text-white/80">{client ? "Tu espacio" : scheduleLabel}</p>
+            {settings.address ? (
+              <p className="mt-1 text-sm text-white/55">{settings.address}</p>
+            ) : null}
           </div>
         </div>
       </div>

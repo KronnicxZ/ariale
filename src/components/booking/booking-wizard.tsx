@@ -36,8 +36,6 @@ type Props = {
   packages?: PackageBalance[];
   /** Fija la especialista y oculta el selector (zona de la especialista). */
   lockedSpecialistId?: string;
-  /** Permite "cualquier especialista disponible" (zona pública). */
-  allowAnySpecialist?: boolean;
   submitLabel: string;
   pendingLabel?: string;
   onSubmit: (result: BookingResult) => Promise<void> | void;
@@ -69,7 +67,6 @@ export function BookingWizard({
   rate,
   packages = [],
   lockedSpecialistId,
-  allowAnySpecialist = false,
   submitLabel,
   pendingLabel = "Guardando…",
   onSubmit,
@@ -78,8 +75,10 @@ export function BookingWizard({
   initial,
 }: Props) {
   const [serviceIds, setServiceIds] = useState<string[]>(initial?.serviceIds ?? []);
+  // Null a propósito: hasta que no hay servicios elegidos no se sabe a quién
+  // le toca, y `sugerida` lo resuelve en cada render.
   const [specialistId, setSpecialistId] = useState<string | null>(
-    lockedSpecialistId ?? initial?.specialistId ?? (allowAnySpecialist ? null : (specialists[0]?.id ?? null)),
+    lockedSpecialistId ?? initial?.specialistId ?? null,
   );
   const [day, setDay] = useState(initial?.day ?? today);
   const [time, setTime] = useState<string | null>(initial?.time ?? null);
@@ -147,22 +146,43 @@ export function BookingWizard({
     return specialists.filter((s) => serviceIds.every((id) => s.serviceIds.includes(id)));
   }, [specialists, serviceIds, reparto]);
 
+  /**
+   * Quién viene sugerida por defecto. No es "la primera de la lista": es la
+   * que de verdad se dedica a lo que pediste. Alejandra también sabe hacer
+   * cejas, así que si solo eliges depilación las dos son elegibles — y ahí
+   * gana Arianny, porque casi no hace nada de la otra área. Se mide así:
+   * de las que pueden con todo lo elegido, la que menos servicios de la
+   * OTRA área sabe hacer.
+   */
+  const sugerida = useMemo(() => {
+    if (eligibleSpecialists.length <= 1) return eligibleSpecialists[0] ?? null;
+    const areasElegidas = new Set(selected.map((s) => areaDe(s.categoryKind)));
+    const otraArea = services.filter((s) => !areasElegidas.has(areaDe(s.categoryKind)));
+    let mejor = eligibleSpecialists[0];
+    let peso = Number.POSITIVE_INFINITY;
+    for (const e of eligibleSpecialists) {
+      const p = otraArea.filter((s) => e.serviceIds.includes(s.id)).length;
+      if (p < peso) {
+        mejor = e;
+        peso = p;
+      }
+    }
+    return mejor;
+  }, [eligibleSpecialists, selected, services]);
+
   // Si la elegida deja de poder hacer todo lo seleccionado, la corregimos
   // durante el render en vez de guardar un estado que habría que sincronizar.
   const activeSpecialistId = lockedSpecialistId
     ? lockedSpecialistId
     : specialistId && eligibleSpecialists.some((s) => s.id === specialistId)
       ? specialistId
-      : allowAnySpecialist
-        ? null
-        : (eligibleSpecialists[0]?.id ?? null);
+      : (sugerida?.id ?? null);
 
-  // El paso "con quién" existe si hay algo que decidir, o algo que explicar.
+  // El paso "con quién" se muestra siempre que haya equipo y algo elegido:
+  // aunque no haya nada que decidir, la clienta quiere saber quién la
+  // atiende. Solo desaparece si el estudio es de una sola persona.
   const preguntaQuien =
-    !lockedSpecialistId &&
-    specialists.length > 1 &&
-    (reparto !== null ||
-      (allowAnySpecialist ? eligibleSpecialists.length > 0 : eligibleSpecialists.length > 1));
+    !lockedSpecialistId && specialists.length > 1 && selected.length > 0;
 
   const pasos = useMemo<PasoId[]>(
     () => (preguntaQuien ? ["servicio", "quien", "dia", "hora"] : ["servicio", "dia", "hora"]),
@@ -211,9 +231,7 @@ export function BookingWizard({
         ? Boolean(time)
         : true;
   const ready =
-    serviceIds.length > 0 &&
-    Boolean(time) &&
-    (allowAnySpecialist || Boolean(activeSpecialistId) || reparto !== null);
+    serviceIds.length > 0 && Boolean(time) && (Boolean(activeSpecialistId) || reparto !== null);
 
   const handleToggle = (id: string) => {
     setServiceIds((current) =>
@@ -335,34 +353,12 @@ export function BookingWizard({
           <header>
             <h2 className="font-display text-2xl font-semibold">¿Con quién?</h2>
             <p className="text-muted-foreground text-sm">
-              {eligibleSpecialists.length < specialists.length
-                ? "Mostramos solo quienes hacen todo lo que elegiste."
-                : "Elige a quien prefieras, o deja que sea la primera libre."}
+              {eligibleSpecialists.length === 1
+                ? "Esto lo lleva ella."
+                : "Ya viene elegida quien se dedica a esto. Puedes cambiarla."}
             </p>
           </header>
           <div className="grid gap-2 sm:grid-cols-2">
-            {allowAnySpecialist ? (
-              <button
-                type="button"
-                onClick={() => setSpecialistId(null)}
-                className={cn(
-                  "rounded-2xl border px-4 py-3.5 text-left text-sm font-medium transition",
-                  activeSpecialistId === null
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card hover:border-primary/50",
-                )}
-              >
-                La primera disponible
-                <span
-                  className={cn(
-                    "mt-0.5 block text-xs font-normal",
-                    activeSpecialistId === null ? "text-primary-foreground/80" : "text-muted-foreground",
-                  )}
-                >
-                  Más horarios para elegir.
-                </span>
-              </button>
-            ) : null}
             {eligibleSpecialists.map((specialist) => (
               <button
                 key={specialist.id}

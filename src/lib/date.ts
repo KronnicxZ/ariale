@@ -97,6 +97,17 @@ export function fmtRelativeDay(date: Date | string, tz = TZ) {
 }
 
 /** "2h 30min" a partir de minutos */
+/**
+ * "09:00" -> "9:00 am". Adentro todo se guarda en 24 h; a la clienta se le
+ * enseña en 12, que es como se dice la hora aqui.
+ */
+export function hora12(hhmm: string) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const sufijo = h < 12 ? "am" : "pm";
+  const doce = h % 12 === 0 ? 12 : h % 12;
+  return `${doce}:${String(m).padStart(2, "0")} ${sufijo}`;
+}
+
 export function fmtDuration(minutes: number) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

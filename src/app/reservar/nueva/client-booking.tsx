@@ -121,7 +121,6 @@ export function ClientBooking({
         today={today}
         maxDay={maxDay}
         rate={rate}
-        allowAnySpecialist
         submitLabel={autoConfirm ? "Confirmar cita" : "Reservar cita"}
         pendingLabel="Reservando…"
         onSubmit={handleSubmit}

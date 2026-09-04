@@ -62,37 +62,44 @@ class Marca {
       fondo.computeLuminance() > 0.55 ? negro : Colors.white;
 }
 
-/// Dos tipografías y una regla sola.
+/// Dos tipografías, las mismas de la página.
 ///
-/// Montserrat, en extranegrita, para todo lo que titula: el nombre de la
-/// pantalla, la fecha grande, los encabezados de sección. Es ancha y de
-/// trazo firme, así que un título tiene peso aunque sea corto.
+/// Playfair Display para lo que titula. Es una serif de contraste alto: los
+/// trazos finos se le adelgazan mucho, así que aquí solo aparece de 18 en
+/// adelante y nunca pasa de w600 — más negra, a la densidad de un teléfono
+/// se emborrona. Por debajo de 18 el título cae en la sans, que a 13 o 14
+/// puntos sigue leyéndose y la serif no.
 ///
-/// Poppins, ligera, para todo lo demás: texto, apoyos y cifras. Es más
-/// estrecha y redonda, y al ir en peso normal deja respirar al título.
+/// Plus Jakarta Sans para todo lo demás: texto, apoyos y cifras.
 ///
-/// El contraste sale del peso y del ancho, no de mezclar géneros: las dos
-/// son geométricas y se llevan bien.
-double _apretado(double tamano) {
-  if (tamano >= 30) return -1.1;
-  if (tamano >= 24) return -0.8;
-  return -0.3;
-}
+/// Playfair ya viene apretada de fábrica: el interletraje es apenas
+/// negativo y proporcional al tamaño — el mismo -0.008em de la web.
+double _apretado(double tamano) => tamano * -0.008;
 
-/// Títulos y encabezados. Siempre en Montserrat y siempre con peso.
-TextStyle titulo(double tamano, {Color? color, FontWeight? peso}) =>
-    GoogleFonts.montserrat(
+/// Títulos y encabezados.
+TextStyle titulo(double tamano, {Color? color, FontWeight? peso}) {
+  if (tamano < 18) {
+    return GoogleFonts.plusJakartaSans(
       fontSize: tamano,
-      fontWeight: peso ?? (tamano >= 24 ? FontWeight.w800 : FontWeight.w700),
+      fontWeight: peso ?? FontWeight.w700,
       color: color ?? Marca.texto,
-      height: tamano >= 24 ? 1.12 : 1.2,
-      letterSpacing: _apretado(tamano),
+      height: 1.25,
+      letterSpacing: -0.2,
     );
+  }
+  return GoogleFonts.playfairDisplay(
+    fontSize: tamano,
+    fontWeight: peso ?? FontWeight.w600,
+    color: color ?? Marca.texto,
+    height: tamano >= 24 ? 1.12 : 1.22,
+    letterSpacing: _apretado(tamano),
+  );
+}
 
 /// Cifras con espaciado tabular: el dinero se lee de un vistazo y las
 /// columnas de números no bailan al cambiar de valor.
 TextStyle cifra(double tamano, {Color? color, FontWeight peso = FontWeight.w600}) =>
-    GoogleFonts.poppins(
+    GoogleFonts.plusJakartaSans(
       fontSize: tamano,
       fontWeight: peso,
       color: color ?? Marca.texto,
@@ -102,7 +109,7 @@ TextStyle cifra(double tamano, {Color? color, FontWeight peso = FontWeight.w600}
 
 /// Rótulo diminuto en versales para encabezar una cifra o una columna. Es
 /// el escalón entre el título y el texto gris.
-TextStyle micro({Color? color}) => GoogleFonts.poppins(
+TextStyle micro({Color? color}) => GoogleFonts.plusJakartaSans(
       fontSize: 10,
       fontWeight: FontWeight.w600,
       color: color ?? Marca.textoTenue,
@@ -112,7 +119,7 @@ TextStyle micro({Color? color}) => GoogleFonts.poppins(
 /// Rótulo pequeño y gris para lo secundario. Se llama `sutil` y no `apoyo`
 /// porque varios widgets ya tienen un campo con ese nombre.
 TextStyle sutil(double tamano, {Color? color, FontWeight peso = FontWeight.w400}) =>
-    GoogleFonts.poppins(
+    GoogleFonts.plusJakartaSans(
       fontSize: tamano,
       fontWeight: peso,
       color: color ?? Marca.textoSuave,
@@ -147,7 +154,7 @@ ThemeData construirTema() {
     ),
   );
 
-  final texto = GoogleFonts.poppinsTextTheme(base.textTheme).apply(
+  final texto = GoogleFonts.plusJakartaSansTextTheme(base.textTheme).apply(
     bodyColor: Marca.texto,
     displayColor: Marca.texto,
   );
@@ -163,7 +170,7 @@ ThemeData construirTema() {
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.poppins(
+      titleTextStyle: GoogleFonts.plusJakartaSans(
         fontSize: 16.5,
         fontWeight: FontWeight.w600,
         color: Marca.texto,
@@ -186,7 +193,7 @@ ThemeData construirTema() {
         minimumSize: const Size(0, 52),
         elevation: 0,
         overlayColor: Marca.negro,
-        textStyle: GoogleFonts.poppins(
+        textStyle: GoogleFonts.plusJakartaSans(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -203,7 +210,7 @@ ThemeData construirTema() {
         minimumSize: const Size(0, 48),
         side: BorderSide.none,
         overlayColor: Marca.texto,
-        textStyle: GoogleFonts.poppins(
+        textStyle: GoogleFonts.plusJakartaSans(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -214,7 +221,7 @@ ThemeData construirTema() {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: Marca.texto,
-        textStyle: GoogleFonts.poppins(
+        textStyle: GoogleFonts.plusJakartaSans(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,
@@ -237,9 +244,9 @@ ThemeData construirTema() {
         borderRadius: BorderRadius.circular(13),
         borderSide: const BorderSide(color: Marca.dorado, width: 1.6),
       ),
-      labelStyle: GoogleFonts.poppins(color: Marca.textoSuave, fontSize: 14),
-      helperStyle: GoogleFonts.poppins(color: Marca.textoSuave, fontSize: 12),
-      hintStyle: GoogleFonts.poppins(color: Marca.textoTenue, fontSize: 15),
+      labelStyle: GoogleFonts.plusJakartaSans(color: Marca.textoSuave, fontSize: 14),
+      helperStyle: GoogleFonts.plusJakartaSans(color: Marca.textoSuave, fontSize: 12),
+      hintStyle: GoogleFonts.plusJakartaSans(color: Marca.textoTenue, fontSize: 15),
     ),
     // Barra inferior sin pastilla de selección: el icono lleno y el texto
     // en negro bastan para saber dónde estás.
@@ -266,7 +273,7 @@ ThemeData construirTema() {
         ),
       ),
       labelTextStyle: WidgetStateProperty.resolveWith(
-        (states) => GoogleFonts.poppins(
+        (states) => GoogleFonts.plusJakartaSans(
           fontSize: 10.5,
           fontWeight: states.contains(WidgetState.selected)
               ? FontWeight.w600
@@ -295,13 +302,13 @@ ThemeData construirTema() {
       showCheckmark: false,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-      labelStyle: GoogleFonts.poppins(
+      labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 13.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
         color: Marca.textoSuave,
       ),
-      secondaryLabelStyle: GoogleFonts.poppins(
+      secondaryLabelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 13.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
@@ -326,7 +333,7 @@ ThemeData construirTema() {
       focusElevation: 2,
       hoverElevation: 2,
       highlightElevation: 2,
-      extendedTextStyle: GoogleFonts.poppins(
+      extendedTextStyle: GoogleFonts.plusJakartaSans(
         fontSize: 15.5,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.2,
@@ -338,11 +345,12 @@ ThemeData construirTema() {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      titleTextStyle: GoogleFonts.poppins(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
+      // El título del diálogo sí es serif: es la única línea grande que hay.
+      titleTextStyle: GoogleFonts.playfairDisplay(
+        fontSize: 19,
+        fontWeight: FontWeight.w600,
         color: Marca.texto,
-        letterSpacing: -0.4,
+        height: 1.24,
       ),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
@@ -353,7 +361,7 @@ ThemeData construirTema() {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: Marca.negro,
-      contentTextStyle: GoogleFonts.poppins(
+      contentTextStyle: GoogleFonts.plusJakartaSans(
         color: Colors.white,
         fontSize: 14,
         letterSpacing: -0.2,

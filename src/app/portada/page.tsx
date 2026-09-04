@@ -4,7 +4,7 @@ import { CalendarCheck, CalendarPlus, Clock, MapPin, Sparkles, UserCheck } from 
 import { prisma } from "@/lib/db";
 import { getSettings, getWorkingHours } from "@/lib/settings";
 import { waLink } from "@/lib/whatsapp";
-import { DAY_SHORT, fmtDuration } from "@/lib/date";
+import { DAY_SHORT, fmtDuration, hora12 } from "@/lib/date";
 import { formatUsd } from "@/lib/money";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { Reveal } from "./reveal";
@@ -41,26 +41,19 @@ const ESPECIALISTAS_WA = [
 // Intercaladas a propósito: uñas, cejas, pies, para que no parezca un
 // estudio de uñas con una foto de cejas de adorno.
 const GALERIA: Foto[] = [
-  { src: "/trabajos/manicure-rojo-oro.jpg", alt: "Manicura roja con acento dorado" },
+  { src: "/trabajos/manicure-rojo-oro.jpg", alt: "Manicura roja con acento dorado", alta: true },
   { src: "/trabajos/cejas-laminadas.jpg", alt: "Cejas laminadas" },
+  { src: "/trabajos/manicure-azul.jpg", alt: "Manicura azul lavanda" },
   { src: "/trabajos/manicure-blanco-floral.jpg", alt: "Manicura blanca con diseño floral en dorado" },
-  { src: "/trabajos/depilacion-cejas.jpg", alt: "Laminado de cejas, en pleno trabajo" },
+  { src: "/trabajos/depilacion-cejas.jpg", alt: "Laminado de cejas, en pleno trabajo", alta: true },
+  { src: "/trabajos/pedicura.jpg", alt: "Pedicura" },
   { src: "/trabajos/manicure-borgona-lazo.jpg", alt: "Manicura borgoña con lazo y estrella dorada" },
   { src: "/trabajos/cejas-diseno.jpg", alt: "Diseño de cejas" },
-  { src: "/trabajos/manicure-azul.jpg", alt: "Manicura azul lavanda" },
+  { src: "/trabajos/estudio-esmaltes.jpg", alt: "La pared de esmaltes del estudio", alta: true },
   { src: "/trabajos/manicure-corazones.jpg", alt: "Manicura roja con corazones" },
-  { src: "/trabajos/pedicura.jpg", alt: "Pedicura" },
   { src: "/trabajos/manicure-animal-print.jpg", alt: "Manicura animal print" },
-  { src: "/trabajos/manicure-nude-cromado.jpg", alt: "Manicura nude con cromado dorado" },
+  { src: "/trabajos/manicure-nude-cromado.jpg", alt: "Manicura nude con cromado dorado", alta: true },
 ];
-
-/** "09:00" → "9:00 am". El panel guarda 24 h; aquí se lee en 12. */
-function hora12(hhmm: string) {
-  const [h, m] = hhmm.split(":").map(Number);
-  const sufijo = h < 12 ? "am" : "pm";
-  const doce = h % 12 === 0 ? 12 : h % 12;
-  return `${doce}:${String(m).padStart(2, "0")} ${sufijo}`;
-}
 
 /**
  * Agrupa los días seguidos que abren igual: "Lun a Vie" en vez de cinco
@@ -463,6 +456,9 @@ export default async function PortadaPage() {
           <CalendarPlus className="size-4" />
           Agendar
         </Link>
+        {/* Con el nombre recortado y no solo el icono: dos botones verdes
+            iguales no dicen a cuál de las dos le estás escribiendo, y las dos
+            empiezan por A, así que la inicial tampoco bastaba. */}
         {waEspecialistas.map((e) => (
           <a
             key={e.nombre}
@@ -470,9 +466,10 @@ export default async function PortadaPage() {
             target="_blank"
             rel="noreferrer"
             aria-label={`WhatsApp de ${e.nombre}`}
-            className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#25D366] text-white"
+            className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-[#25D366] px-2.5 text-white"
           >
             <WhatsAppIcon className="size-5" />
+            <span className="text-xs font-semibold">{e.nombre.slice(0, 3)}</span>
           </a>
         ))}
       </div>
