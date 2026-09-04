@@ -30,8 +30,8 @@ Turso. Ver [BASE-DE-DATOS.md](BASE-DE-DATOS.md).
 
 Cada una del equipo entra con su cuenta y las dos ven la misma agenda:
 
-- Alejandra (uñas y pies): `alejandra@arialestudio.com` / `alejandra2026`
-- Arianny (depilación): `arianny@arialestudio.com` / `arianny2026`
+- Alejandra (uñas y pies): `alejandra@ariale.space` / `alejandra2026`
+- Arianny (depilación): `arianny@ariale.space` / `arianny2026`
 - Agenda de la especialista: `/agenda/alejandra` con PIN `1234`
 - Zona clienta: `/reservar` con cualquier teléfono del seed, por ejemplo `04241112233`
 

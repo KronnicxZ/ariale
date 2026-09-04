@@ -28,7 +28,7 @@ export function CintaPalabras({ palabras }: { palabras: string[] }) {
 export function CintaFotos({ fotos }: { fotos: { src: string; alt: string }[] }) {
   const pista = [...fotos, ...fotos];
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden py-10 sm:py-14">
       <div className="cinta cinta-lenta flex w-max gap-3 sm:gap-4">
         {pista.map((foto, i) => (
           <div

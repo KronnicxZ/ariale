@@ -143,7 +143,7 @@ async function main() {
   const cuentaAlejandra = await prisma.user.create({
     data: {
       name: "Alejandra",
-      email: "alejandra@arialestudio.com",
+      email: "alejandra@ariale.space",
       phone: "04241354645",
       passwordHash: await bcrypt.hash("alejandra2026", 10),
       role: "OWNER",
@@ -153,7 +153,7 @@ async function main() {
   await prisma.user.create({
     data: {
       name: "Arianny",
-      email: "arianny@arialestudio.com",
+      email: "arianny@ariale.space",
       phone: "04141234567",
       passwordHash: await bcrypt.hash("arianny2026", 10),
       role: "OWNER",
@@ -734,8 +734,8 @@ async function main() {
     citas: await prisma.appointment.count(),
     ventas: await prisma.sale.count(),
   });
-  console.log("\n  Alejandra: alejandra@arialestudio.com / alejandra2026");
-  console.log("  Arianny:   arianny@arialestudio.com / arianny2026");
+  console.log("\n  Alejandra: alejandra@ariale.space / alejandra2026");
+  console.log("  Arianny:   arianny@ariale.space / arianny2026");
   console.log("  Las dos ven la misma agenda.\n");
 }
 

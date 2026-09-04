@@ -38,17 +38,56 @@ const ESPECIALISTAS_WA = [
   { nombre: "Arianny", telefono: "4246678187" },
 ];
 
+// Intercaladas a propósito: uñas, cejas, pies, para que no parezca un
+// estudio de uñas con una foto de cejas de adorno.
 const GALERIA: Foto[] = [
   { src: "/trabajos/manicure-rojo-oro.jpg", alt: "Manicura roja con acento dorado" },
+  { src: "/trabajos/cejas-laminadas.jpg", alt: "Cejas laminadas" },
   { src: "/trabajos/manicure-blanco-floral.jpg", alt: "Manicura blanca con diseño floral en dorado" },
-  { src: "/trabajos/depilacion-cejas.jpg", alt: "Laminado de cejas" },
+  { src: "/trabajos/depilacion-cejas.jpg", alt: "Laminado de cejas, en pleno trabajo" },
   { src: "/trabajos/manicure-borgona-lazo.jpg", alt: "Manicura borgoña con lazo y estrella dorada" },
+  { src: "/trabajos/cejas-diseno.jpg", alt: "Diseño de cejas" },
   { src: "/trabajos/manicure-azul.jpg", alt: "Manicura azul lavanda" },
   { src: "/trabajos/manicure-corazones.jpg", alt: "Manicura roja con corazones" },
   { src: "/trabajos/pedicura.jpg", alt: "Pedicura" },
   { src: "/trabajos/manicure-animal-print.jpg", alt: "Manicura animal print" },
   { src: "/trabajos/manicure-nude-cromado.jpg", alt: "Manicura nude con cromado dorado" },
 ];
+
+/** "09:00" → "9:00 am". El panel guarda 24 h; aquí se lee en 12. */
+function hora12(hhmm: string) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const sufijo = h < 12 ? "am" : "pm";
+  const doce = h % 12 === 0 ? 12 : h % 12;
+  return `${doce}:${String(m).padStart(2, "0")} ${sufijo}`;
+}
+
+/**
+ * Agrupa los días seguidos que abren igual: "Lun a Vie" en vez de cinco
+ * líneas repitiendo el mismo horario.
+ */
+function tramosHorario(dias: { dayOfWeek: number; openTime: string; closeTime: string }[]) {
+  const tramos: { desde: number; hasta: number; abre: string; cierra: string }[] = [];
+  for (const d of dias) {
+    const ultimo = tramos.at(-1);
+    if (
+      ultimo &&
+      ultimo.abre === d.openTime &&
+      ultimo.cierra === d.closeTime &&
+      d.dayOfWeek === ultimo.hasta + 1
+    ) {
+      ultimo.hasta = d.dayOfWeek;
+    } else {
+      tramos.push({
+        desde: d.dayOfWeek,
+        hasta: d.dayOfWeek,
+        abre: d.openTime,
+        cierra: d.closeTime,
+      });
+    }
+  }
+  return tramos;
+}
 
 const RAZONES = [
   {
@@ -200,8 +239,10 @@ export default async function PortadaPage() {
     ...servicios.slice(0, 6).map((s) => s.name),
   ].filter((p, i, todas) => todas.indexOf(p) === i);
 
+  // Sin `overflow-x-hidden` aquí: cortaría el `position: sticky` de la foto
+  // que acompaña a los servicios. Las cintas ya se recortan a sí mismas.
   return (
-    <div className="flex-1 overflow-x-hidden">
+    <div className="flex-1">
       {/* ------------------------------------------------------------------
           Hero: la foto del estudio respirando, la marca y las tres salidas
           ------------------------------------------------------------------ */}
@@ -220,18 +261,20 @@ export default async function PortadaPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
 
         <div className="relative z-10 mx-auto w-full max-w-4xl px-5 py-20 text-center text-white">
+          {/* Su logotipo de verdad, no una versión redibujada. El archivo es
+              de 1000×400, así que a esta altura se ve nítido incluso en
+              pantallas de alta densidad. */}
+          <h1 className="sr-only">{settings.businessName}</h1>
           <Image
-            src="/marca/flor-ariale.svg"
-            alt=""
-            width={96}
-            height={96}
-            className="mx-auto size-16 sm:size-20 lg:size-24"
+            src="/marca/logo-ariale.png"
+            alt={settings.businessName}
+            width={1000}
+            height={400}
             priority
+            sizes="(min-width: 1024px) 420px, (min-width: 640px) 360px, 280px"
+            className="mx-auto h-auto w-70 sm:w-90 lg:w-105"
           />
-          <h1 className="font-display mt-6 text-5xl leading-[1.05] text-balance sm:text-7xl lg:text-8xl">
-            {settings.businessName}
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-balance text-white/75 sm:text-xl">
+          <p className="mx-auto mt-6 max-w-xl text-lg text-balance text-white/75 sm:text-xl">
             {settings.tagline}
           </p>
 
@@ -371,12 +414,17 @@ export default async function PortadaPage() {
                       <Clock className="text-primary mt-0.5 size-5 shrink-0" />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-white">Horario</p>
-                        <ul className="mt-2 space-y-1 text-sm text-white/65">
-                          {abiertos.map((h) => (
-                            <li key={h.dayOfWeek} className="flex justify-between gap-4">
-                              <span>{DAY_SHORT[h.dayOfWeek]}</span>
+                        <ul className="mt-2 space-y-1.5 text-sm text-white/65">
+                          {tramosHorario(abiertos).map((t) => (
+                            <li key={t.desde}>
+                              <span className="text-white/85">
+                                {t.desde === t.hasta
+                                  ? DAY_SHORT[t.desde]
+                                  : `${DAY_SHORT[t.desde]} a ${DAY_SHORT[t.hasta]}`}
+                              </span>
+                              <span className="mx-2 text-white/30">·</span>
                               <span className="font-numeric">
-                                {h.openTime}–{h.closeTime}
+                                {hora12(t.abre)} – {hora12(t.cierra)}
                               </span>
                             </li>
                           ))}

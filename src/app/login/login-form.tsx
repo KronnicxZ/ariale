@@ -31,7 +31,7 @@ export function LoginForm() {
           type="email"
           autoComplete="username"
           inputMode="email"
-          placeholder="tunombre@arialestudio.com"
+          placeholder="tunombre@ariale.space"
           className="h-11"
           required
           autoFocus
