@@ -45,6 +45,13 @@ type Props = {
   closedWeekdays?: number[];
   /** Deja adjuntar el diseño. Solo en la zona de la clienta. */
   permiteDiseno?: boolean;
+  /**
+   * Si la clienta elige especialista. En el panel y en la agenda sí: el
+   * equipo agenda a nombre de quien sea. En la zona pública no, porque el
+   * reparto es fijo —depilación es de Arianny, uñas y pies de Alejandra— y
+   * preguntar por algo que no se decide solo añade un paso.
+   */
+  elegirEspecialista?: boolean;
   rate?: number;
   packages?: PackageBalance[];
   /** Fija la especialista y oculta el selector (zona de la especialista). */
@@ -94,6 +101,7 @@ export function BookingWizard({
   maxDay,
   closedWeekdays,
   permiteDiseno = false,
+  elegirEspecialista = true,
   rate,
   packages = [],
   lockedSpecialistId,
@@ -209,11 +217,13 @@ export function BookingWizard({
       ? specialistId
       : (sugerida?.id ?? null);
 
-  // El paso "con quién" se muestra siempre que haya equipo y algo elegido:
-  // aunque no haya nada que decidir, la clienta quiere saber quién la
-  // atiende. Solo desaparece si el estudio es de una sola persona.
+  // Este paso solo sale cuando hay algo que decidir de verdad: o el equipo
+  // está eligiendo a quién le toca, o la cita mezcla las dos áreas y hay
+  // que decir si viene una vez o dos. Si no, sobra.
   const preguntaQuien =
-    !lockedSpecialistId && specialists.length > 1 && selected.length > 0;
+    !lockedSpecialistId &&
+    selected.length > 0 &&
+    (reparto !== null || (elegirEspecialista && specialists.length > 1));
 
   /**
    * Cuando la cita se parte entre las dos: `false` es lo de siempre —las dos
@@ -428,9 +438,11 @@ export function BookingWizard({
               >
                 {hecho ? <Check className="size-3.5" /> : <span>{i + 1}</span>}
                 <span className="truncate">
-                  {paso.grupo === undefined
-                    ? ETIQUETA[p]
-                    : `${ETIQUETA[p]} · ${reparto?.[paso.grupo]?.specialist.name ?? ""}`}
+                  {paso.grupo !== undefined
+                    ? `${ETIQUETA[p]} · ${reparto?.[paso.grupo]?.specialist.name ?? ""}`
+                    : p === "quien" && reparto
+                      ? "Cómo"
+                      : ETIQUETA[p]}
                 </span>
               </button>
             </li>
@@ -470,9 +482,9 @@ export function BookingWizard({
       {paso.tipo === "quien" && reparto ? (
         <section className="space-y-3">
           <header>
-            <h2 className="font-display text-2xl font-semibold">¿Con quién?</h2>
+            <h2 className="font-display text-2xl font-semibold">¿Una visita o dos?</h2>
             <p className="text-muted-foreground text-sm">
-              Llevas de las dos áreas: van las dos, cada quien lo suyo.
+              Llevas de las dos áreas, así que te atienden las dos.
             </p>
           </header>
           <div className="surface space-y-3 p-4">
@@ -525,7 +537,7 @@ export function BookingWizard({
         </section>
       ) : null}
 
-      {paso.tipo === "quien" && !reparto ? (
+      {paso.tipo === "quien" && !reparto && elegirEspecialista ? (
         <section className="space-y-3">
           <header>
             <h2 className="font-display text-2xl font-semibold">¿Con quién?</h2>

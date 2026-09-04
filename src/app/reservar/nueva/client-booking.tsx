@@ -141,6 +141,7 @@ export function ClientBooking({
         maxDay={maxDay}
         closedWeekdays={closedWeekdays}
         permiteDiseno
+        elegirEspecialista={false}
         rate={rate}
         submitLabel={autoConfirm ? "Confirmar cita" : "Reservar cita"}
         pendingLabel="Reservando…"
