@@ -27,6 +27,12 @@ export type BookingResult = {
   note: string;
   /** Foto o enlace del diseño que quiere la clienta. Vacío si no dejó nada. */
   referenceUrl: string;
+  /**
+   * Cuando cada especialista atiende en su propio día y hora. Si viene, manda
+   * sobre `day`, `time` y `specialistId`, que se rellenan con el primer
+   * grupo solo para que las pantallas viejas sigan teniendo algo que leer.
+   */
+  grupos?: GrupoReserva[];
 };
 
 type Props = {
@@ -53,6 +59,21 @@ type Props = {
 };
 
 type PasoId = "servicio" | "quien" | "dia" | "hora";
+
+/**
+ * Un paso del asistente. `grupo` solo aparece cuando la cita se parte entre
+ * las dos y la clienta pidió que cada una la atienda por su lado: entonces
+ * hay un "día" y una "hora" por cada especialista.
+ */
+type Paso = { tipo: PasoId; grupo?: number };
+
+/** Lo que la clienta reserva con una especialista: sus servicios, su hora. */
+export type GrupoReserva = {
+  specialistId: string;
+  serviceIds: string[];
+  day: string;
+  time: string;
+};
 
 const ETIQUETA: Record<PasoId, string> = {
   servicio: "Servicio",
@@ -194,10 +215,40 @@ export function BookingWizard({
   const preguntaQuien =
     !lockedSpecialistId && specialists.length > 1 && selected.length > 0;
 
-  const pasos = useMemo<PasoId[]>(
-    () => (preguntaQuien ? ["servicio", "quien", "dia", "hora"] : ["servicio", "dia", "hora"]),
-    [preguntaQuien],
+  /**
+   * Cuando la cita se parte entre las dos: `false` es lo de siempre —las dos
+   * a la misma hora, que es lo cómodo cuando se puede— y `true` es cada una
+   * en su día y a su hora, para quien prefiere venir dos veces.
+   */
+  const [porSeparado, setPorSeparado] = useState(false);
+  const separadas = Boolean(reparto) && porSeparado;
+
+  /**
+   * El día y la hora de cada especialista cuando van por separado. Va por id
+   * y no por posición en el reparto: si la clienta añade o quita un servicio,
+   * el reparto se recalcula y una lista posicional se desalinearía sola.
+   * Lo que sobra aquí simplemente no se lee.
+   */
+  const [porEspecialista, setPorEspecialista] = useState<
+    Record<string, { day: string; time: string | null }>
+  >({});
+  const agenda = (reparto ?? []).map(
+    (g) => porEspecialista[g.specialist.id] ?? { day: today, time: null },
   );
+
+  const pasos = useMemo<Paso[]>(() => {
+    const inicio: Paso[] = preguntaQuien
+      ? [{ tipo: "servicio" }, { tipo: "quien" }]
+      : [{ tipo: "servicio" }];
+    if (!separadas) return [...inicio, { tipo: "dia" }, { tipo: "hora" }];
+    return [
+      ...inicio,
+      ...(reparto ?? []).flatMap((_, i) => [
+        { tipo: "dia" as const, grupo: i },
+        { tipo: "hora" as const, grupo: i },
+      ]),
+    ];
+  }, [preguntaQuien, separadas, reparto]);
 
   const [pasoIndex, setPasoIndex] = useState(() =>
     initial?.time ? Number.MAX_SAFE_INTEGER : 0,
@@ -206,25 +257,75 @@ export function BookingWizard({
   const paso = pasos[indice];
   const esUltimo = indice === pasos.length - 1;
 
+  // El grupo que se está agendando ahora mismo, si van por separado.
+  const grupoActivo = paso.grupo;
+  const repartoActivo = grupoActivo === undefined ? null : (reparto?.[grupoActivo] ?? null);
+  const agendaActiva = grupoActivo === undefined ? null : (agenda[grupoActivo] ?? null);
+
+  /** El día y la hora que está tocando la clienta en este paso. */
+  const diaActual = agendaActiva ? agendaActiva.day : day;
+  const horaActual = agendaActiva ? agendaActiva.time : time;
+  const ponerDia = (nuevo: string) => {
+    if (!repartoActivo) return setDay(nuevo);
+    const id = repartoActivo.specialist.id;
+    setPorEspecialista((prev) => ({ ...prev, [id]: { day: nuevo, time: null } }));
+  };
+  const ponerHora = (nueva: string | null) => {
+    if (!repartoActivo) return setTime(nueva);
+    const id = repartoActivo.specialist.id;
+    setPorEspecialista((prev) => ({
+      ...prev,
+      [id]: { day: prev[id]?.day ?? today, time: nueva },
+    }));
+  };
+
+  // Los servicios y la duración del paso: los del grupo si van por separado,
+  // los de toda la cita si van juntas.
+  const serviciosDelPaso = repartoActivo
+    ? repartoActivo.services.map((x) => x.id)
+    : serviceIds;
+  const minutosDelPaso = repartoActivo
+    ? repartoActivo.services.reduce((suma, x) => suma + x.durationMin, 0)
+    : totalMinutes;
+
   // Cada vez que cambia lo que afecta la duración o el día, repreguntamos los
   // huecos al servidor. `requestId` descarta respuestas que llegan tarde.
+  /** Vacío cuando el paso no es de un grupo: sirve para distinguir los casos. */
+  const idEspecialistaDelPaso = repartoActivo ? repartoActivo.specialist.id : null;
+  const especialistaDelPaso = idEspecialistaDelPaso ?? activeSpecialistId;
+  const clavePaso = serviciosDelPaso.join(",");
+
   useEffect(() => {
-    if (serviceIds.length === 0) return;
+    if (serviciosDelPaso.length === 0) return;
     const id = ++requestId.current;
     startLoadingSlots(async () => {
       const result = await fetchSlotsAction({
-        day,
-        serviceIds,
-        specialistId: activeSpecialistId,
+        day: diaActual,
+        serviceIds: serviciosDelPaso,
+        specialistId: especialistaDelPaso,
       });
       if (id !== requestId.current) return;
       setSlots(result.slots);
       setSlotReason(result.reason);
-      setTime((current) =>
-        current && result.slots.some((s) => s.time === current) ? current : null,
-      );
+      // Si la hora elegida ya no está libre, se suelta en vez de reservar a
+      // ciegas un hueco que se acaba de ocupar.
+      const sigueLibre = (h: string | null) =>
+        h && result.slots.some((x) => x.time === h) ? h : null;
+      if (!idEspecialistaDelPaso) {
+        setTime(sigueLibre);
+      } else {
+        setPorEspecialista((prev) => {
+          const actual = prev[idEspecialistaDelPaso];
+          if (!actual?.time) return prev;
+          const libre = sigueLibre(actual.time);
+          if (libre === actual.time) return prev;
+          return { ...prev, [idEspecialistaDelPaso]: { ...actual, time: libre } };
+        });
+      }
     });
-  }, [day, serviceIds, activeSpecialistId]);
+    // `clavePaso` en vez del array: cambia de identidad en cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diaActual, clavePaso, especialistaDelPaso, idEspecialistaDelPaso]);
 
   // Al cambiar de paso, arriba del todo: en el teléfono el paso anterior
   // pudo dejar la página a media altura.
@@ -235,13 +336,16 @@ export function BookingWizard({
   const visibleSlots = serviceIds.length === 0 ? [] : slots;
 
   const puedeSeguir =
-    paso === "servicio"
+    paso.tipo === "servicio"
       ? serviceIds.length > 0
-      : paso === "hora"
-        ? Boolean(time)
+      : paso.tipo === "hora"
+        ? Boolean(horaActual)
         : true;
-  const ready =
-    serviceIds.length > 0 && Boolean(time) && (Boolean(activeSpecialistId) || reparto !== null);
+  const ready = separadas
+    ? agenda.length === (reparto?.length ?? 0) && agenda.every((g) => Boolean(g.time))
+    : serviceIds.length > 0 &&
+      Boolean(time) &&
+      (Boolean(activeSpecialistId) || reparto !== null);
 
   const handleToggle = (id: string) => {
     setServiceIds((current) =>
@@ -253,7 +357,30 @@ export function BookingWizard({
   const volver = () => setPasoIndex(Math.max(indice - 1, 0));
 
   const handleSubmit = async () => {
-    if (!ready || !time) return;
+    if (!ready) return;
+
+    if (separadas && reparto) {
+      const grupos: GrupoReserva[] = reparto.map((g, i) => ({
+        specialistId: g.specialist.id,
+        serviceIds: g.services.map((x) => x.id),
+        day: agenda[i].day,
+        time: agenda[i].time!,
+      }));
+      // `day`/`time`/`specialistId` llevan los del primer grupo: no se usan
+      // cuando hay `grupos`, pero así el resultado nunca queda a medias.
+      await onSubmit({
+        serviceIds,
+        specialistId: grupos[0].specialistId,
+        day: grupos[0].day,
+        time: grupos[0].time,
+        note: note.trim(),
+        referenceUrl,
+        grupos,
+      });
+      return;
+    }
+
+    if (!time) return;
     await onSubmit({
       serviceIds,
       specialistId: activeSpecialistId,
@@ -272,7 +399,7 @@ export function BookingWizard({
       ? `${pasos.length} pasos: servicio, día y hora`
       : time
         ? `${fmtDuration(totalMinutes)} · ${prettyTime(time)}`
-        : paso === "hora"
+        : paso.tipo === "hora"
           ? `${fmtDuration(totalMinutes)} · elige la hora`
           : fmtDuration(totalMinutes);
 
@@ -280,11 +407,12 @@ export function BookingWizard({
     <div className="pb-40" ref={topRef}>
       {/* Indicador: los pasos ya hechos se pueden tocar para volver. */}
       <ol className="mb-6 flex gap-2">
-        {pasos.map((p, i) => {
+        {pasos.map((paso, i) => {
+          const p = paso.tipo;
           const hecho = i < indice;
           const actual = i === indice;
           return (
-            <li key={p} className="min-w-0 flex-1">
+            <li key={`${p}-${paso.grupo ?? ""}`} className="min-w-0 flex-1">
               <button
                 type="button"
                 onClick={() => hecho && setPasoIndex(i)}
@@ -299,7 +427,11 @@ export function BookingWizard({
                 )}
               >
                 {hecho ? <Check className="size-3.5" /> : <span>{i + 1}</span>}
-                <span className="truncate">{ETIQUETA[p]}</span>
+                <span className="truncate">
+                  {paso.grupo === undefined
+                    ? ETIQUETA[p]
+                    : `${ETIQUETA[p]} · ${reparto?.[paso.grupo]?.specialist.name ?? ""}`}
+                </span>
               </button>
             </li>
           );
@@ -317,7 +449,7 @@ export function BookingWizard({
         </button>
       ) : null}
 
-      {paso === "servicio" ? (
+      {paso.tipo === "servicio" ? (
         <section className="space-y-3">
           <header>
             <h2 className="font-display text-2xl font-semibold">Elige el servicio</h2>
@@ -335,7 +467,7 @@ export function BookingWizard({
         </section>
       ) : null}
 
-      {paso === "quien" && reparto ? (
+      {paso.tipo === "quien" && reparto ? (
         <section className="space-y-3">
           <header>
             <h2 className="font-display text-2xl font-semibold">¿Con quién?</h2>
@@ -358,14 +490,42 @@ export function BookingWizard({
                 </p>
               </div>
             ))}
-            <p className="text-muted-foreground border-border/70 border-t pt-3 text-xs">
-              Quedan dos citas a la misma hora, una con cada una.
-            </p>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(
+              [
+                [false, "A la misma hora", "Vienes una vez y te atienden las dos a la vez."],
+                [true, "Cada una por su lado", "Eliges día y hora para cada una. Vienes dos veces."],
+              ] as const
+            ).map(([valor, titulo, detalle]) => (
+              <button
+                key={String(valor)}
+                type="button"
+                onClick={() => setPorSeparado(valor)}
+                className={cn(
+                  "rounded-2xl border px-4 py-3.5 text-left transition",
+                  porSeparado === valor
+                    ? "border-primary bg-primary/10"
+                    : "border-border bg-card hover:border-primary/50",
+                )}
+              >
+                <span
+                  className={cn(
+                    "block text-sm font-semibold",
+                    porSeparado === valor && "text-primary",
+                  )}
+                >
+                  {titulo}
+                </span>
+                <span className="text-muted-foreground mt-0.5 block text-xs">{detalle}</span>
+              </button>
+            ))}
           </div>
         </section>
       ) : null}
 
-      {paso === "quien" && !reparto ? (
+      {paso.tipo === "quien" && !reparto ? (
         <section className="space-y-3">
           <header>
             <h2 className="font-display text-2xl font-semibold">¿Con quién?</h2>
@@ -399,17 +559,21 @@ export function BookingWizard({
         </section>
       ) : null}
 
-      {paso === "dia" ? (
+      {paso.tipo === "dia" ? (
         <section className="space-y-3">
           <header>
-            <h2 className="font-display text-2xl font-semibold">Elige el día</h2>
+            <h2 className="font-display text-2xl font-semibold">
+              {repartoActivo ? `El día con ${repartoActivo.specialist.name}` : "Elige el día"}
+            </h2>
             <p className="text-muted-foreground text-sm">
-              La cita dura {fmtDuration(totalMinutes)}.
+              {repartoActivo
+                ? `${repartoActivo.services.map((x) => x.name).join(" + ")} · ${fmtDuration(minutosDelPaso)}`
+                : `La cita dura ${fmtDuration(totalMinutes)}.`}
             </p>
           </header>
           <DayPicker
-            value={day}
-            onChange={setDay}
+            value={diaActual}
+            onChange={ponerDia}
             startDay={today}
             minDay={today}
             maxDay={maxDay}
@@ -418,16 +582,18 @@ export function BookingWizard({
         </section>
       ) : null}
 
-      {paso === "hora" ? (
+      {paso.tipo === "hora" ? (
         <>
           <section className="space-y-3">
             <header>
-              <h2 className="font-display text-2xl font-semibold">Elige la hora</h2>
+              <h2 className="font-display text-2xl font-semibold">
+                {repartoActivo ? `La hora con ${repartoActivo.specialist.name}` : "Elige la hora"}
+              </h2>
               <p className="text-muted-foreground text-sm">
-                {time ? (
+                {horaActual ? (
                   <>
-                    Te esperamos a las <strong>{prettyTime(time)}</strong> · termina ~
-                    {fmtDuration(totalMinutes)} después.
+                    Te esperamos a las <strong>{prettyTime(horaActual)}</strong> · termina ~
+                    {fmtDuration(minutosDelPaso)} después.
                   </>
                 ) : (
                   "Solo se muestran las horas donde de verdad hay sitio."
@@ -436,14 +602,14 @@ export function BookingWizard({
             </header>
             <SlotPicker
               slots={visibleSlots}
-              value={time}
-              onChange={setTime}
+              value={horaActual}
+              onChange={ponerHora}
               loading={loadingSlots}
               emptyMessage={slotReason}
             />
           </section>
 
-          <section className="mt-6">
+          <section className={cn("mt-6", !esUltimo && "hidden")}>
             <button
               type="button"
               onClick={() => setNoteOpen((open) => !open)}

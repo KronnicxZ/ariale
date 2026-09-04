@@ -18,6 +18,12 @@ export type BookingInput = {
   note: string;
   /** Foto o enlace del diseño que dejó la clienta. */
   referenceUrl?: string;
+  /**
+   * Una reserva con varias citas, cada una con su especialista, su día y su
+   * hora: "que Arianny me depile el martes y Alejandra me haga las uñas el
+   * jueves". Si viene, manda sobre `day`, `time` y `specialistId`.
+   */
+  grupos?: { specialistId: string; serviceIds: string[]; day: string; time: string }[];
 };
 
 export type BookingOutcome =
@@ -30,6 +36,16 @@ export type BookingOutcome =
       servicesLabel: string;
       totalCents: number;
       specialistName: string;
+      /**
+       * Una línea por cita cuando la reserva dejó más de una a distinta hora.
+       * Si no, no viene: una sola cita se cuenta con los campos de arriba.
+       */
+      citas?: {
+        whenLabel: string;
+        timeLabel: string;
+        specialistName: string;
+        servicesLabel: string;
+      }[];
     }
   | { ok: false; error: string };
 
@@ -82,6 +98,68 @@ async function book(
 ): Promise<BookingOutcome> {
   try {
     const settings = await getSettings();
+
+    // Cada una en su día y a su hora: la clienta lo pidió así en el paso de
+    // "con quién". No pasa por el reparto automático porque ya viene dicho
+    // quién hace qué; aquí solo se guarda lo que eligió.
+    if (input.grupos && input.grupos.length > 0) {
+      const citas = [];
+      for (const grupo of input.grupos) {
+        citas.push(
+          await createAppointment({
+            clientId,
+            specialistId: grupo.specialistId,
+            serviceIds: grupo.serviceIds,
+            day: grupo.day,
+            time: grupo.time,
+            note: input.note,
+            referenceUrl: input.referenceUrl,
+            source,
+            // Un solo aviso para toda la reserva, más abajo.
+            silenciar: true,
+          }),
+        );
+      }
+
+      // Se cuentan en el orden en que se atienden, no en el que se eligieron.
+      citas.sort((a, b) => a.startAt.getTime() - b.startAt.getTime());
+      const [primera] = citas;
+      const detalle = citas.map((c) => ({
+        whenLabel: fmtDayLong(c.startAt, settings.timezone),
+        timeLabel: fmtTime(c.startAt, settings.timezone),
+        specialistName: c.specialist.name,
+        servicesLabel: c.services.map((s) => s.service.name).join(" + "),
+      }));
+
+      if (source === "CLIENT") {
+        avisarNuevaCita({
+          appointmentId: primera.id,
+          clientName: primera.client.name,
+          services: detalle
+            .map((d) => `${d.servicesLabel} (${d.specialistName}, ${d.whenLabel} ${d.timeLabel})`)
+            .join(" · "),
+          day: fmtDayShort(primera.startAt, settings.timezone),
+          time: fmtTime(primera.startAt, settings.timezone),
+        }).catch((error) => {
+          console.error("[push] no se pudo avisar la nueva cita", error);
+        });
+      }
+
+      return {
+        ok: true,
+        appointmentId: primera.id,
+        status: primera.status,
+        whenLabel: detalle[0].whenLabel,
+        timeLabel: detalle[0].timeLabel,
+        servicesLabel: detalle.map((d) => d.servicesLabel).join(" + "),
+        totalCents: citas.reduce(
+          (suma, c) => suma + c.services.reduce((s, x) => s + x.priceCents, 0),
+          0,
+        ),
+        specialistName: citas.map((c) => c.specialist.name).join(" y "),
+        citas: detalle,
+      };
+    }
 
     // Servicios de dos áreas y nadie fija: una cita por especialista, a la
     // misma hora — el mismo criterio que usa la app del teléfono.

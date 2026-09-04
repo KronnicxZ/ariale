@@ -70,20 +70,37 @@ export function ClientBooking({
         </p>
 
         <dl className="bg-muted/60 mt-6 w-full max-w-sm space-y-2 rounded-2xl p-4 text-left text-sm">
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Cuándo</dt>
-            <dd className="text-right font-medium capitalize">
-              {done.whenLabel} · {done.timeLabel}
-            </dd>
-          </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Servicio</dt>
-            <dd className="text-right font-medium">{done.servicesLabel}</dd>
-          </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Con</dt>
-            <dd className="text-right font-medium">{done.specialistName}</dd>
-          </div>
+          {/* Con varias citas a distinta hora, una lista no sirve: cada una
+              se cuenta entera, porque son dos visitas distintas. */}
+          {done.citas && done.citas.length > 1 ? (
+            done.citas.map((cita, i) => (
+              <div key={i} className={i > 0 ? "border-t pt-2" : undefined}>
+                <p className="font-medium capitalize">
+                  {cita.whenLabel} · {cita.timeLabel}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {cita.servicesLabel} · con {cita.specialistName}
+                </p>
+              </div>
+            ))
+          ) : (
+            <>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground">Cuándo</dt>
+                <dd className="text-right font-medium capitalize">
+                  {done.whenLabel} · {done.timeLabel}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground">Servicio</dt>
+                <dd className="text-right font-medium">{done.servicesLabel}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground">Con</dt>
+                <dd className="text-right font-medium">{done.specialistName}</dd>
+              </div>
+            </>
+          )}
           <div className="flex justify-between gap-4 border-t pt-2">
             <dt className="text-muted-foreground">Total</dt>
             <dd className="text-right font-semibold">
