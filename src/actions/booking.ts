@@ -16,6 +16,8 @@ export type BookingInput = {
   day: string;
   time: string;
   note: string;
+  /** Foto o enlace del diseño que dejó la clienta. */
+  referenceUrl?: string;
 };
 
 export type BookingOutcome =
@@ -100,6 +102,7 @@ async function book(
             day: input.day,
             time: input.time,
             note: input.note,
+            referenceUrl: input.referenceUrl,
             source,
             // Una reserva, un aviso: se manda abajo con los servicios de
             // las dos citas juntos.
@@ -147,6 +150,7 @@ async function book(
       day: input.day,
       time: input.time,
       note: input.note,
+      referenceUrl: input.referenceUrl,
       source,
     });
 

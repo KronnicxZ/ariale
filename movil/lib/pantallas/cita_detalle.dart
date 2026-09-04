@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../iconos.dart';
 
@@ -302,6 +303,13 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                             ),
                           ),
                         ],
+                        // El diseño que trajo la clienta. Se abre en el
+                        // navegador al tocarlo: para copiar unas uñas hace
+                        // falta verlas de cerca, no en una miniatura.
+                        if (cita.disenoUrl != null && cita.disenoUrl!.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          _Diseno(url: cita.disenoUrl!),
+                        ],
                         if (d.alergias != null && d.alergias!.isNotEmpty) ...[
                           const SizedBox(height: 10),
                           Container(
@@ -492,6 +500,64 @@ class _Accion extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// El diseño que la clienta quiere, tal cual lo dejó al agendar.
+///
+/// La miniatura sirve para reconocerlo de un vistazo; el trabajo de verdad
+/// se mira en grande, así que al tocarlo se abre en el navegador. Si la
+/// imagen no carga —un enlace que caducó, una página que no deja verla de
+/// fuera— igual queda el botón para abrirla.
+class _Diseno extends StatelessWidget {
+  const _Diseno({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Marca.fondo,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(9),
+              child: Image.network(
+                url,
+                width: 62,
+                height: 62,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => Container(
+                  width: 62,
+                  height: 62,
+                  color: Marca.tarjeta,
+                  child: const Icon(Ico.nota, size: 20, color: Marca.textoTenue),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('El diseño que quiere', style: titulo(15)),
+                  const SizedBox(height: 2),
+                  Text('Lo dejó al agendar · toca para verlo grande', style: sutil(12)),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

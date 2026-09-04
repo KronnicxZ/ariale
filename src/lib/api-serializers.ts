@@ -15,6 +15,8 @@ type AppointmentLike = {
   status: string;
   source?: string;
   note: string | null;
+  /** Solo lo traen las consultas de detalle; las listas no lo piden. */
+  referenceUrl?: string | null;
   client: { id: string; name: string; phone: string };
   specialist: { id: string; name: string; color: string };
   services: { priceCents: number; durationMin: number; service: { name: string } }[];
@@ -32,6 +34,7 @@ export function serializeAppointment(appointment: AppointmentLike) {
     estado: appointment.status,
     origen: appointment.source ?? "ADMIN",
     nota: appointment.note,
+    disenoUrl: appointment.referenceUrl ?? null,
     clienta: {
       id: appointment.client.id,
       nombre: appointment.client.name,

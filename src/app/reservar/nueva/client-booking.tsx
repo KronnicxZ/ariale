@@ -123,6 +123,7 @@ export function ClientBooking({
         today={today}
         maxDay={maxDay}
         closedWeekdays={closedWeekdays}
+        permiteDiseno
         rate={rate}
         submitLabel={autoConfirm ? "Confirmar cita" : "Reservar cita"}
         pendingLabel="Reservando…"

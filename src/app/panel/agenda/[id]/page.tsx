@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -122,6 +123,34 @@ export default async function AppointmentPage(props: PageProps<"/panel/agenda/[i
             <StickyNote className="text-muted-foreground mt-0.5 size-4 shrink-0" />
             {appointment.note}
           </p>
+        ) : null}
+
+        {/* El diseño que trajo la clienta. Se abre en grande al tocarlo,
+            porque para copiar unas uñas hace falta verlas de cerca. */}
+        {appointment.referenceUrl ? (
+          <a
+            href={appointment.referenceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="bg-muted/60 hover:bg-muted flex items-center gap-3 rounded-xl p-2.5 transition"
+          >
+            <span className="bg-background relative size-16 shrink-0 overflow-hidden rounded-lg">
+              {/* `unoptimized`: el enlace puede venir de cualquier sitio. */}
+              <Image
+                src={appointment.referenceUrl}
+                alt="Diseño que quiere la clienta"
+                fill
+                unoptimized
+                className="object-cover"
+              />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-medium">El diseño que quiere</span>
+              <span className="text-muted-foreground block text-xs">
+                Lo dejó al agendar · toca para verlo grande
+              </span>
+            </span>
+          </a>
         ) : null}
 
         {appointment.client.allergies ? (

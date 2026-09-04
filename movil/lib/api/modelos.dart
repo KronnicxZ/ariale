@@ -20,6 +20,7 @@ class Cita {
     required this.totalCentavos,
     required this.duracionMin,
     this.nota,
+    this.disenoUrl,
     this.ventaId,
   });
 
@@ -38,6 +39,9 @@ class Cita {
   final int totalCentavos;
   final int duracionMin;
   final String? nota;
+
+  /// Foto o enlace del diseño que la clienta dejó al agendar.
+  final String? disenoUrl;
   final String? ventaId;
 
   bool get atendida => estado == 'ATTENDED';
@@ -53,6 +57,7 @@ class Cita {
         estado: j['estado'] as String,
         origen: j['origen'] as String? ?? 'ADMIN',
         nota: j['nota'] as String?,
+        disenoUrl: j['disenoUrl'] as String?,
         clientaId: (j['clienta'] as Map)['id'] as String,
         clientaNombre: (j['clienta'] as Map)['nombre'] as String,
         clientaTelefono: (j['clienta'] as Map)['telefono'] as String,

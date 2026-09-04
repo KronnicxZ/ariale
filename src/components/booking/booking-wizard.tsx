@@ -17,6 +17,7 @@ import { fetchSlotsAction } from "@/actions/appointments";
 import { formatBs, formatUsd } from "@/lib/money";
 import { fmtDuration } from "@/lib/date";
 import { cn } from "@/lib/utils";
+import { CampoDiseno } from "@/components/booking/campo-diseno";
 
 export type BookingResult = {
   serviceIds: string[];
@@ -24,6 +25,8 @@ export type BookingResult = {
   day: string;
   time: string;
   note: string;
+  /** Foto o enlace del diseño que quiere la clienta. Vacío si no dejó nada. */
+  referenceUrl: string;
 };
 
 type Props = {
@@ -34,6 +37,8 @@ type Props = {
   maxDay?: string;
   /** Días de la semana en que el estudio no abre (0 = domingo). */
   closedWeekdays?: number[];
+  /** Deja adjuntar el diseño. Solo en la zona de la clienta. */
+  permiteDiseno?: boolean;
   rate?: number;
   packages?: PackageBalance[];
   /** Fija la especialista y oculta el selector (zona de la especialista). */
@@ -67,6 +72,7 @@ export function BookingWizard({
   today,
   maxDay,
   closedWeekdays,
+  permiteDiseno = false,
   rate,
   packages = [],
   lockedSpecialistId,
@@ -87,6 +93,7 @@ export function BookingWizard({
   const [time, setTime] = useState<string | null>(initial?.time ?? null);
   const [note, setNote] = useState(initial?.note ?? "");
   const [noteOpen, setNoteOpen] = useState(Boolean(initial?.note));
+  const [referenceUrl, setReferenceUrl] = useState("");
 
   const [slots, setSlots] = useState<SlotOption[]>([]);
   const [slotReason, setSlotReason] = useState<string | undefined>();
@@ -247,7 +254,14 @@ export function BookingWizard({
 
   const handleSubmit = async () => {
     if (!ready || !time) return;
-    await onSubmit({ serviceIds, specialistId: activeSpecialistId, day, time, note: note.trim() });
+    await onSubmit({
+      serviceIds,
+      specialistId: activeSpecialistId,
+      day,
+      time,
+      note: note.trim(),
+      referenceUrl,
+    });
   };
 
   // Lo que se ve en la barra de abajo según el paso.
@@ -436,9 +450,11 @@ export function BookingWizard({
               className="surface border-border flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
             >
               <span>
-                <span className="block text-sm font-medium">¿Quieres dejar una nota?</span>
+                <span className="block text-sm font-medium">
+                  ¿Quieres dejar una nota o un diseño?
+                </span>
                 <span className="text-muted-foreground block text-xs">
-                  Opcional · diseño, llegada tarde, algo que debamos saber
+                  Opcional · la foto de lo que quieres, o algo que debamos saber
                 </span>
               </span>
               <ChevronDown
@@ -446,14 +462,24 @@ export function BookingWizard({
               />
             </button>
             {noteOpen ? (
-              <Textarea
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                placeholder="Ej.: quiero francesa con dorado"
-                rows={3}
-                maxLength={400}
-                className="mt-2"
-              />
+              <div className="mt-2 space-y-4">
+                <Textarea
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  placeholder="Ej.: quiero francesa con dorado"
+                  rows={3}
+                  maxLength={400}
+                />
+                {/* El diseño solo se ofrece si permiten subir cosas: en el
+                    panel y en la agenda de la especialista la cita la escribe
+                    el equipo, que ya sabe lo que va. */}
+                {permiteDiseno ? (
+                  <div>
+                    <p className="mb-2 text-sm font-medium">¿Tienes un diseño en mente?</p>
+                    <CampoDiseno value={referenceUrl} onChange={setReferenceUrl} />
+                  </div>
+                ) : null}
+              </div>
             ) : null}
           </section>
         </>

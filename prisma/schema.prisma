@@ -316,6 +316,9 @@ model Appointment {
   status         AppointmentStatus @default(PENDING)
   source         BookingSource     @default(ADMIN)
   note           String?
+  /// Foto o enlace de referencia que dejó la clienta al agendar: el diseño
+  /// que quiere. Puede ser una imagen subida por ella o un enlace suyo.
+  referenceUrl   String?
   cancelReason   String?
   reminderSentAt DateTime?
   createdAt      DateTime          @default(now())

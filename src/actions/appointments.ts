@@ -31,6 +31,8 @@ export async function createAppointment(input: {
   day: string;
   time: string;
   note?: string | null;
+  /** El diseño que quiere la clienta: foto subida o enlace suyo. */
+  referenceUrl?: string | null;
   source: BookingSource;
   status?: AppointmentStatus;
   /**
@@ -71,6 +73,7 @@ export async function createAppointment(input: {
       startAt,
       endAt,
       note: input.note || null,
+      referenceUrl: input.referenceUrl || null,
       source: input.source,
       status:
         input.status ??
