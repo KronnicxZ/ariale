@@ -6,6 +6,7 @@ import '../iconos.dart';
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
+import '../fotos_de_clientas.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
@@ -172,21 +173,32 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                         const Divider(height: 26),
                         Row(
                           children: [
-                            CircleAvatar(
-                              backgroundColor:
-                                  Marca.desdeHex(cita.especialistaColor),
-                              radius: 20,
-                              child: Text(
-                                iniciales(cita.clientaNombre),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Marca.contrasteSobre(
+                            // Con foto se ve la cara; sin ella, las
+                            // iniciales sobre el color de la especialista,
+                            // que dice de un vistazo con quién es la cita.
+                            if (cita.clientaFoto != null &&
+                                cita.clientaFoto!.isNotEmpty)
+                              CaraDeClienta(
+                                nombre: cita.clientaNombre,
+                                foto: cita.clientaFoto,
+                                tamano: 40,
+                              )
+                            else
+                              CircleAvatar(
+                                backgroundColor:
                                     Marca.desdeHex(cita.especialistaColor),
+                                radius: 20,
+                                child: Text(
+                                  iniciales(cita.clientaNombre),
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Marca.contrasteSobre(
+                                      Marca.desdeHex(cita.especialistaColor),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(

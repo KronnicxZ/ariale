@@ -1,8 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
 import '../api/cliente.dart';
 import '../formato.dart';
+import '../fotos_de_clientas.dart';
 import '../iconos.dart';
 import '../sesion.dart';
 import '../tema.dart';
@@ -26,9 +29,14 @@ class PantallaImportarContactos extends StatefulWidget {
 enum _Estado { pidiendoPermiso, sinPermiso, cargando, listo, error, importando }
 
 class _ContactoConTelefono {
-  _ContactoConTelefono({required this.nombre, required this.telefono});
+  _ContactoConTelefono({required this.nombre, required this.telefono, this.foto});
   final String nombre;
   final String telefono;
+
+  /// La miniatura de la ficha del contacto, si la tiene. No es la de
+  /// WhatsApp —esa no la da nadie— pero en Android suele ser la misma,
+  /// porque WhatsApp la sincroniza en la agenda.
+  final Uint8List? foto;
 }
 
 class _PantallaImportarContactosState extends State<PantallaImportarContactos> {
@@ -84,7 +92,10 @@ class _PantallaImportarContactosState extends State<PantallaImportarContactos> {
     setState(() => _estado = _Estado.cargando);
     try {
       final crudos = await FlutterContacts.getAll(
-        properties: const {ContactProperty.phone},
+        // La miniatura y no la foto grande: pesa unos kilobytes y para un
+        // círculo de cuarenta píxeles sobra. La grande haría que leer una
+        // agenda de trescientos contactos tardara una eternidad.
+        properties: const {ContactProperty.phone, ContactProperty.photoThumbnail},
       );
 
       // Un contacto puede traer dos o tres números; nos quedamos con el
@@ -98,7 +109,11 @@ class _PantallaImportarContactosState extends State<PantallaImportarContactos> {
         final telefono = soloDigitos(c.phones.first.number);
         if (telefono.length < 10) continue;
         if (!vistos.add(telefono)) continue;
-        limpios.add(_ContactoConTelefono(nombre: nombre, telefono: telefono));
+        limpios.add(_ContactoConTelefono(
+          nombre: nombre,
+          telefono: telefono,
+          foto: c.photo?.thumbnail,
+        ));
       }
       limpios.sort((a, b) => a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase()));
 
@@ -157,6 +172,15 @@ class _PantallaImportarContactosState extends State<PantallaImportarContactos> {
 
       final creadas = r['creadas'] as int;
       final existentes = r['existentes'] as int;
+
+      // Las fotos van después y una a una: si algo falla, las clientas ya
+      // quedaron guardadas y lo único que falta es la cara.
+      if (mounted) {
+        await subirFotosDeContactos(
+          context,
+          [for (final c in elegidos) (telefono: c.telefono, foto: c.foto)],
+        );
+      }
 
       navegador.pop(creadas > 0);
       mensajero.showSnackBar(

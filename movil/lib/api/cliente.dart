@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Error de la API con el mensaje que ya viene traducido del servidor.
@@ -116,6 +117,54 @@ class ClienteApi extends ChangeNotifier {
       _peticion('PATCH', ruta, cuerpo: cuerpo);
 
   Future<Map<String, dynamic>> borrar(String ruta) => _peticion('DELETE', ruta);
+
+  /// Sube un archivo con campos sueltos al lado, como un formulario.
+  ///
+  /// Las fotos no caben en un JSON: en base64 crecen un tercio y una tanda
+  /// de contactos no pasaría. Van una a una y en binario.
+  Future<Map<String, dynamic>> subirArchivo(
+    String ruta, {
+    required List<int> bytes,
+    required String nombreArchivo,
+    required String tipo,
+    Map<String, String> campos = const {},
+  }) async {
+    final peticion = http.MultipartRequest('POST', Uri.parse('$_servidor$ruta'))
+      ..fields.addAll(campos)
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          'archivo',
+          bytes,
+          filename: nombreArchivo,
+          contentType: MediaType.parse(tipo),
+        ),
+      );
+    if (_token != null) peticion.headers['Authorization'] = 'Bearer $_token';
+
+    late http.Response respuesta;
+    try {
+      final envio = await peticion.send().timeout(const Duration(seconds: 30));
+      respuesta = await http.Response.fromStream(envio);
+    } catch (_) {
+      throw ErrorApi('No pudimos conectar con el servidor.');
+    }
+
+    if (respuesta.statusCode == 401) {
+      await salir();
+      throw ErrorApi('Tu sesión caducó. Entra de nuevo.', codigo: 401);
+    }
+
+    Map<String, dynamic> datos;
+    try {
+      datos = jsonDecode(respuesta.body) as Map<String, dynamic>;
+    } catch (_) {
+      throw ErrorApi('El servidor respondió algo inesperado.', codigo: respuesta.statusCode);
+    }
+    if (respuesta.statusCode >= 400) {
+      throw ErrorApi(datos['error']?.toString() ?? 'Algo salió mal.', codigo: respuesta.statusCode);
+    }
+    return datos;
+  }
 
   Future<Map<String, dynamic>> _peticion(
     String metodo,

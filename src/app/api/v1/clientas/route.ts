@@ -37,6 +37,7 @@ export const GET = withUser(async ({ request }) => {
       nombre: c.name,
       telefono: c.phone,
       correo: c.email,
+      foto: c.avatarUrl,
       activa: c.active,
       alergias: c.allergies,
       visitas: c.salesCount,

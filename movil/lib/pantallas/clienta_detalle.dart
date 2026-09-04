@@ -4,6 +4,7 @@ import '../iconos.dart';
 
 import '../api/cliente.dart';
 import '../formato.dart';
+import '../fotos_de_clientas.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
@@ -129,17 +130,10 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 26,
-                        backgroundColor: Marca.dorado.withValues(alpha: 0.18),
-                        child: Text(
-                          iniciales(f.nombre),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Marca.negro,
-                          ),
-                        ),
+                      CaraDeClienta(
+                        nombre: f.nombre,
+                        foto: f.foto,
+                        tamano: 52,
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -461,6 +455,7 @@ class _Ficha {
     required this.tocaRepetir,
     this.alergias,
     this.notas,
+    this.foto,
     this.ultimaVisita,
   });
 
@@ -477,6 +472,9 @@ class _Ficha {
   final List<_Repetir> tocaRepetir;
   final String? alergias;
   final String? notas;
+
+  /// La cara que traía de la agenda del teléfono, si la tenía.
+  final String? foto;
   final DateTime? ultimaVisita;
 
   factory _Ficha.desdeJson(Map<String, dynamic> j) {
@@ -488,6 +486,7 @@ class _Ficha {
       telefono: c['telefono'] as String,
       alergias: c['alergias'] as String?,
       notas: c['notas'] as String?,
+      foto: c['foto'] as String?,
       visitas: r['visitas'] as int,
       gastadoCentavos: r['gastadoCentavos'] as int,
       saldoCentavos: r['saldoCentavos'] as int,

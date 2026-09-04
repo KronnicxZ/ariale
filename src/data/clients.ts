@@ -90,6 +90,7 @@ export async function getClients(options: {
       name: client.name,
       phone: client.phone,
       email: client.email,
+      avatarUrl: client.avatarUrl,
       active: client.active,
       createdAt: client.createdAt,
       allergies: client.allergies,

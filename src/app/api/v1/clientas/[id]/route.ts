@@ -14,6 +14,7 @@ export const GET = withUserParams<{ id: string }, unknown>(async ({ params }) =>
     clienta: {
       id: client.id,
       nombre: client.name,
+      foto: client.avatarUrl,
       telefono: client.phone,
       correo: client.email,
       instagram: client.instagram,
@@ -80,6 +81,8 @@ export const GET = withUserParams<{ id: string }, unknown>(async ({ params }) =>
 
 export const PATCH = withUserParams<{ id: string }, unknown>(async ({ request, params }) => {
   const body = (await request.json()) as {
+    /** `null` quita la foto; no llega el campo, se queda como está. */
+    foto?: string | null;
     nombre?: string;
     telefono?: string;
     correo?: string | null;
@@ -105,6 +108,7 @@ export const PATCH = withUserParams<{ id: string }, unknown>(async ({ request, p
   await prisma.client.update({
     where: { id: params.id },
     data: {
+      ...(body.foto !== undefined ? { avatarUrl: body.foto } : {}),
       ...(body.nombre !== undefined ? { name: body.nombre.trim() } : {}),
       ...(phone !== undefined ? { phone } : {}),
       ...(body.correo !== undefined ? { email: body.correo?.trim() || null } : {}),

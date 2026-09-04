@@ -1,7 +1,7 @@
 name: ariale_movil
 description: "Arialé Studio — agenda y caja del estudio en el móvil."
 publish_to: "none"
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.13.2
@@ -16,6 +16,9 @@ dependencies:
 
   # Llamadas a la API del panel.
   http: ^1.2.2
+  # Para decirle al servidor que lo que sube es una imagen y no un binario
+  # cualquiera. Ya venía con `http`; aquí solo se declara para poder usarla.
+  http_parser: ^4.1.2
 
   # Guarda el token de sesión y la URL del servidor entre arranques.
   shared_preferences: ^2.3.3

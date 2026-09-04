@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../formato.dart';
+import '../fotos_de_clientas.dart';
 import '../iconos.dart';
 import '../sesion.dart';
 import '../tema.dart';
@@ -78,6 +79,11 @@ class _PantallaClientasState extends State<PantallaClientas> {
       _marcadas.clear();
     });
     await futuro;
+  }
+
+  Future<void> _actualizarFotos() async {
+    await sincronizarFotosDesdeLaAgenda(context);
+    if (mounted) _refrescar();
   }
 
   Future<void> _importarDeContactos() async {
@@ -180,6 +186,7 @@ class _PantallaClientasState extends State<PantallaClientas> {
                   controlador: _busqueda,
                   alBuscar: _refrescar,
                   alImportar: _importarDeContactos,
+                  alActualizarFotos: _actualizarFotos,
                 ),
               const SizedBox(height: 10),
               SizedBox(
@@ -318,11 +325,13 @@ class _Buscador extends StatelessWidget {
     required this.controlador,
     required this.alBuscar,
     required this.alImportar,
+    required this.alActualizarFotos,
   });
 
   final TextEditingController controlador;
   final VoidCallback alBuscar;
   final VoidCallback alImportar;
+  final VoidCallback alActualizarFotos;
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +343,7 @@ class _Buscador extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text('Clientas', style: titulo(24))),
-              _BotonImportar(alTocar: alImportar),
+              _MenuAgenda(alImportar: alImportar, alActualizarFotos: alActualizarFotos),
             ],
           ),
           const SizedBox(height: 12),
@@ -457,7 +466,11 @@ class _TarjetaClienta extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  _Avatar(nombre: clienta.nombre, marcada: marcada),
+                  _Avatar(
+                    nombre: clienta.nombre,
+                    foto: clienta.foto,
+                    marcada: marcada,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -537,13 +550,20 @@ class _TarjetaClienta extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.nombre, required this.marcada});
+  const _Avatar({required this.nombre, required this.marcada, this.foto});
 
   final String nombre;
+  final String? foto;
   final bool marcada;
 
   @override
   Widget build(BuildContext context) {
+    // Marcada manda sobre la foto: en modo selección lo que importa es ver
+    // de un vistazo cuáles están elegidas.
+    if (!marcada && foto != null && foto!.isNotEmpty) {
+      return CaraDeClienta(nombre: nombre, foto: foto, tamano: 42);
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 160),
       width: 42,
@@ -582,22 +602,47 @@ class _DatosClientas {
       );
 }
 
-/// Icono redondo que abre la importación de contactos. Va junto al título,
-/// donde se espera una acción rápida de la pantalla.
-class _BotonImportar extends StatelessWidget {
-  const _BotonImportar({required this.alTocar});
+/// Lo que se puede hacer con la agenda del teléfono, junto al título: traer
+/// contactos nuevos, o refrescar las caras de las que ya son clientas.
+class _MenuAgenda extends StatelessWidget {
+  const _MenuAgenda({required this.alImportar, required this.alActualizarFotos});
 
-  final VoidCallback alTocar;
+  final VoidCallback alImportar;
+  final VoidCallback alActualizarFotos;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    return PopupMenuButton<int>(
+      tooltip: 'Desde mis contactos',
       color: Marca.tarjeta,
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: alTocar,
-        customBorder: const CircleBorder(),
-        child: const Padding(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      onSelected: (cual) => cual == 0 ? alImportar() : alActualizarFotos(),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 0,
+          child: Row(
+            children: [
+              const Icon(Ico.nuevaClienta, size: 18, color: Marca.texto),
+              const SizedBox(width: 10),
+              Text('Importar contactos', style: sutil(14, color: Marca.texto)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 1,
+          child: Row(
+            children: [
+              const Icon(Ico.clienta, size: 18, color: Marca.texto),
+              const SizedBox(width: 10),
+              Text('Actualizar fotos', style: sutil(14, color: Marca.texto)),
+            ],
+          ),
+        ),
+      ],
+      child: const Material(
+        color: Marca.tarjeta,
+        shape: CircleBorder(),
+        child: Padding(
           padding: EdgeInsets.all(10),
           child: Icon(Ico.nuevaClienta, size: 20, color: Marca.texto),
         ),

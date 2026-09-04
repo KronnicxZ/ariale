@@ -13,6 +13,7 @@ class Cita {
     required this.clientaId,
     required this.clientaNombre,
     required this.clientaTelefono,
+    this.clientaFoto,
     required this.especialistaId,
     required this.especialistaNombre,
     required this.especialistaColor,
@@ -32,6 +33,9 @@ class Cita {
   final String clientaId;
   final String clientaNombre;
   final String clientaTelefono;
+
+  /// La cara de la clienta, si la tiene guardada.
+  final String? clientaFoto;
   final String especialistaId;
   final String especialistaNombre;
   final String especialistaColor;
@@ -61,6 +65,7 @@ class Cita {
         clientaId: (j['clienta'] as Map)['id'] as String,
         clientaNombre: (j['clienta'] as Map)['nombre'] as String,
         clientaTelefono: (j['clienta'] as Map)['telefono'] as String,
+        clientaFoto: (j['clienta'] as Map)['foto'] as String?,
         especialistaId: (j['especialista'] as Map)['id'] as String,
         especialistaNombre: (j['especialista'] as Map)['nombre'] as String,
         especialistaColor: (j['especialista'] as Map)['color'] as String,
@@ -347,6 +352,7 @@ class Clienta {
     required this.sesionesBono,
     this.correo,
     this.alergias,
+    this.foto,
     this.ultimaVisita,
   });
 
@@ -361,6 +367,10 @@ class Clienta {
   final int sesionesBono;
   final String? correo;
   final String? alergias;
+
+  /// La cara que traía su ficha en la agenda del teléfono, si la tenía.
+  final String? foto;
+
   final DateTime? ultimaVisita;
 
   factory Clienta.desdeJson(Map<String, dynamic> j) => Clienta(
@@ -375,6 +385,7 @@ class Clienta {
         sesionesBono: j['sesionesBono'] as int? ?? 0,
         correo: j['correo'] as String?,
         alergias: j['alergias'] as String?,
+        foto: j['foto'] as String?,
         ultimaVisita: j['ultimaVisita'] == null
             ? null
             : DateTime.parse(j['ultimaVisita'] as String).toLocal(),

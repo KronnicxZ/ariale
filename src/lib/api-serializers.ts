@@ -17,7 +17,7 @@ type AppointmentLike = {
   note: string | null;
   /** Solo lo traen las consultas de detalle; las listas no lo piden. */
   referenceUrl?: string | null;
-  client: { id: string; name: string; phone: string };
+  client: { id: string; name: string; phone: string; avatarUrl?: string | null };
   specialist: { id: string; name: string; color: string };
   services: { priceCents: number; durationMin: number; service: { name: string } }[];
   sale?: { id: string; status: string } | null;
@@ -39,6 +39,7 @@ export function serializeAppointment(appointment: AppointmentLike) {
       id: appointment.client.id,
       nombre: appointment.client.name,
       telefono: appointment.client.phone,
+      foto: appointment.client.avatarUrl ?? null,
     },
     especialista: {
       id: appointment.specialist.id,

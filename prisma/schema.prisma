@@ -144,6 +144,10 @@ model Client {
   id        String    @id @default(cuid())
   name      String
   phone     String    @unique
+  /// La foto de la clienta, tal como estaba en la agenda del teléfono al
+  /// importarla. No es la de WhatsApp —esa no la da nadie— sino la de la
+  /// ficha del contacto, que en Android suele ser la misma.
+  avatarUrl String?
   email     String?
   birthday  DateTime?
   instagram String?
