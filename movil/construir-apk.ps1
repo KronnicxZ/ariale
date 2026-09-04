@@ -34,12 +34,18 @@ $Servidor = $Servidor.TrimEnd('/')
 $arquitectura = if ($Universal) { 'todos los procesadores' } else { 'ARM64' }
 Write-Host "Compilando contra $Servidor ($arquitectura)..." -ForegroundColor Yellow
 
+# Java escribe avisos en stderr y, con ErrorActionPreference en 'Stop',
+# PowerShell los toma por fallos y aborta un build que salió bien. Lo que
+# dice de verdad si funcionó es el código de salida.
+$ErrorActionPreference = 'Continue'
 if ($Universal) {
     & $flutter build apk --release "--dart-define=SERVIDOR=$Servidor"
 } else {
     & $flutter build apk --release --target-platform android-arm64 "--dart-define=SERVIDOR=$Servidor"
 }
-if ($LASTEXITCODE -ne 0) { throw "La compilación falló." }
+$codigo = $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
+if ($codigo -ne 0) { throw "La compilación falló (código $codigo)." }
 
 $apk = Join-Path $PSScriptRoot 'build\app\outputs\flutter-apk\app-release.apk'
 $peso = [math]::Round((Get-Item $apk).Length / 1MB, 1)
