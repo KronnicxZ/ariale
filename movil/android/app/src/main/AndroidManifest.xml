@@ -11,6 +11,11 @@
     <!-- Los avisos siguen sonando aunque el teléfono esté en reposo. -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
+    <!-- Para actualizarse sola: baja el APK nuevo y se lo pasa al
+         instalador de Android. La primera vez, Android pide que se le
+         autorice a esta app en concreto. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+
     <application
         android:label="Arialé Studio"
         android:name="${applicationName}"

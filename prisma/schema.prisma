@@ -547,3 +547,24 @@ model ReminderLog {
 
   @@index([clientId, kind, sentAt])
 }
+
+/// La última versión publicada de la app de Alejandra y Arianny.
+///
+/// La app pregunta por esto al abrir y, si su número de compilación es
+/// menor, se ofrece a bajar el APK e instalarlo. Así no hay que pasarles el
+/// archivo a mano cada vez que cambia algo.
+model AppRelease {
+  id          String   @id @default(cuid())
+  /// La versión legible, "0.2.0". Es la que se le enseña a ellas.
+  version     String
+  /// El número de compilación, el "+3" del pubspec. Es lo que se compara:
+  /// la versión legible puede repetirse, este no.
+  buildNumber Int
+  /// El APK, alojado fuera del repositorio.
+  url         String
+  /// Qué cambió, en una línea, para que sepan por qué actualizan.
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([buildNumber])
+}

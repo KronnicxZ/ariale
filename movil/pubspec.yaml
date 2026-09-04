@@ -1,7 +1,7 @@
 name: ariale_movil
 description: "Arialé Studio — agenda y caja del estudio en el móvil."
 publish_to: "none"
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ^3.13.2
@@ -27,7 +27,8 @@ dependencies:
   # Fechas y números en español de Venezuela.
   intl: ^0.20.2
 
-  # Cormorant Garamond para títulos e Inter para el resto, igual que la web.
+  # Playfair Display para títulos y Plus Jakarta Sans para el resto, las
+  # mismas de la página.
   google_fonts: ^6.2.1
   lucide_icons_flutter: ^3.1.17
   font_awesome_flutter: ^11.0.0
@@ -41,6 +42,13 @@ dependencies:
   # app esté cerrada: el servidor manda el push, Firebase lo entrega.
   firebase_core: ^3.10.0
   firebase_messaging: ^15.2.0
+
+  # Actualizarse sola: la app pregunta al servidor si hay una versión más
+  # nueva, se baja el APK y abre el instalador de Android. Así no hay que
+  # pasarles el archivo por WhatsApp cada vez que cambia algo.
+  package_info_plus: ^8.1.2
+  path_provider: ^2.1.5
+  open_filex: ^4.7.0
 
 dev_dependencies:
   flutter_test:

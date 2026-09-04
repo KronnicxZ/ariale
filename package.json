@@ -14,7 +14,8 @@
     "postinstall": "prisma generate",
     "respaldo": "tsx scripts/respaldo.ts",
     "limpiar": "tsx scripts/limpiar.ts",
-    "migrar-turso": "tsx scripts/migrar-a-turso.ts"
+    "migrar-turso": "tsx scripts/migrar-a-turso.ts",
+    "publicar-apk": "tsx scripts/publicar-apk.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

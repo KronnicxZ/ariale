@@ -6,6 +6,7 @@ import '../iconos.dart';
 
 import '../api/cliente.dart';
 import '../api/modelos.dart';
+import '../actualizacion.dart';
 import '../push.dart';
 import '../sesion.dart';
 import '../tema.dart';
@@ -49,6 +50,7 @@ class _PantallaInicioState extends State<PantallaInicio> {
       Sesion.catalogo = Catalogo.desdeJson(datos);
       if (mounted) setState(() => _cargandoCatalogo = false);
       if (mounted) unawaited(Push.registrar(context));
+      if (mounted) unawaited(Actualizacion.revisar(context));
     } on ErrorApi catch (e) {
       if (mounted) {
         setState(() {

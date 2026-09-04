@@ -144,14 +144,55 @@ Ya está. Queda en el teléfono con la florecita dorada, se llama
 
 ## Actualizar la app más adelante
 
+Desde la 0.2.0 la app se actualiza sola: al abrir le pregunta al panel si hay
+una versión más nueva y, si la hay, la baja y abre el instalador de Android.
+No hay que mandarle el archivo a nadie.
+
 Cuando cambies algo:
 
-1. Sube el número de versión en `pubspec.yaml` (`version: 0.1.0+1` → `0.2.0+2`).
-2. Vuelve a correr `.\construir-apk.ps1`.
-3. Publica el nuevo APK y avisa al equipo.
+1. Sube el número de versión en `movil/pubspec.yaml`. Lo que se compara es el
+   número de después del `+`, así que ese **tiene** que subir:
+   `version: 0.2.0+2` → `0.3.0+3`.
 
-Al instalar encima, se actualiza y **no se pierde nada**: los datos están en
-el panel, no en el teléfono. Eso sí, hay que usar la misma llave de firma.
+2. Compila:
+
+   ```
+   cd movil
+   .\construir-apk.ps1 -Servidor https://app.ariale.space
+   ```
+
+3. Publícalo, desde la carpeta de arriba:
+
+   ```
+   npm run publicar-apk -- "Qué cambió, en una línea"
+   ```
+
+   Sube el APK al almacén de archivos y anota la versión en la base. Esa
+   línea que escribes es la que ellas leen en el aviso, así que que diga
+   algo: "ahora se puede adjuntar el diseño al agendar", no "arreglos".
+
+La próxima vez que abran la app les sale el aviso. Pueden decir *"Ahora no"*
+y se les vuelve a ofrecer al siguiente arranque: nunca es obligatorio.
+
+La primera vez, Android pide autorizar a Arialé Studio para instalar
+aplicaciones — el mismo permiso que se le dio al instalarla a mano. Si el
+instalador no llega a abrirse, la app lo dice en vez de quedarse callada.
+
+Al instalar encima **no se pierde nada**: los datos están en el panel, no en
+el teléfono. Eso sí, hay que usar la misma llave de firma; con otra, Android
+se niega a instalar encima.
+
+### Lo que hace falta una sola vez
+
+El APK se guarda en el almacén de archivos de Vercel (Blob), el mismo de las
+fotos de diseño que dejan las clientas. Para poder publicar desde aquí,
+`.env` necesita:
+
+```
+BLOB_READ_WRITE_TOKEN="..."
+```
+
+Está en Vercel → Storage → el Blob Store → pestaña `.env.local`.
 
 ---
 
