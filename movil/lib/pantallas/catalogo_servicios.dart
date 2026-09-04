@@ -54,6 +54,7 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
       builder: (context) => _HojaServicio(
         servicio: servicio,
         categorias: datos.categorias,
+        especialistas: datos.especialistas,
         categoriaInicial: categoria,
       ),
     );
@@ -329,11 +330,13 @@ class _FilaServicio extends StatelessWidget {
 class _HojaServicio extends StatefulWidget {
   const _HojaServicio({
     required this.categorias,
+    required this.especialistas,
     this.servicio,
     this.categoriaInicial,
   });
 
   final List<_Categoria> categorias;
+  final List<_Especialista> especialistas;
   final _Servicio? servicio;
   final _Categoria? categoriaInicial;
 
@@ -353,6 +356,16 @@ class _HojaServicioState extends State<_HojaServicio> {
   );
   late String? _categoriaId =
       widget.servicio?.categoriaId ?? widget.categoriaInicial?.id;
+
+  /// Quién lo hace. Un servicio nuevo arranca con todo el equipo marcado:
+  /// es más fácil quitar a una que acordarse de añadir a alguien, y un
+  /// servicio sin nadie no aparece al agendar.
+  late final Set<String> _quienes = {
+    ...?widget.servicio?.especialistaIds,
+    if (widget.servicio == null)
+      for (final e in widget.especialistas) e.id,
+  };
+
   bool _guardando = false;
 
   @override
@@ -379,6 +392,10 @@ class _HojaServicioState extends State<_HojaServicio> {
       _avisar('La duración mínima es de 5 minutos.');
       return;
     }
+    if (_quienes.isEmpty) {
+      _avisar('Elige quién hace este servicio.');
+      return;
+    }
 
     setState(() => _guardando = true);
     final mensajero = ScaffoldMessenger.of(context);
@@ -392,6 +409,13 @@ class _HojaServicioState extends State<_HojaServicio> {
         'duracionMin': minutos,
         'categoriaId': _categoriaId,
         'activo': widget.servicio?.activo ?? true,
+        'especialistaIds': _quienes.toList(),
+        // El servidor reescribe la ficha entera, así que lo que no se edita
+        // aquí viaja igual de vuelta. Sin esto, tocar el precio borraba la
+        // descripción y dejaba el método de depilación en ninguno.
+        'descripcion': widget.servicio?.descripcion,
+        if (widget.servicio?.metodo != null) 'metodo': widget.servicio!.metodo,
+        'requierePrueba': widget.servicio?.requierePrueba ?? false,
         if (widget.servicio?.zona != null) 'zona': widget.servicio!.zona,
         if (widget.servicio?.cicloDias != null) 'cicloDias': widget.servicio!.cicloDias,
       });
@@ -477,6 +501,39 @@ class _HojaServicioState extends State<_HojaServicio> {
                   ),
               ],
             ),
+            if (widget.especialistas.length > 1) ...[
+              const SizedBox(height: 20),
+              Text('¿Quién lo hace?', style: titulo(18)),
+              const SizedBox(height: 4),
+              Text(
+                'Solo ellas lo verán al agendar, y en la página sale su nombre.',
+                style: sutil(13),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final e in widget.especialistas)
+                    FilterChip(
+                      label: Text(e.nombre),
+                      selected: _quienes.contains(e.id),
+                      showCheckmark: false,
+                      avatar: CircleAvatar(
+                        radius: 6,
+                        backgroundColor: Marca.desdeHex(e.color),
+                      ),
+                      onSelected: (marcada) => setState(() {
+                        if (marcada) {
+                          _quienes.add(e.id);
+                        } else {
+                          _quienes.remove(e.id);
+                        }
+                      }),
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: 20),
             FilledButton(
               onPressed: _guardando ? null : _guardar,
@@ -495,6 +552,14 @@ class _HojaServicioState extends State<_HojaServicio> {
   }
 }
 
+class _Especialista {
+  _Especialista({required this.id, required this.nombre, required this.color});
+
+  final String id;
+  final String nombre;
+  final String color;
+}
+
 class _Categoria {
   _Categoria({required this.id, required this.nombre, required this.color});
 
@@ -511,6 +576,10 @@ class _Servicio {
     required this.duracionMin,
     required this.activo,
     required this.categoriaId,
+    required this.especialistaIds,
+    this.descripcion,
+    this.metodo,
+    this.requierePrueba = false,
     this.zona,
     this.cicloDias,
   });
@@ -521,6 +590,17 @@ class _Servicio {
   final int duracionMin;
   final bool activo;
   final String categoriaId;
+
+  /// Quién lo hace. Si queda vacía, el servicio desaparece del agendado.
+  final List<String> especialistaIds;
+
+  /// Estos tres no se editan desde aquí, pero hay que reenviarlos al
+  /// guardar: el servidor reescribe la ficha entera y, si no van, se
+  /// pierden. Cambiar un precio no puede borrar la descripción.
+  final String? descripcion;
+  final String? metodo;
+  final bool requierePrueba;
+
   final String? zona;
   final int? cicloDias;
 }
@@ -548,11 +628,13 @@ class _Bono {
 class _Catalogo {
   _Catalogo({
     required this.categorias,
+    required this.especialistas,
     required this.servicios,
     required this.bonos,
   });
 
   final List<_Categoria> categorias;
+  final List<_Especialista> especialistas;
   final List<_Servicio> servicios;
   final List<_Bono> bonos;
 
@@ -569,6 +651,14 @@ class _Catalogo {
               color: c['color'] as String,
             ),
         ],
+        especialistas: [
+          for (final e in (servicios['especialistas'] as List? ?? const []))
+            _Especialista(
+              id: (e as Map)['id'] as String,
+              nombre: e['nombre'] as String,
+              color: e['color'] as String,
+            ),
+        ],
         servicios: [
           for (final s in (servicios['servicios'] as List))
             _Servicio(
@@ -578,6 +668,13 @@ class _Catalogo {
               duracionMin: s['duracionMin'] as int,
               activo: s['activo'] as bool? ?? true,
               categoriaId: (s['categoria'] as Map)['id'] as String,
+              especialistaIds: [
+                for (final id in (s['especialistaIds'] as List? ?? const []))
+                  id as String,
+              ],
+              descripcion: s['descripcion'] as String?,
+              metodo: s['metodo'] as String?,
+              requierePrueba: s['requierePrueba'] as bool? ?? false,
               zona: s['zona'] as String?,
               cicloDias: s['cicloDias'] as int?,
             ),

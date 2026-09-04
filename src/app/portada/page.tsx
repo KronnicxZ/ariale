@@ -10,6 +10,8 @@ import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { Reveal } from "./reveal";
 import { CintaFotos, CintaPalabras } from "./cinta";
 import { Galeria, type Foto } from "./galeria";
+import { Hero } from "./hero";
+import { BarraAgendar } from "./barra-agendar";
 import { Servicios, type AreaServicio } from "./servicios";
 import type { CategoryKind } from "@/generated/prisma/client";
 
@@ -100,6 +102,19 @@ const RAZONES = [
   },
 ];
 
+/** ["Alejandra", "Arianny"] → "Alejandra y Arianny". Vacío → null. */
+function nombresDe(skills: { specialist: { name: string } }[]) {
+  const nombres = [...new Set(skills.map((k) => k.specialist.name))].sort();
+  if (nombres.length === 0) return null;
+  if (nombres.length === 1) return nombres[0];
+  return `${nombres.slice(0, -1).join(", ")} y ${nombres.at(-1)}`;
+}
+
+/** "4246024354" → "0424 602 4354", que es como se dicta aquí un número. */
+function telefonoLegible(t: string) {
+  return `0${t.slice(0, 3)} ${t.slice(3, 6)} ${t.slice(6)}`;
+}
+
 /** Botón de WhatsApp con el glifo real, legible sobre claro y sobre oscuro. */
 function WaPill({
   href,
@@ -188,6 +203,10 @@ export default async function PortadaPage() {
         priceCents: true,
         durationMin: true,
         category: { select: { id: true, name: true, kind: true, order: true } },
+        specialists: {
+          where: { specialist: { active: true } },
+          select: { specialist: { select: { name: true } } },
+        },
       },
     }),
   ]);
@@ -213,6 +232,7 @@ export default async function PortadaPage() {
       nombre: s.category.name,
       descripcion: DESCRIPCION_POR_TIPO[s.category.kind],
       foto: FOTO_POR_TIPO[s.category.kind],
+      quien: null,
       servicios: [],
     };
     area.servicios.push({
@@ -220,10 +240,44 @@ export default async function PortadaPage() {
       nombre: s.name,
       duracion: fmtDuration(s.durationMin),
       precio: formatUsd(s.priceCents),
+      quien: nombresDe(s.specialists),
     });
     porCategoria.set(s.category.id, area);
   }
-  const areas = [...porCategoria.values()];
+
+  // Si todos los servicios de un área los atiende la misma gente, el nombre
+  // se dice una vez arriba y no se repite en cada línea. Si no coinciden,
+  // se dice servicio por servicio, que es cuando de verdad hace falta.
+  const areas = [...porCategoria.values()].map((a) => {
+    const distintos = new Set(a.servicios.map((s) => s.quien ?? ""));
+    if (distintos.size !== 1) return a;
+    return {
+      ...a,
+      quien: a.servicios[0].quien,
+      servicios: a.servicios.map((s) => ({ ...s, quien: null })),
+    };
+  });
+
+  // El rótulo del hero se arma con lo que de verdad hay en el catálogo, no
+  // con una lista escrita a mano que se queda vieja: las áreas activas y,
+  // al final, la ciudad —que es el último trozo de la dirección—.
+  const PALABRA_POR_TIPO: Partial<Record<CategoryKind, string>> = {
+    MANICURE: "Uñas",
+    PEDICURE: "Pies",
+    DEPILATION: "Cejas y depilación",
+  };
+  const ciudad = settings.address?.split(",").at(-1)?.trim();
+  const hay = new Set(servicios.map((s) => s.category.kind));
+  const rotuloHero = [
+    // En este orden y no en el del catálogo: se lee de lo más pedido a lo
+    // menos, y "uñas" es lo primero que la gente busca.
+    ...(["MANICURE", "PEDICURE", "DEPILATION"] as const)
+      .filter((k) => hay.has(k))
+      .map((k) => PALABRA_POR_TIPO[k]),
+    ciudad,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   // La cinta mezcla las áreas con los servicios que más las definen, para
   // que no sean tres palabras dando vueltas.
@@ -237,50 +291,13 @@ export default async function PortadaPage() {
   return (
     <div className="flex-1">
       {/* ------------------------------------------------------------------
-          Hero: la foto del estudio respirando, la marca y las tres salidas
+          Hero: la foto del estudio respirando y la marca presentandose
           ------------------------------------------------------------------ */}
-      <section className="relative flex min-h-[92vh] items-center overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="/trabajos/estudio-ambiente.jpg"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="respira object-cover"
-          />
-        </div>
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
-
-        <div className="relative z-10 mx-auto w-full max-w-4xl px-5 py-20 text-center text-white">
-          {/* Su logotipo de verdad, no una versión redibujada. El archivo es
-              de 1000×400, así que a esta altura se ve nítido incluso en
-              pantallas de alta densidad. */}
-          <h1 className="sr-only">{settings.businessName}</h1>
-          <Image
-            src="/marca/logo-ariale.png"
-            alt={settings.businessName}
-            width={1000}
-            height={400}
-            priority
-            sizes="(min-width: 1024px) 420px, (min-width: 640px) 360px, 280px"
-            className="mx-auto h-auto w-70 sm:w-90 lg:w-105"
-          />
-          <p className="mx-auto mt-6 max-w-xl text-lg text-balance text-white/75 sm:text-xl">
-            {settings.tagline}
-          </p>
-
-          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <BotonAgendar ancho />
-            <div className="flex items-center gap-3">
-              {waEspecialistas.map((e) => (
-                <WaPill key={e.nombre} href={e.href} nombre={e.nombre} tono="oscuro" />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <Hero
+        negocio={settings.businessName}
+        lema={settings.tagline}
+        rotulo={rotuloHero}
+      />
 
       <CintaPalabras palabras={palabrasCinta} />
 
@@ -368,11 +385,6 @@ export default async function PortadaPage() {
                 que siempre soñaste. Cada quien en lo suyo, para que a ti te toque lo mejor de las
                 dos.
               </p>
-              <div className="mt-7 flex flex-wrap justify-center gap-3 sm:justify-start">
-                {waEspecialistas.map((e) => (
-                  <WaPill key={e.nombre} href={e.href} nombre={e.nombre} />
-                ))}
-              </div>
             </div>
           </div>
         </Reveal>
@@ -440,39 +452,29 @@ export default async function PortadaPage() {
             </div>
           </Reveal>
 
-          <p className="mt-16 text-center text-sm text-white/40">
-            {settings.businessName}
-            {settings.instagram ? ` · @${settings.instagram}` : ""}
-          </p>
+          {/* Al pie, los números escritos. Es el único sitio de la página
+              donde se pueden copiar o marcar sin pasar por WhatsApp. */}
+          <div className="filo-oro mt-16 border-t pt-8 text-center">
+            <ul className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-white/55">
+              {ESPECIALISTAS_WA.map((e) => (
+                <li key={e.nombre}>
+                  <span className="text-white/40">{e.nombre}</span>
+                  <span className="mx-2 text-white/20">·</span>
+                  <a href={`tel:+58${e.telefono}`} className="font-numeric hover:text-white">
+                    {telefonoLegible(e.telefono)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 text-sm text-white/40">
+              {settings.businessName}
+              {settings.instagram ? ` · @${settings.instagram}` : ""}
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Barra fija en el teléfono, para no tener que volver a subir. */}
-      <div className="bg-card/95 safe-bottom fixed inset-x-0 bottom-0 z-40 flex items-center gap-2 border-t px-4 pt-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur sm:hidden">
-        <Link
-          href="/reservar"
-          className="brand-gradient text-primary-foreground flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold"
-        >
-          <CalendarPlus className="size-4" />
-          Agendar
-        </Link>
-        {/* Con el nombre recortado y no solo el icono: dos botones verdes
-            iguales no dicen a cuál de las dos le estás escribiendo, y las dos
-            empiezan por A, así que la inicial tampoco bastaba. */}
-        {waEspecialistas.map((e) => (
-          <a
-            key={e.nombre}
-            href={e.href}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`WhatsApp de ${e.nombre}`}
-            className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-[#25D366] px-2.5 text-white"
-          >
-            <WhatsAppIcon className="size-5" />
-            <span className="text-xs font-semibold">{e.nombre.slice(0, 3)}</span>
-          </a>
-        ))}
-      </div>
+      <BarraAgendar />
     </div>
   );
 }

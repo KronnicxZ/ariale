@@ -9,7 +9,16 @@ export type AreaServicio = {
   nombre: string;
   descripcion: string;
   foto: string;
-  servicios: { id: string; nombre: string; duracion: string; precio: string }[];
+  /** Quién atiende el área entera, si todos sus servicios coinciden. */
+  quien: string | null;
+  servicios: {
+    id: string;
+    nombre: string;
+    duracion: string;
+    precio: string;
+    /** Solo se rellena cuando dentro del área no todas hacen lo mismo. */
+    quien: string | null;
+  }[];
 };
 
 /**
@@ -91,12 +100,22 @@ export function Servicios({ areas }: { areas: AreaServicio[] }) {
               {area.descripcion}
             </p>
 
+            {/* Quién atiende el área. Si dentro del área no todas hacen lo
+                mismo, esta línea no aparece y el nombre baja a cada
+                servicio, que es donde entonces significa algo. */}
+            {area.quien ? (
+              <p className="text-primary mt-4 text-sm font-medium">Con {area.quien}</p>
+            ) : null}
+
             <ul className="border-border/70 mt-7 divide-y">
               {area.servicios.map((s) => (
                 <li key={s.id} className="flex items-baseline justify-between gap-4 py-3.5">
                   <span className="min-w-0">
                     <span className="block text-[15px] font-medium">{s.nombre}</span>
-                    <span className="text-muted-foreground text-xs">{s.duracion}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {s.duracion}
+                      {s.quien ? ` · con ${s.quien}` : ""}
+                    </span>
                   </span>
                   <span className="font-numeric shrink-0 text-[15px]">{s.precio}</span>
                 </li>

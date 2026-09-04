@@ -7,14 +7,24 @@ import type { HairRemovalMethod } from "@/generated/prisma/client";
  * `/catalogo` solo trae los activos porque es lo que se agenda.
  */
 export const GET = withUser(async () => {
-  const [servicios, categorias] = await Promise.all([
+  const [servicios, categorias, especialistas] = await Promise.all([
     prisma.service.findMany({
       orderBy: [{ category: { order: "asc" } }, { order: "asc" }, { name: "asc" }],
-      include: { category: { select: { id: true, name: true, color: true, kind: true } } },
+      include: {
+        category: { select: { id: true, name: true, color: true, kind: true } },
+        specialists: { select: { specialistId: true } },
+      },
     }),
     prisma.category.findMany({
       orderBy: { order: "asc" },
       select: { id: true, name: true, kind: true, color: true, active: true },
+    }),
+    // El equipo va aquí para que la ficha de un servicio pueda preguntar
+    // quién lo hace sin tener que pedir otra pantalla de datos.
+    prisma.specialist.findMany({
+      where: { active: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, color: true },
     }),
   ]);
 
@@ -26,9 +36,15 @@ export const GET = withUser(async () => {
       color: c.color,
       activa: c.active,
     })),
+    especialistas: especialistas.map((e) => ({
+      id: e.id,
+      nombre: e.name,
+      color: e.color,
+    })),
     servicios: servicios.map((s) => ({
       id: s.id,
       nombre: s.name,
+      especialistaIds: s.specialists.map((k) => k.specialistId),
       descripcion: s.description,
       precioCentavos: s.priceCents,
       duracionMin: s.durationMin,
@@ -61,6 +77,7 @@ export const POST = withUser(async ({ request }) => {
     metodo?: string;
     cicloDias?: number | null;
     requierePrueba?: boolean;
+    especialistaIds?: string[];
   };
 
   const nombre = body.nombre?.trim() ?? "";
@@ -88,6 +105,25 @@ export const POST = withUser(async ({ request }) => {
   const servicio = body.id
     ? await prisma.service.update({ where: { id: body.id }, data: datos })
     : await prisma.service.create({ data: datos });
+
+  // Quién lo hace. Solo se toca si viene en la petición: así una llamada que
+  // solo cambia el precio no deja el servicio sin nadie que lo atienda.
+  // Un servicio sin especialistas desaparece del agendado, y eso no puede
+  // pasar por descuido.
+  if (body.especialistaIds) {
+    if (body.especialistaIds.length === 0) {
+      throw new Error("Elige al menos a una persona que haga este servicio.");
+    }
+    await prisma.$transaction([
+      prisma.specialistService.deleteMany({ where: { serviceId: servicio.id } }),
+      prisma.specialistService.createMany({
+        data: body.especialistaIds.map((specialistId) => ({
+          specialistId,
+          serviceId: servicio.id,
+        })),
+      }),
+    ]);
+  }
 
   return { id: servicio.id };
 });

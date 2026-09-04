@@ -340,10 +340,37 @@
     }
   }
 
+  /* Halo dorado detrás del logotipo del hero: separa la marca del fondo sin
+     tener que oscurecer la foto entera hasta perderla. */
+  .aura-oro {
+    background-image: radial-gradient(
+      ellipse 55% 45% at 50% 46%,
+      color-mix(in oklab, var(--brand) 26%, transparent) 0%,
+      transparent 68%
+    );
+  }
+
+  /* La rueda del ratón bajando, para que se vea que hay más página. */
+  .baja-suave {
+    animation: baja-suave 2.4s ease-in-out infinite;
+  }
+  @keyframes baja-suave {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.55;
+    }
+    50% {
+      transform: translateY(7px);
+      opacity: 1;
+    }
+  }
+
   /* Quien pidió menos movimiento no ve ninguno. */
   @media (prefers-reduced-motion: reduce) {
     .cinta,
-    .respira {
+    .respira,
+    .baja-suave {
       animation: none;
     }
   }
