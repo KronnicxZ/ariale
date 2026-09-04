@@ -132,6 +132,19 @@ class Mensajes {
         'Si necesitas cambiarla, escríbeme por aquí. ¡Te esperamos!';
   }
 
+  static String citaCancelada({
+    required String clienta,
+    required DateTime cuando,
+    required String servicios,
+    required String negocio,
+  }) =>
+      '¡Hola ${primerNombre(clienta)}! 💛\n\n'
+      'Tuve que cancelar tu cita en $negocio:\n'
+      '📅 ${fechaLarga(cuando)}\n'
+      '🕐 ${hora(cuando)}\n'
+      '✨ $servicios\n\n'
+      'Disculpa la molestia. ¿Te busco otro día? Dime cuándo te queda bien.';
+
   static String recordatorio({
     required String clienta,
     required DateTime cuando,

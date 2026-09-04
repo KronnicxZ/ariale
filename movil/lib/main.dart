@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'api/cliente.dart';
+import 'navegacion.dart';
 import 'pantallas/entrar.dart';
 import 'pantallas/inicio.dart';
 import 'recordatorios.dart';
@@ -31,6 +32,7 @@ class ArialeApp extends StatelessWidget {
     return Sesion(
       api: api,
       child: MaterialApp(
+        navigatorKey: Navegacion.llave,
         title: 'Arialé Studio',
         debugShowCheckedModeBanner: false,
         theme: construirTema(),

@@ -42,6 +42,8 @@ function admin() {
  * las dos deben enterarse) que alguien acaba de agendar desde la web.
  */
 export async function avisarNuevaCita(input: {
+  /** Para que al tocar el aviso la app abra justo esa cita. */
+  appointmentId: string;
   clientName: string;
   services: string;
   day: string;
@@ -65,6 +67,10 @@ export async function avisarNuevaCita(input: {
       title: "Nueva cita agendada",
       body: `${input.clientName} · ${input.services} · ${input.day} ${input.time}`,
     },
+    // Los datos viajan aparte del texto: la app los lee al tocar el aviso
+    // para abrir la cita en vez de dejarla en el inicio. Firebase solo
+    // acepta cadenas aquí.
+    data: { tipo: "cita", citaId: input.appointmentId },
     android: { priority: "high" },
   });
 

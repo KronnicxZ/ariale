@@ -1,14 +1,14 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 import { dayKey } from "@/lib/date";
-import { getSettings } from "@/lib/settings";
+import { getSettings, getWorkingHours } from "@/lib/settings";
 import type { PackageBalance, ServiceOption, SpecialistOption } from "@/components/booking/types";
 
 /** Todo lo que el asistente de reserva necesita para dibujarse. */
 export async function getBookingOptions() {
   const settings = await getSettings();
 
-  const [services, specialists] = await Promise.all([
+  const [services, specialists, horario] = await Promise.all([
     prisma.service.findMany({
       where: { active: true },
       orderBy: [{ category: { order: "asc" } }, { order: "asc" }, { name: "asc" }],
@@ -21,6 +21,7 @@ export async function getBookingOptions() {
       orderBy: { name: "asc" },
       include: { skills: { select: { serviceId: true } } },
     }),
+    getWorkingHours(),
   ]);
 
   const serviceOptions: ServiceOption[] = services.map((service) => ({
@@ -58,6 +59,9 @@ export async function getBookingOptions() {
     specialists: specialistOptions,
     today,
     maxDay: dayKey(maxDate, settings.timezone),
+    // Para tachar en el calendario los días que el estudio no abre, en vez
+    // de dejar que la clienta los pulse y se encuentre con la lista vacía.
+    closedWeekdays: horario.filter((h) => !h.enabled).map((h) => h.dayOfWeek),
   };
 }
 

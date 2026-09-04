@@ -12,7 +12,7 @@ export default async function ClientBookingPage() {
   const client = await getCurrentClient();
   if (!client) redirect("/reservar");
 
-  const [{ settings, services, specialists, today, maxDay }, packages, rate] = await Promise.all([
+  const [{ settings, services, specialists, today, maxDay, closedWeekdays }, packages, rate] = await Promise.all([
     getBookingOptions(),
     getClientPackages(client.id),
     getRate(),
@@ -34,6 +34,7 @@ export default async function ClientBookingPage() {
         packages={packages}
         today={today}
         maxDay={maxDay}
+        closedWeekdays={closedWeekdays}
         rate={rate.rate}
         autoConfirm={settings.autoConfirm}
         business={settings.businessName}

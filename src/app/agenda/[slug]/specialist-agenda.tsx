@@ -42,6 +42,7 @@ type Props = {
   day: string;
   today: string;
   maxDay: string;
+  closedWeekdays: number[];
   appointments: Appointment[];
   services: ServiceOption[];
   clients: ClientOption[];
@@ -54,6 +55,7 @@ export function SpecialistAgenda({
   day,
   today,
   maxDay,
+  closedWeekdays,
   appointments,
   services,
   clients,
@@ -184,6 +186,7 @@ export function SpecialistAgenda({
               lockedSpecialistId={specialist.id}
               today={today}
               maxDay={maxDay}
+              closedWeekdays={closedWeekdays}
               rate={rate}
               submitLabel="Confirmar cita"
               pendingLabel="Agendando…"

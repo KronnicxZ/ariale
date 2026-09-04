@@ -4,6 +4,7 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'api/modelos.dart';
+import 'navegacion.dart';
 import 'formato.dart';
 
 /// Avisa en el propio teléfono cuando falta poco para una cita.
@@ -35,7 +36,18 @@ class Recordatorios {
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(),
       ),
+      // El `payload` de cada aviso es el id de la cita: al tocarlo se abre
+      // esa cita, no el inicio.
+      onDidReceiveNotificationResponse: (respuesta) =>
+          Navegacion.abrirCita(respuesta.payload),
     );
+
+    // Si la app estaba cerrada y se abre justo tocando un aviso, lo de
+    // arriba no llega a dispararse: hay que preguntarlo.
+    final arranque = await _plugin.getNotificationAppLaunchDetails();
+    if (arranque?.didNotificationLaunchApp ?? false) {
+      Navegacion.abrirCita(arranque!.notificationResponse?.payload);
+    }
 
     // En Android 13+ hay que pedir permiso explícito, como cualquier app.
     await _plugin
@@ -82,6 +94,7 @@ class Recordatorios {
               priority: Priority.high,
             ),
           ),
+          payload: cita.id,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
@@ -103,6 +116,7 @@ class Recordatorios {
   static Future<void> mostrarAhora({
     required String titulo,
     required String cuerpo,
+    String? citaId,
   }) async {
     if (!_listo || kIsWeb) return;
     await _plugin.show(
@@ -118,6 +132,7 @@ class Recordatorios {
           priority: Priority.high,
         ),
       ),
+      payload: citaId,
     );
   }
 }

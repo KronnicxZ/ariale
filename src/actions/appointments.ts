@@ -33,6 +33,12 @@ export async function createAppointment(input: {
   note?: string | null;
   source: BookingSource;
   status?: AppointmentStatus;
+  /**
+   * Para las reservas que se parten en dos citas (una por área, a la misma
+   * hora): cada cita calla y quien llama manda un solo aviso con todo. Si
+   * no, al teléfono le llegan dos notificaciones de la misma clienta.
+   */
+  silenciar?: boolean;
 }) {
   const settings = await getSettings();
 
@@ -90,8 +96,9 @@ export async function createAppointment(input: {
 
   // Solo cuando agenda la clienta desde la web: si la crea el equipo desde
   // el panel o la app, ya lo sabe de sobra.
-  if (input.source === "CLIENT") {
+  if (input.source === "CLIENT" && !input.silenciar) {
     avisarNuevaCita({
+      appointmentId: appointment.id,
       clientName: appointment.client.name,
       services: appointment.services.map((s) => s.service.name).join(" + "),
       day: fmtDayShort(appointment.startAt, settings.timezone),

@@ -36,7 +36,14 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
     return _Detalle.desdeJson(datos['cita'] as Map<String, dynamic>);
   }
 
-  Future<void> _cambiarEstado(String estado) async {
+  /// Cambia el estado y, si la clienta tiene que enterarse, abre WhatsApp
+  /// con el aviso ya escrito.
+  ///
+  /// Confirmar o cancelar sin avisar deja a la clienta sin saber si tiene
+  /// cita o no: por eso el mensaje sale solo. No se envía por su cuenta
+  /// —WhatsApp se abre con el texto puesto y quien decide es la dueña—,
+  /// igual que en todo el resto de la app.
+  Future<void> _cambiarEstado(String estado, _Detalle d) async {
     setState(() => _guardando = true);
     try {
       await Sesion.de(context).parchear(
@@ -45,6 +52,7 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
       );
       _huboCambios = true;
       if (mounted) setState(() => _futuro = _cargar());
+      await _avisarALaClienta(estado, d);
     } on ErrorApi catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -53,6 +61,35 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
     } finally {
       if (mounted) setState(() => _guardando = false);
     }
+  }
+
+  Future<void> _avisarALaClienta(String estado, _Detalle d) async {
+    if (estado != 'CONFIRMED' && estado != 'CANCELLED') return;
+
+    final cita = d.cita;
+    if (cita.clientaTelefono.isEmpty) return;
+
+    final negocio = Sesion.catalogo?.negocio;
+    final texto = estado == 'CONFIRMED'
+        ? Mensajes.citaConfirmada(
+            clienta: cita.clientaNombre,
+            cuando: cita.inicio,
+            servicios: cita.resumenServicios,
+            negocio: negocio?.nombre ?? 'Arialé Studio',
+            totalCentavos: cita.totalCentavos,
+          )
+        : Mensajes.citaCancelada(
+            clienta: cita.clientaNombre,
+            cuando: cita.inicio,
+            servicios: cita.resumenServicios,
+            negocio: negocio?.nombre ?? 'Arialé Studio',
+          );
+
+    await abrirWhatsApp(
+      cita.clientaTelefono,
+      texto,
+      prefijo: negocio?.prefijo ?? '+58',
+    );
   }
 
   @override
@@ -305,20 +342,20 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                           icono: Ico.bien,
                           rotulo: 'Confirmar',
                           principal: true,
-                          alTocar: () => _cambiarEstado('CONFIRMED'),
+                          alTocar: () => _cambiarEstado('CONFIRMED', d),
                         ),
                       if (!cita.atendida && !cita.cancelada)
                         _Accion(
                           icono: Ico.listo,
                           rotulo: 'Atendida',
-                          alTocar: () => _cambiarEstado('ATTENDED'),
+                          alTocar: () => _cambiarEstado('ATTENDED', d),
                         ),
                       if (!cita.cancelada)
                         _Accion(
                           icono: Ico.anular,
                           rotulo: 'Cancelar',
                           color: Marca.error,
-                          alTocar: () => _cambiarEstado('CANCELLED'),
+                          alTocar: () => _cambiarEstado('CANCELLED', d),
                         ),
                     ],
                   ),

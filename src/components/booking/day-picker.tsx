@@ -1,122 +1,169 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import { CalendarDays } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DAY_SHORT } from "@/lib/date";
 
 /**
- * Carrusel horizontal de días, como en la app original: "Hoy 29 / Mañana 30 /
- * Lun 31…". En móvil se desliza con el pulgar; el input de fecha queda detrás
- * del botón de calendario para saltar lejos.
+ * Calendario de mes, que es como se piensa una fecha: "el sábado 13", no "el
+ * día 9 de la fila". Antes esto era un carrusel horizontal de días y había
+ * que deslizarlo a ciegas para llegar a la semana siguiente.
+ *
+ * Todo se calcula en UTC a propósito. Los días viajan como "2026-09-04" y
+ * son días del salón, no del navegador: si se usara la hora local, a alguien
+ * en otro huso le saldría el día corrido.
  */
+
+const DIAS_CABECERA = ["D", "L", "M", "M", "J", "V", "S"];
+
+/** "2026-09-04" → Date en UTC, sin que el huso del navegador lo mueva. */
+function aFecha(dia: string) {
+  const [y, m, d] = dia.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
+
+function aClave(fecha: Date) {
+  return fecha.toISOString().slice(0, 10);
+}
+
 export function DayPicker({
   value,
   onChange,
-  days = 21,
+  days = 60,
   startDay,
   disabledDays,
+  closedWeekdays,
   minDay,
   maxDay,
 }: {
   value: string;
   onChange: (day: string) => void;
+  /** Hasta cuántos días adelante se puede reservar, contados desde hoy. */
   days?: number;
   /** Día inicial en formato yyyy-MM-dd. Por defecto, hoy en el salón. */
   startDay: string;
   /** Días sin atención, en yyyy-MM-dd. */
   disabledDays?: Set<string>;
+  /** Días de la semana en que el estudio no abre (0 = domingo). */
+  closedWeekdays?: number[];
   minDay?: string;
   maxDay?: string;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  // El primero de la ventana: nunca antes de hoy, aunque `minDay` diga otra
+  // cosa, porque el pasado no se agenda.
+  const desde = minDay && minDay > startDay ? minDay : startDay;
+  const hasta = useMemo(() => {
+    if (maxDay) return maxDay;
+    const tope = aFecha(startDay);
+    tope.setUTCDate(tope.getUTCDate() + days);
+    return aClave(tope);
+  }, [maxDay, startDay, days]);
 
-  const options = useMemo(() => {
-    const [y, m, d] = startDay.split("-").map(Number);
-    return Array.from({ length: days }, (_, i) => {
-      const date = new Date(Date.UTC(y, m - 1, d + i));
-      const key = date.toISOString().slice(0, 10);
+  // El mes que se está mirando, como "2026-09". Arranca en el del día ya
+  // elegido, para que al volver atrás en el asistente no se pierda.
+  const [mes, setMes] = useState(() => (value || desde).slice(0, 7));
+
+  const { celdas, titulo, hayAnterior, haySiguiente } = useMemo(() => {
+    const [y, m] = mes.split("-").map(Number);
+    const primero = new Date(Date.UTC(y, m - 1, 1));
+    const diasDelMes = new Date(Date.UTC(y, m, 0)).getUTCDate();
+
+    // Huecos hasta el primer día, para que caiga en su columna.
+    const huecos: null[] = Array.from({ length: primero.getUTCDay() }, () => null);
+    const dias = Array.from({ length: diasDelMes }, (_, i) => {
+      const fecha = new Date(Date.UTC(y, m - 1, i + 1));
+      const clave = aClave(fecha);
       return {
-        key,
-        dayOfWeek: date.getUTCDay(),
-        dayNumber: date.getUTCDate(),
-        month: date.toLocaleDateString("es-VE", { month: "short", timeZone: "UTC" }),
-        offset: i,
+        clave,
+        numero: i + 1,
+        fuera: clave < desde || clave > hasta,
+        cerrado:
+          (disabledDays?.has(clave) ?? false) ||
+          (closedWeekdays?.includes(fecha.getUTCDay()) ?? false),
       };
     });
-  }, [startDay, days]);
 
-  const label = (offset: number, dayOfWeek: number) => {
-    if (offset === 0) return "Hoy";
-    if (offset === 1) return "Mañana";
-    return DAY_SHORT[dayOfWeek];
+    return {
+      celdas: [...huecos, ...dias],
+      titulo: primero.toLocaleDateString("es-VE", {
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }),
+      // Comparar cadenas "yyyy-MM-dd" funciona porque están rellenas a cero.
+      hayAnterior: mes > desde.slice(0, 7),
+      haySiguiente: mes < hasta.slice(0, 7),
+    };
+  }, [mes, desde, hasta, disabledDays, closedWeekdays]);
+
+  const moverMes = (paso: number) => {
+    const [y, m] = mes.split("-").map(Number);
+    const nuevo = new Date(Date.UTC(y, m - 1 + paso, 1));
+    setMes(aClave(nuevo).slice(0, 7));
   };
 
   return (
-    <div className="flex items-stretch gap-2">
-      <div className="no-scrollbar snap-row -mx-1 flex flex-1 gap-2 overflow-x-auto px-1 py-1">
-        {options.map((option) => {
-          const disabled = disabledDays?.has(option.key);
-          const active = value === option.key;
-          return (
-            <button
-              key={option.key}
-              type="button"
-              disabled={disabled}
-              onClick={() => onChange(option.key)}
-              className={cn(
-                "flex w-[4.5rem] shrink-0 flex-col items-center justify-center rounded-2xl border py-2.5 transition",
-                active
-                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                  : disabled
-                    ? "border-border/60 bg-muted/40 text-muted-foreground/45 cursor-not-allowed"
-                    : "border-border bg-card hover:border-primary/50",
-              )}
-            >
-              <span
-                className={cn(
-                  "text-[0.68rem] font-medium",
-                  active ? "text-primary-foreground/80" : "text-muted-foreground",
-                )}
-              >
-                {label(option.offset, option.dayOfWeek)}
-              </span>
-              <span className="font-numeric text-xl leading-tight font-semibold">
-                {option.dayNumber}
-              </span>
-              <span
-                className={cn(
-                  "text-[0.65rem] capitalize",
-                  active ? "text-primary-foreground/75" : "text-muted-foreground",
-                )}
-              >
-                {option.month.replace(".", "")}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="relative shrink-0">
+    <div className="surface-sm mx-auto w-full max-w-sm p-3 sm:p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <button
           type="button"
-          onClick={() => inputRef.current?.showPicker?.()}
-          className="surface border-border hover:border-primary/50 flex h-full w-14 flex-col items-center justify-center gap-1 transition"
+          onClick={() => moverMes(-1)}
+          disabled={!hayAnterior}
+          aria-label="Mes anterior"
+          className="hover:bg-muted disabled:text-muted-foreground/35 grid size-9 place-items-center rounded-full transition disabled:hover:bg-transparent"
         >
-          <CalendarDays className="text-muted-foreground size-4" />
-          <span className="text-muted-foreground text-[0.6rem]">Otro día</span>
+          <ChevronLeft className="size-4" />
         </button>
-        <input
-          ref={inputRef}
-          type="date"
-          value={value}
-          min={minDay}
-          max={maxDay}
-          onChange={(event) => event.target.value && onChange(event.target.value)}
-          className="pointer-events-none absolute inset-0 size-full opacity-0"
-          tabIndex={-1}
-          aria-label="Elegir otra fecha"
-        />
+        <p className="text-[15px] font-medium first-letter:uppercase">{titulo}</p>
+        <button
+          type="button"
+          onClick={() => moverMes(1)}
+          disabled={!haySiguiente}
+          aria-label="Mes siguiente"
+          className="hover:bg-muted disabled:text-muted-foreground/35 grid size-9 place-items-center rounded-full transition disabled:hover:bg-transparent"
+        >
+          <ChevronRight className="size-4" />
+        </button>
+      </div>
+
+      <div className="text-muted-foreground grid grid-cols-7 gap-1 text-center text-[0.7rem] font-medium">
+        {DIAS_CABECERA.map((d, i) => (
+          <span key={i} className="py-1">
+            {d}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-1 grid grid-cols-7 gap-1">
+        {celdas.map((celda, i) =>
+          celda === null ? (
+            <span key={`hueco-${i}`} />
+          ) : (
+            <button
+              key={celda.clave}
+              type="button"
+              disabled={celda.fuera || celda.cerrado}
+              onClick={() => onChange(celda.clave)}
+              // Un día cerrado se tacha; uno fuera de la ventana solo se
+              // apaga. No es lo mismo "ese día no abrimos" que "todavía no
+              // se puede agendar tan lejos".
+              className={cn(
+                "font-numeric grid aspect-square place-items-center rounded-xl text-sm transition",
+                value === celda.clave
+                  ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                  : celda.fuera
+                    ? "text-muted-foreground/30 cursor-not-allowed"
+                    : celda.cerrado
+                      ? "text-muted-foreground/40 cursor-not-allowed line-through"
+                      : celda.clave === startDay
+                        ? "border-primary/50 hover:bg-muted border font-semibold"
+                        : "hover:bg-muted",
+              )}
+            >
+              {celda.numero}
+            </button>
+          ),
+        )}
       </div>
     </div>
   );

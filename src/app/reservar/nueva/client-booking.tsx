@@ -15,6 +15,7 @@ export function ClientBooking({
   packages,
   today,
   maxDay,
+  closedWeekdays,
   rate,
   autoConfirm,
   business,
@@ -24,6 +25,7 @@ export function ClientBooking({
   packages: PackageBalance[];
   today: string;
   maxDay: string;
+  closedWeekdays: number[];
   rate: number;
   autoConfirm: boolean;
   business: string;
@@ -120,6 +122,7 @@ export function ClientBooking({
         packages={packages}
         today={today}
         maxDay={maxDay}
+        closedWeekdays={closedWeekdays}
         rate={rate}
         submitLabel={autoConfirm ? "Confirmar cita" : "Reservar cita"}
         pendingLabel="Reservando…"

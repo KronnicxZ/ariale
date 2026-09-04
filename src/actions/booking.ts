@@ -6,7 +6,8 @@ import { getCurrentClient, getCurrentSpecialist, getCurrentUser } from "@/lib/au
 import { getSettings } from "@/lib/settings";
 import { createAppointment, findOrCreateClient } from "@/actions/appointments";
 import { repartirServicios } from "@/lib/slots";
-import { fmtDayLong, fmtTime } from "@/lib/date";
+import { fmtDayLong, fmtDayShort, fmtTime } from "@/lib/date";
+import { avisarNuevaCita } from "@/lib/push";
 import { toMessage } from "@/actions/shared";
 
 export type BookingInput = {
@@ -100,10 +101,26 @@ async function book(
             time: input.time,
             note: input.note,
             source,
+            // Una reserva, un aviso: se manda abajo con los servicios de
+            // las dos citas juntos.
+            silenciar: true,
           }),
         );
       }
       const [primera] = citas;
+
+      if (source === "CLIENT") {
+        avisarNuevaCita({
+          appointmentId: primera.id,
+          clientName: primera.client.name,
+          services: citas.flatMap((c) => c.services.map((s) => s.service.name)).join(" + "),
+          day: fmtDayShort(primera.startAt, settings.timezone),
+          time: fmtTime(primera.startAt, settings.timezone),
+        }).catch((error) => {
+          console.error("[push] no se pudo avisar la nueva cita", error);
+        });
+      }
+
       return {
         ok: true,
         appointmentId: primera.id,

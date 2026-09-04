@@ -32,6 +32,8 @@ type Props = {
   /** Hoy en la zona horaria del salón, en yyyy-MM-dd. */
   today: string;
   maxDay?: string;
+  /** Días de la semana en que el estudio no abre (0 = domingo). */
+  closedWeekdays?: number[];
   rate?: number;
   packages?: PackageBalance[];
   /** Fija la especialista y oculta el selector (zona de la especialista). */
@@ -64,6 +66,7 @@ export function BookingWizard({
   specialists,
   today,
   maxDay,
+  closedWeekdays,
   rate,
   packages = [],
   lockedSpecialistId,
@@ -390,7 +393,14 @@ export function BookingWizard({
               La cita dura {fmtDuration(totalMinutes)}.
             </p>
           </header>
-          <DayPicker value={day} onChange={setDay} startDay={today} minDay={today} maxDay={maxDay} />
+          <DayPicker
+            value={day}
+            onChange={setDay}
+            startDay={today}
+            minDay={today}
+            maxDay={maxDay}
+            closedWeekdays={closedWeekdays}
+          />
         </section>
       ) : null}
 

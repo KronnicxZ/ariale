@@ -6,7 +6,7 @@ import { NewAppointment } from "./new-appointment";
 export const metadata = { title: "Nueva cita" };
 
 export default async function NewAppointmentPage() {
-  const [{ settings, services, specialists, today, maxDay }, clients, rate] = await Promise.all([
+  const [{ settings, services, specialists, today, maxDay, closedWeekdays }, clients, rate] = await Promise.all([
     getBookingOptions(),
     getClientOptions(),
     getRate(),
@@ -21,6 +21,7 @@ export default async function NewAppointmentPage() {
         specialists={specialists}
         today={today}
         maxDay={maxDay}
+        closedWeekdays={closedWeekdays}
         rate={rate.rate}
         countryCode={settings.countryCode}
       />

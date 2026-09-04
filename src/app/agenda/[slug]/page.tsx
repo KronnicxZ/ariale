@@ -77,6 +77,7 @@ export default async function SpecialistAgendaPage(props: PageProps<"/agenda/[sl
       day={day}
       today={today}
       maxDay={booking.maxDay}
+      closedWeekdays={booking.closedWeekdays}
       appointments={appointments.map((a) => ({
         id: a.id,
         startAt: a.startAt.toISOString(),

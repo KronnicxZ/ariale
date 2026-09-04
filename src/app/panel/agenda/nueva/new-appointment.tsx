@@ -17,6 +17,7 @@ type Props = {
   specialists: SpecialistOption[];
   today: string;
   maxDay: string;
+  closedWeekdays: number[];
   rate: number;
   countryCode: string;
 };
@@ -27,6 +28,7 @@ export function NewAppointment({
   specialists,
   today,
   maxDay,
+  closedWeekdays,
   rate,
   countryCode,
 }: Props) {
@@ -147,6 +149,7 @@ export function NewAppointment({
         specialists={specialists}
         today={today}
         maxDay={maxDay}
+        closedWeekdays={closedWeekdays}
         rate={rate}
         submitLabel="Confirmar cita"
         pendingLabel="Agendando…"
