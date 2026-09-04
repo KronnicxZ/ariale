@@ -103,7 +103,7 @@ export function DayPicker({
   };
 
   return (
-    <div className="surface-sm mx-auto w-full max-w-sm p-3 sm:p-4">
+    <div className="surface-sm w-full p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <button
           type="button"
@@ -148,7 +148,7 @@ export function DayPicker({
               // apaga. No es lo mismo "ese día no abrimos" que "todavía no
               // se puede agendar tan lejos".
               className={cn(
-                "font-numeric grid aspect-square place-items-center rounded-xl text-sm transition",
+                "font-numeric grid h-11 place-items-center rounded-xl text-sm transition sm:h-12",
                 value === celda.clave
                   ? "bg-primary text-primary-foreground font-semibold shadow-sm"
                   : celda.fuera
