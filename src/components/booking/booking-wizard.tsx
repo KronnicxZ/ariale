@@ -231,7 +231,19 @@ export function BookingWizard({
    * en su día y a su hora, para quien prefiere venir dos veces.
    */
   const [porSeparado, setPorSeparado] = useState(false);
-  const separadas = Boolean(reparto) && porSeparado;
+
+  /**
+   * La combinación de servicios para la que se comprobó que las dos NO
+   * coinciden libres ningún día. Se guarda la combinación y no un booleano
+   * para que, al cambiar de servicios, deje de valer sola.
+   */
+  const [sinDiasJuntas, setSinDiasJuntas] = useState<string | null>(null);
+  const claveServicios = serviceIds.join(",");
+  const juntasImposible = Boolean(reparto) && sinDiasJuntas === claveServicios;
+
+  // Si no hay un solo día con las dos a la vez, ir por separado deja de ser
+  // una preferencia y pasa a ser la única forma de reservar.
+  const separadas = Boolean(reparto) && (porSeparado || juntasImposible);
 
   /**
    * El día y la hora de cada especialista cuando van por separado. Va por id
@@ -273,6 +285,16 @@ export function BookingWizard({
   const indice = Math.min(pasoIndex, pasos.length - 1);
   const paso = pasos[indice];
   const esUltimo = indice === pasos.length - 1;
+
+  /**
+   * Cuántos días admiten a las dos a la vez. Solo tiene sentido en el paso
+   * de "¿Una visita o dos?", que es donde se pregunta por la cita entera sin
+   * especialista fija —y eso es justo la intersección de las dos agendas.
+   */
+  const diasJuntas =
+    paso?.tipo === "quien" && reparto && !porSeparado && diasConHueco
+      ? diasConHueco.size
+      : null;
 
   // El grupo que se está agendando ahora mismo, si van por separado.
   const grupoActivo = paso.grupo;
@@ -325,6 +347,8 @@ export function BookingWizard({
    * Sin esto, entrar de noche dejaba hoy marcado, el salón ya cerrado y el
    * paso de la hora en blanco. Que es lo que le pasó a una clienta.
    */
+  /** La consulta en curso pregunta por las dos juntas, no por un grupo. */
+  const esConsultaJunta = Boolean(reparto) && !repartoActivo && especialistaDelPaso === null;
   const peticionDias = useRef(0);
   useEffect(() => {
     // Sin servicios no hay nada que preguntar. Tampoco hace falta limpiar:
@@ -339,14 +363,18 @@ export function BookingWizard({
           serviceIds: serviciosDelPaso,
           specialistId: especialistaDelPaso,
         });
-        if (id === peticionDias.current) setDiasConHueco(new Set(r.dias));
+        if (id !== peticionDias.current) return;
+        setDiasConHueco(new Set(r.dias));
+        // Cuando la pregunta era por la cita entera y sin especialista fija,
+        // la respuesta ES la coincidencia de las dos agendas.
+        if (esConsultaJunta) setSinDiasJuntas(r.dias.length === 0 ? claveServicios : null);
       } catch {
         // Si falla, mejor un calendario entero abierto que uno todo apagado.
         if (id === peticionDias.current) setDiasConHueco(null);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clavePaso, especialistaDelPaso, today, maxDay]);
+  }, [clavePaso, especialistaDelPaso, today, maxDay, esConsultaJunta]);
 
   useEffect(() => {
     if (serviciosDelPaso.length === 0) return;
@@ -550,30 +578,67 @@ export function BookingWizard({
           <div className="grid gap-2 sm:grid-cols-2">
             {(
               [
-                [false, "A la misma hora", "Vienes una vez y te atienden las dos a la vez."],
-                [true, "Cada una por su lado", "Eliges día y hora para cada una. Vienes dos veces."],
+                [
+                  false,
+                  "A la misma hora",
+                  "Vienes una vez y te atienden las dos a la vez.",
+                  // Con las dos a la vez hacen falta dos agendas libres al
+                  // mismo tiempo, así que quedan bastantes menos días. Se
+                  // dice aquí, antes de elegir, y no después en un calendario
+                  // medio apagado.
+                  juntasImposible
+                    ? "No coinciden libres ningún día."
+                    : diasJuntas === null
+                      ? null
+                      : `${diasJuntas} ${diasJuntas === 1 ? "día" : "días"} con las dos a la vez.`,
+                  juntasImposible,
+                ],
+                [
+                  true,
+                  "Cada una por su lado",
+                  "Eliges día y hora para cada una. Vienes dos veces.",
+                  juntasImposible
+                    ? "La única forma de reservar esto."
+                    : diasJuntas !== null && diasJuntas < 5
+                      ? "Más días para elegir."
+                      : null,
+                  false,
+                ],
               ] as const
-            ).map(([valor, titulo, detalle]) => (
+            ).map(([valor, titulo, detalle, aviso, apagado]) => (
               <button
                 key={String(valor)}
                 type="button"
+                disabled={apagado}
                 onClick={() => setPorSeparado(valor)}
                 className={cn(
                   "rounded-2xl border px-4 py-3.5 text-left transition",
-                  porSeparado === valor
-                    ? "border-primary bg-primary/10"
-                    : "border-border bg-card hover:border-primary/50",
+                  apagado
+                    ? "border-border bg-muted/40 cursor-not-allowed opacity-70"
+                    : porSeparado === valor
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-card hover:border-primary/50",
                 )}
               >
                 <span
                   className={cn(
                     "block text-sm font-semibold",
-                    porSeparado === valor && "text-primary",
+                    porSeparado === valor && !apagado && "text-primary",
                   )}
                 >
                   {titulo}
                 </span>
                 <span className="text-muted-foreground mt-0.5 block text-xs">{detalle}</span>
+                {aviso ? (
+                  <span
+                    className={cn(
+                      "mt-1.5 block text-xs font-medium",
+                      apagado ? "text-muted-foreground" : "text-primary",
+                    )}
+                  >
+                    {aviso}
+                  </span>
+                ) : null}
               </button>
             ))}
           </div>

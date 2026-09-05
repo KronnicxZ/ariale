@@ -52,6 +52,13 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
   String _loDeSiempreTexto = '';
   bool _yaUseSugerencia = false;
   String? _motivoSinHuecos;
+
+  /// Los días con al menos un hueco para lo elegido. Vacío mientras no se
+  /// sabe: entonces la tira sale entera encendida, que es mejor que
+  /// apagarla toda por precaución.
+  Set<String>? _diasConHueco;
+  int _peticionDias = 0;
+
   bool _cargandoHuecos = false;
   bool _guardando = false;
   String? _error;
@@ -167,6 +174,41 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     return grupos
         .map((l) => l.fold(0, (suma, s) => suma + s.duracionMin))
         .reduce((a, b) => a > b ? a : b);
+  }
+
+  /// Qué días tienen sitio, para no ofrecer jornadas donde ya no cabe nada.
+  ///
+  /// Si el día que estaba puesto se queda sin hueco —por ejemplo hoy, ya
+  /// pasada la hora de cierre— se corre solo al primero que sí lo tiene.
+  Future<void> _recargarDias() async {
+    if (_servicioIds.isEmpty) {
+      setState(() => _diasConHueco = null);
+      return;
+    }
+    final id = ++_peticionDias;
+    try {
+      final datos = await Sesion.de(context).obtener(
+        '/api/v1/dias',
+        params: {
+          'desde': _catalogo.hoy,
+          'hasta': _catalogo.maxDia,
+          'servicios': _servicioIds.join(','),
+          if (_especialistaActivo case final e?) 'especialista': e,
+        },
+      );
+      if (id != _peticionDias || !mounted) return;
+      final dias = {for (final d in (datos['dias'] as List)) d as String};
+      final hayQueMoverse = dias.isNotEmpty && !dias.contains(_dia);
+      setState(() {
+        _diasConHueco = dias;
+        if (hayQueMoverse) _dia = dias.first;
+      });
+      if (hayQueMoverse) await _recargarHuecos();
+    } on ErrorApi {
+      // Un fallo aquí no debe estropear el agendado: la tira se queda
+      // entera encendida y los huecos siguen mandando.
+      if (mounted && id == _peticionDias) setState(() => _diasConHueco = null);
+    }
   }
 
   Future<void> _recargarHuecos() async {
@@ -317,6 +359,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
         ..addAll(_loDeSiempre);
     });
     _recargarHuecos();
+    _recargarDias();
   }
 
   void _alternarServicio(String id) {
@@ -328,6 +371,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
       }
     });
     _recargarHuecos();
+    _recargarDias();
   }
 
   Future<void> _guardar() async {
@@ -469,6 +513,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
                       onSelected: (_) {
                         setState(() => _especialistaId = e.id);
                         _recargarHuecos();
+                        _recargarDias();
                       },
                       avatar: CircleAvatar(
                         backgroundColor: Marca.desdeHex(e.color),
@@ -511,6 +556,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
               dia: _dia,
               desde: _catalogo.hoy,
               hasta: _catalogo.maxDia,
+              conHueco: _diasConHueco,
               alElegir: (d) {
                 setState(() => _dia = d);
                 _recargarHuecos();
@@ -949,12 +995,16 @@ class _SelectorDia extends StatelessWidget {
     required this.desde,
     required this.hasta,
     required this.alElegir,
+    this.conHueco,
   });
 
   final String dia;
   final String desde;
   final String hasta;
   final ValueChanged<String> alElegir;
+
+  /// Los días con sitio. Nulo mientras no se sabe: todos encendidos.
+  final Set<String>? conHueco;
 
   static const _nombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
@@ -982,12 +1032,16 @@ class _SelectorDia extends StatelessWidget {
           final fecha = dias[i];
           final clave = claveDia(fecha);
           final activo = clave == dia;
+          // Sin hueco es, para quien agenda, lo mismo que cerrado.
+          final lleno = conHueco != null && !conHueco!.contains(clave);
 
-          return Material(
+          return Opacity(
+            opacity: lleno ? 0.38 : 1,
+            child: Material(
             color: activo ? Marca.dorado : Marca.tarjeta,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
-              onTap: () => alElegir(clave),
+              onTap: lleno ? null : () => alElegir(clave),
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 width: 66,
@@ -1014,11 +1068,14 @@ class _SelectorDia extends StatelessWidget {
                     ),
                     Text(
                       '${fecha.day}',
-                      style: cifra(19, color: activo ? Marca.negro : Marca.texto),
+                      style: cifra(19, color: activo ? Marca.negro : Marca.texto).copyWith(
+                        decoration: lleno ? TextDecoration.lineThrough : null,
+                      ),
                     ),
                   ],
                 ),
               ),
+            ),
             ),
           );
         },
