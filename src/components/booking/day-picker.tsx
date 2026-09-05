@@ -33,6 +33,8 @@ export function DayPicker({
   startDay,
   disabledDays,
   closedWeekdays,
+  openDays,
+  loading = false,
   minDay,
   maxDay,
 }: {
@@ -46,6 +48,14 @@ export function DayPicker({
   disabledDays?: Set<string>;
   /** Días de la semana en que el estudio no abre (0 = domingo). */
   closedWeekdays?: number[];
+  /**
+   * Los días que sí tienen hueco para lo que se pidió. `null` o sin pasar
+   * deja el mes entero abierto: es lo que se ve mientras llega la respuesta,
+   * y es mejor que apagarlo todo por precaución.
+   */
+  openDays?: Set<string> | null;
+  /** Mientras se averigua, el calendario se atenua en vez de mentir. */
+  loading?: boolean;
   minDay?: string;
   maxDay?: string;
 }) {
@@ -79,7 +89,9 @@ export function DayPicker({
         fuera: clave < desde || clave > hasta,
         cerrado:
           (disabledDays?.has(clave) ?? false) ||
-          (closedWeekdays?.includes(fecha.getUTCDay()) ?? false),
+          (closedWeekdays?.includes(fecha.getUTCDay()) ?? false) ||
+          // Sin hueco es, para quien reserva, lo mismo que cerrado.
+          (openDays != null && !openDays.has(clave)),
       };
     });
 
@@ -94,7 +106,7 @@ export function DayPicker({
       hayAnterior: mes > desde.slice(0, 7),
       haySiguiente: mes < hasta.slice(0, 7),
     };
-  }, [mes, desde, hasta, disabledDays, closedWeekdays]);
+  }, [mes, desde, hasta, disabledDays, closedWeekdays, openDays]);
 
   const moverMes = (paso: number) => {
     const [y, m] = mes.split("-").map(Number);
@@ -103,7 +115,13 @@ export function DayPicker({
   };
 
   return (
-    <div className="surface-sm w-full p-3 sm:p-4">
+    <div
+      className={cn(
+        "surface-sm w-full p-3 transition-opacity sm:p-4",
+        loading && "pointer-events-none opacity-60",
+      )}
+      aria-busy={loading}
+    >
       <div className="mb-3 flex items-center justify-between gap-2">
         <button
           type="button"

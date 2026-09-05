@@ -328,3 +328,164 @@ export async function getAvailabilityRepartida(options: {
     reason: slots.length === 0 ? `${nombres} no coinciden libres ese día.` : undefined,
   };
 }
+
+/**
+ * Qué días de un tramo tienen al menos un hueco.
+ *
+ * Existe para que el calendario no ofrezca días vacíos. El caso que lo
+ * motivó: una clienta entró a las siete de la tarde, el calendario venía con
+ * hoy marcado, el salón cerraba a las seis y el paso de la hora salió en
+ * blanco. Técnicamente correcto y, para ella, la app rota.
+ *
+ * Va de una sola pasada. Preguntar día por día son cuarenta y cinco viajes a
+ * la base cada vez que se toca un servicio; aquí se traen las citas del tramo
+ * entero una vez y el resto se calcula en memoria.
+ */
+export async function getDiasConHueco(options: {
+  desde: string;
+  hasta: string;
+  serviceIds: string[];
+  /** Si viene, solo cuenta ella. Si no, quien sepa hacer lo elegido. */
+  specialistId?: string | null;
+}): Promise<string[]> {
+  const { desde, hasta, serviceIds, specialistId } = options;
+
+  const [settings, workingHours, servicios, equipo] = await Promise.all([
+    prisma.settings.findFirst(),
+    prisma.workingHour.findMany(),
+    prisma.service.findMany({
+      where: { id: { in: serviceIds } },
+      select: { id: true, durationMin: true, category: { select: { kind: true } } },
+    }),
+    prisma.specialist.findMany({
+      where: { active: true },
+      select: { id: true, skills: { select: { serviceId: true } } },
+    }),
+  ]);
+
+  const tz = settings?.timezone ?? TZ;
+  const slotMinutes = settings?.slotMinutes ?? 30;
+  const minHoursAhead = settings?.minHoursAhead ?? 1;
+
+  if (servicios.length === 0) return [];
+
+  // Los grupos que se van a agendar: uno solo, o uno por área cuando la cita
+  // se reparte. Es el mismo criterio que usa el asistente al reservar.
+  type Grupo = { specialistIds: string[]; durationMin: number };
+  let grupos: Grupo[];
+
+  if (specialistId) {
+    grupos = [
+      { specialistIds: [specialistId], durationMin: sumaDuracion(servicios) },
+    ];
+  } else {
+    const reparto = await repartirServicios(serviceIds);
+    if (!reparto || reparto.huerfanos.length > 0) return [];
+
+    if (reparto.grupos.length >= 2) {
+      grupos = reparto.grupos.map((g) => ({
+        specialistIds: [g.specialistId],
+        durationMin: g.durationMin || 30,
+      }));
+    } else {
+      // Una sola área: vale cualquiera del equipo que sepa hacerlo todo.
+      const pueden = equipo.filter((e) => {
+        const sabe = e.skills.map((k) => k.serviceId);
+        return sabe.length === 0 || serviceIds.every((id) => sabe.includes(id));
+      });
+      if (pueden.length === 0) return [];
+      grupos = [{ specialistIds: pueden.map((e) => e.id), durationMin: sumaDuracion(servicios) }];
+    }
+  }
+
+  const todasLasQueImportan = [...new Set(grupos.flatMap((g) => g.specialistIds))];
+
+  const inicio = startOfDayUtc(desde, tz);
+  const fin = endOfDayUtc(hasta, tz);
+  const [citas, bloqueos] = await Promise.all([
+    prisma.appointment.findMany({
+      where: {
+        startAt: { gte: inicio, lte: fin },
+        status: { notIn: ["CANCELLED", "NO_SHOW"] },
+        specialistId: { in: todasLasQueImportan },
+      },
+      select: { startAt: true, endAt: true, specialistId: true },
+    }),
+    prisma.timeOff.findMany({
+      where: {
+        startAt: { lte: fin },
+        endAt: { gte: inicio },
+        specialistId: { in: todasLasQueImportan },
+      },
+      select: { startAt: true, endAt: true, specialistId: true },
+    }),
+  ]);
+
+  // Ocupación por día y por especialista, en minutos desde medianoche.
+  const ocupado = new Map<string, [number, number][]>();
+  const anotar = (dia: string, quien: string, desdeMin: number, hastaMin: number) => {
+    const clave = `${dia}|${quien}`;
+    const lista = ocupado.get(clave) ?? [];
+    lista.push([desdeMin, hastaMin]);
+    ocupado.set(clave, lista);
+  };
+  const minutosDe = (fecha: Date) => {
+    const local = toTz(fecha, tz);
+    return local.getHours() * 60 + local.getMinutes();
+  };
+
+  for (const c of citas) {
+    anotar(dayKey(c.startAt, tz), c.specialistId, minutosDe(c.startAt), minutosDe(c.endAt));
+  }
+  for (const b of bloqueos) {
+    // Un bloqueo puede cruzar varios días: se recorta a cada uno.
+    let cursor = startOfDayUtc(dayKey(b.startAt, tz), tz);
+    while (cursor <= b.endAt && cursor <= fin) {
+      const dia = dayKey(cursor, tz);
+      const finDelDia = endOfDayUtc(dia, tz);
+      anotar(
+        dia,
+        b.specialistId,
+        b.startAt < cursor ? 0 : minutosDe(b.startAt),
+        b.endAt > finDelDia ? 24 * 60 : minutosDe(b.endAt),
+      );
+      cursor = addDays(cursor, 1);
+    }
+  }
+
+  const minimo = addMinutes(new Date(), minHoursAhead * 60);
+  const conHueco: string[] = [];
+
+  for (let dia = desde; dia <= hasta; dia = dayKey(addDays(startOfDayUtc(dia, tz), 1), tz)) {
+    const dow = toTz(startOfDayUtc(dia, tz), tz).getDay();
+    const horario = workingHours.find((h) => h.dayOfWeek === dow);
+    if (!horario || !horario.enabled) continue;
+
+    const abre = minutesOf(horario.openTime);
+    const cierra = minutesOf(horario.closeTime);
+
+    const libreEn = (inicioMin: number, grupo: Grupo) =>
+      grupo.specialistIds.some((quien) =>
+        (ocupado.get(`${dia}|${quien}`) ?? []).every(
+          ([oi, of]) => !overlaps(inicioMin, inicioMin + grupo.durationMin, oi, of),
+        ),
+      );
+
+    let hayAlguno = false;
+    for (let inicioMin = abre; !hayAlguno; inicioMin += slotMinutes) {
+      // Cada grupo tiene su propia duración: la hora sirve si a todos les cabe.
+      if (grupos.some((g) => inicioMin + g.durationMin > cierra)) break;
+      if (!grupos.every((g) => libreEn(inicioMin, g))) continue;
+      if (tzDateTimeToUtc(dia, timeOf(inicioMin), tz) < minimo) continue;
+      hayAlguno = true;
+    }
+
+    if (hayAlguno) conHueco.push(dia);
+  }
+
+  return conHueco;
+}
+
+function sumaDuracion(servicios: { durationMin: number }[]) {
+  return servicios.reduce((suma, s) => suma + s.durationMin, 0) || 30;
+}

@@ -13,7 +13,7 @@ import {
   type ServiceOption,
   type SpecialistOption,
 } from "@/components/booking/types";
-import { fetchSlotsAction } from "@/actions/appointments";
+import { fetchDiasAction, fetchSlotsAction } from "@/actions/appointments";
 import { formatBs, formatUsd } from "@/lib/money";
 import { fmtDuration } from "@/lib/date";
 import { cn } from "@/lib/utils";
@@ -239,6 +239,13 @@ export function BookingWizard({
    * el reparto se recalcula y una lista posicional se desalinearía sola.
    * Lo que sobra aquí simplemente no se lee.
    */
+  /**
+   * Los días con al menos un hueco. `null` mientras no se sabe, para no
+   * apagar medio calendario antes de que llegue la respuesta.
+   */
+  const [diasConHueco, setDiasConHueco] = useState<Set<string> | null>(null);
+  const [buscandoDias, startBuscarDias] = useTransition();
+
   const [porEspecialista, setPorEspecialista] = useState<
     Record<string, { day: string; time: string | null }>
   >({});
@@ -273,7 +280,12 @@ export function BookingWizard({
   const agendaActiva = grupoActivo === undefined ? null : (agenda[grupoActivo] ?? null);
 
   /** El día y la hora que está tocando la clienta en este paso. */
-  const diaActual = agendaActiva ? agendaActiva.day : day;
+  const diaGuardado = agendaActiva ? agendaActiva.day : day;
+  const primeroConHueco = diasConHueco && diasConHueco.size > 0 ? [...diasConHueco][0] : null;
+  const diaActual =
+    diasConHueco && !diasConHueco.has(diaGuardado) && primeroConHueco
+      ? primeroConHueco
+      : diaGuardado;
   const horaActual = agendaActiva ? agendaActiva.time : time;
   const ponerDia = (nuevo: string) => {
     if (!repartoActivo) return setDay(nuevo);
@@ -304,6 +316,37 @@ export function BookingWizard({
   const idEspecialistaDelPaso = repartoActivo ? repartoActivo.specialist.id : null;
   const especialistaDelPaso = idEspecialistaDelPaso ?? activeSpecialistId;
   const clavePaso = serviciosDelPaso.join(",");
+
+  /**
+   * Qué días tienen hueco para lo elegido. Se pregunta una vez por
+   * combinación de servicios, no por día: el calendario los necesita todos a
+   * la vez para poder apagar los que no sirven.
+   *
+   * Sin esto, entrar de noche dejaba hoy marcado, el salón ya cerrado y el
+   * paso de la hora en blanco. Que es lo que le pasó a una clienta.
+   */
+  const peticionDias = useRef(0);
+  useEffect(() => {
+    // Sin servicios no hay nada que preguntar. Tampoco hace falta limpiar:
+    // al paso del día no se llega sin haber elegido algo.
+    if (serviciosDelPaso.length === 0) return;
+    const id = ++peticionDias.current;
+    startBuscarDias(async () => {
+      try {
+        const r = await fetchDiasAction({
+          desde: today,
+          hasta: maxDay ?? today,
+          serviceIds: serviciosDelPaso,
+          specialistId: especialistaDelPaso,
+        });
+        if (id === peticionDias.current) setDiasConHueco(new Set(r.dias));
+      } catch {
+        // Si falla, mejor un calendario entero abierto que uno todo apagado.
+        if (id === peticionDias.current) setDiasConHueco(null);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clavePaso, especialistaDelPaso, today, maxDay]);
 
   useEffect(() => {
     if (serviciosDelPaso.length === 0) return;
@@ -581,6 +624,9 @@ export function BookingWizard({
               {repartoActivo
                 ? `${repartoActivo.services.map((x) => x.name).join(" + ")} · ${fmtDuration(minutosDelPaso)}`
                 : `La cita dura ${fmtDuration(totalMinutes)}.`}
+              {diasConHueco && diasConHueco.size > 0
+                ? " Los días apagados están llenos o cerrados."
+                : ""}
             </p>
           </header>
           <DayPicker
@@ -590,6 +636,8 @@ export function BookingWizard({
             minDay={today}
             maxDay={maxDay}
             closedWeekdays={closedWeekdays}
+            openDays={diasConHueco}
+            loading={buscandoDias}
           />
         </section>
       ) : null}

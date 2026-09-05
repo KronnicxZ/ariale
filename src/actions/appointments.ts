@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
-import { getAvailability, getAvailabilityRepartida, repartirServicios } from "@/lib/slots";
+import {
+  getAvailability,
+  getAvailabilityRepartida,
+  getDiasConHueco,
+  repartirServicios,
+} from "@/lib/slots";
 import { normalizePhone } from "@/lib/utils";
 import { fmtDayShort, fmtTime, tzDateTimeToUtc } from "@/lib/date";
 import { avisarNuevaCita } from "@/lib/push";
@@ -272,6 +277,27 @@ export async function fetchSlotsAction(input: {
     durationMin,
     slots: availability.slots.map((s) => ({ time: s.time, period: s.period })),
   };
+}
+
+/**
+ * Qué días del tramo tienen al menos un hueco, para que el calendario apague
+ * los que no. Sin esto, la clienta podía elegir un día cualquiera y toparse
+ * con la lista de horas vacía —que fue justo lo que pasó.
+ */
+export async function fetchDiasAction(input: {
+  desde: string;
+  hasta: string;
+  serviceIds: string[];
+  specialistId?: string | null;
+}) {
+  if (input.serviceIds.length === 0) return { dias: [] as string[] };
+  const dias = await getDiasConHueco({
+    desde: input.desde,
+    hasta: input.hasta,
+    serviceIds: input.serviceIds,
+    specialistId: input.specialistId ?? null,
+  });
+  return { dias };
 }
 
 /** Busca o crea la clienta por teléfono. El teléfono es la identidad. */
