@@ -379,10 +379,13 @@ export async function getDiasConHueco(options: {
       { specialistIds: [specialistId], durationMin: sumaDuracion(servicios) },
     ];
   } else {
+    // `repartirServicios` devuelve null cuando no hay nada que repartir: una
+    // sola área, o la misma persona mejor para las dos. Eso NO es "no hay
+    // días" —es el caso normal— y confundirlo apagaba el calendario entero.
     const reparto = await repartirServicios(serviceIds);
-    if (!reparto || reparto.huerfanos.length > 0) return [];
+    if (reparto && reparto.huerfanos.length > 0) return [];
 
-    if (reparto.grupos.length >= 2) {
+    if (reparto && reparto.grupos.length >= 2) {
       grupos = reparto.grupos.map((g) => ({
         specialistIds: [g.specialistId],
         durationMin: g.durationMin || 30,
