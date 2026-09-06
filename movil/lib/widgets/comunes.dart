@@ -494,10 +494,15 @@ class FilaDato extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 7),
+      // Los dos lados ceden. Antes el rótulo iba en `Expanded` y el valor sin
+      // límite: una dirección larga se quedaba con todo el ancho y dejaba
+      // "Dirección" escrito en vertical, una letra por línea, con el final
+      // del valor fuera de la pantalla.
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
+          Flexible(
+            flex: 2,
             child: Text(
               rotulo,
               style: destacado
@@ -510,10 +515,13 @@ class FilaDato extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            valor,
-            textAlign: TextAlign.right,
-            style: cifra(destacado ? 16 : 14.5, color: color),
+          Flexible(
+            flex: 3,
+            child: Text(
+              valor,
+              textAlign: TextAlign.right,
+              style: cifra(destacado ? 16 : 14.5, color: color),
+            ),
           ),
         ],
       ),
@@ -580,4 +588,37 @@ class BarraProporcion extends StatelessWidget {
       ),
     );
   }
+}
+
+
+/// Pregunta antes de algo que no se puede deshacer.
+///
+/// Devuelve `true` solo si la respuesta fue que sí. El botón de confirmar va
+/// en rojo y con el verbo puesto —"Eliminar", no "Aceptar"— para que se lea
+/// qué va a pasar sin tener que releer el enunciado.
+Future<bool> confirmar(
+  BuildContext context, {
+  required String titulo_,
+  required String mensaje,
+  String confirmarTexto = 'Eliminar',
+}) async {
+  final respuesta = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(titulo_),
+      content: Text(mensaje, style: const TextStyle(fontSize: 14, height: 1.35)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: Marca.error),
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(confirmarTexto),
+        ),
+      ],
+    ),
+  );
+  return respuesta ?? false;
 }

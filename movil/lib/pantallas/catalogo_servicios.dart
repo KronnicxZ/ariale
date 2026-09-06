@@ -61,6 +61,22 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
     if (guardado == true) _refrescar();
   }
 
+  Future<void> _editarBono([_Bono? bono]) async {
+    final datos = await _futuro;
+    if (!mounted) return;
+
+    final guardado = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Marca.fondo,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _HojaBono(bono: bono, servicios: datos.servicios),
+    );
+    if (guardado == true) _refrescar();
+  }
+
   Future<void> _alternar(_Servicio servicio) async {
     final mensajero = ScaffoldMessenger.of(context);
     try {
@@ -78,15 +94,13 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Servicios y bonos')),
-      floatingActionButton: _verBonos
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _editarServicio(null),
-              backgroundColor: Marca.dorado,
-              foregroundColor: Marca.negro,
-              icon: const Icon(Ico.agregar),
-              label: const Text('Nuevo servicio'),
-            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _verBonos ? _editarBono(null) : _editarServicio(null),
+        backgroundColor: Marca.dorado,
+        foregroundColor: Marca.negro,
+        icon: const Icon(Ico.agregar),
+        label: Text(_verBonos ? 'Nuevo bono' : 'Nuevo servicio'),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -219,13 +233,16 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
             const Vacio(
               icono: Ico.bonos,
               titulo: 'Todavía no hay bonos',
-              descripcion: 'Se crean desde el panel web, con los servicios que cubren.',
+              descripcion: 'Toca «Nuevo bono» y elige qué servicios cubre.',
             )
           else
             ...datos.bonos.map(
               (b) => Card(
                 margin: const EdgeInsets.only(bottom: 10),
-                child: Padding(
+                child: InkWell(
+                  onTap: () => _editarBono(b),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,6 +288,7 @@ class _PantallaCatalogoServiciosState extends State<PantallaCatalogoServicios> {
                       ],
                     ],
                   ),
+                ),
                 ),
               ),
             ),
@@ -607,6 +625,7 @@ class _Servicio {
 
 class _Bono {
   _Bono({
+    required this.id,
     required this.nombre,
     required this.sesiones,
     required this.precioCentavos,
@@ -614,8 +633,12 @@ class _Bono {
     required this.vendidos,
     required this.activos,
     required this.sesionesPendientes,
+    required this.servicioIds,
+    required this.activo,
+    this.descripcion,
   });
 
+  final String id;
   final String nombre;
   final int sesiones;
   final int precioCentavos;
@@ -623,6 +646,11 @@ class _Bono {
   final int vendidos;
   final int activos;
   final int sesionesPendientes;
+
+  /// Qué servicios cubre. Sin al menos uno, el bono no se puede guardar.
+  final List<String> servicioIds;
+  final bool activo;
+  final String? descripcion;
 }
 
 class _Catalogo {
@@ -682,14 +710,269 @@ class _Catalogo {
         bonos: [
           for (final b in (bonos['bonos'] as List))
             _Bono(
-              nombre: (b as Map)['nombre'] as String,
+              id: (b as Map)['id'] as String,
+              nombre: b['nombre'] as String,
               sesiones: b['sesiones'] as int,
               precioCentavos: b['precioCentavos'] as int,
               validezDias: b['validezDias'] as int,
               vendidos: b['vendidos'] as int? ?? 0,
               activos: b['activos'] as int? ?? 0,
               sesionesPendientes: b['sesionesPendientes'] as int? ?? 0,
+              servicioIds: [
+                for (final id in (b['servicioIds'] as List? ?? const [])) id as String,
+              ],
+              activo: b['activo'] as bool? ?? true,
+              descripcion: b['descripcion'] as String?,
             ),
         ],
       );
+}
+
+/// Alta y edición de un bono: cuántas sesiones, a qué precio, cuánto dura y
+/// qué servicios descuenta.
+///
+/// Lo de "qué servicios cubre" no es un adorno: al cobrar, el bono descuenta
+/// una sesión solo si el servicio cobrado está en esa lista. Por eso no deja
+/// guardar sin marcar al menos uno.
+class _HojaBono extends StatefulWidget {
+  const _HojaBono({required this.servicios, this.bono});
+
+  final List<_Servicio> servicios;
+  final _Bono? bono;
+
+  @override
+  State<_HojaBono> createState() => _HojaBonoState();
+}
+
+class _HojaBonoState extends State<_HojaBono> {
+  late final _nombre = TextEditingController(text: widget.bono?.nombre ?? '');
+  late final _precio = TextEditingController(
+    text: widget.bono == null
+        ? ''
+        : (widget.bono!.precioCentavos / 100).toStringAsFixed(2),
+  );
+  late final _sesiones = TextEditingController(text: '${widget.bono?.sesiones ?? 6}');
+  late final _validez = TextEditingController(text: '${widget.bono?.validezDias ?? 365}');
+  late final Set<String> _cubre = {...?widget.bono?.servicioIds};
+
+  bool _guardando = false;
+
+  @override
+  void dispose() {
+    _nombre.dispose();
+    _precio.dispose();
+    _sesiones.dispose();
+    _validez.dispose();
+    super.dispose();
+  }
+
+  void _avisar(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
+  }
+
+  Future<void> _guardar() async {
+    final precio = double.tryParse(_precio.text.replaceAll(',', '.')) ?? 0;
+    final sesiones = int.tryParse(_sesiones.text.trim()) ?? 0;
+    final validez = int.tryParse(_validez.text.trim()) ?? 365;
+
+    if (_nombre.text.trim().length < 2) {
+      _avisar('Escribe el nombre del bono.');
+      return;
+    }
+    if (sesiones < 2) {
+      _avisar('Un bono necesita al menos 2 sesiones.');
+      return;
+    }
+    if (_cubre.isEmpty) {
+      _avisar('Elige qué servicios cubre el bono.');
+      return;
+    }
+
+    setState(() => _guardando = true);
+    final mensajero = ScaffoldMessenger.of(context);
+    final navegador = Navigator.of(context);
+    try {
+      await Sesion.de(context).enviar('/api/v1/bonos', {
+        if (widget.bono != null) 'id': widget.bono!.id,
+        'nombre': _nombre.text.trim(),
+        'descripcion': widget.bono?.descripcion,
+        'sesiones': sesiones,
+        'precioCentavos': (precio * 100).round(),
+        'validezDias': validez,
+        'activo': widget.bono?.activo ?? true,
+        'servicioIds': _cubre.toList(),
+      });
+      mensajero.showSnackBar(const SnackBar(content: Text('Bono guardado.')));
+      navegador.pop(true);
+    } on ErrorApi catch (e) {
+      if (mounted) setState(() => _guardando = false);
+      mensajero.showSnackBar(SnackBar(content: Text(e.mensaje)));
+    }
+  }
+
+  /// Lo borra, o lo apaga si ya se vendió: el servidor decide y lo explica.
+  Future<void> _eliminar() async {
+    final bono = widget.bono;
+    if (bono == null) return;
+
+    final vendido = bono.vendidos > 0;
+    final seguro = await confirmar(
+      context,
+      titulo_: '¿Eliminar «${bono.nombre}»?',
+      mensaje: vendido
+          ? 'Ya se vendió ${bono.vendidos} ${bono.vendidos == 1 ? 'vez' : 'veces'}, '
+              'así que no se borra: se apaga para no poder venderlo más. Las '
+              'sesiones que ya compraron siguen valiendo.'
+          : 'Nadie lo ha comprado, así que se borra del todo.',
+    );
+    if (!seguro || !mounted) return;
+
+    setState(() => _guardando = true);
+    final api = Sesion.de(context);
+    final mensajero = ScaffoldMessenger.of(context);
+    final navegador = Navigator.of(context);
+    try {
+      var r = await api.borrar('/api/v1/bonos', params: {'id': bono.id});
+
+      // Se quedó apagado porque ya se vendió. Se pregunta la segunda vez,
+      // porque borrarlo del todo se lleva las sesiones que compraron.
+      if (r['borrado'] == false && (r['vendidos'] as int? ?? 0) > 0 && mounted) {
+        final vendidos = r['vendidos'] as int;
+        final tambien = await confirmar(
+          context,
+          titulo_: '¿Borrar también lo vendido?',
+          mensaje: 'Se vendió $vendidos ${vendidos == 1 ? "vez" : "veces"}. Si lo borras '
+              'del todo, esas clientas pierden las sesiones que les quedaban '
+              'y no se puede deshacer.',
+          confirmarTexto: 'Borrar todo',
+        );
+        if (tambien) {
+          r = await api.borrar(
+            '/api/v1/bonos',
+            params: {'id': bono.id, 'conVendidos': '1'},
+          );
+        }
+      }
+
+      navegador.pop(true);
+      mensajero.showSnackBar(
+        SnackBar(content: Text((r['mensaje'] as String?) ?? 'Bono eliminado.')),
+      );
+    } on ErrorApi catch (e) {
+      if (mounted) setState(() => _guardando = false);
+      mensajero.showSnackBar(SnackBar(content: Text(e.mensaje)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).viewPadding.bottom +
+            24,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.bono == null ? 'Nuevo bono' : 'Editar bono', style: titulo(24)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _nombre,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(labelText: 'Nombre'),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _precio,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(
+                      labelText: 'Precio',
+                      prefixText: '\$ ',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _sesiones,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Sesiones'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _validez,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Validez',
+                      suffixText: 'días',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text('¿Qué servicios cubre?', style: titulo(18)),
+            const SizedBox(height: 4),
+            Text(
+              'Al cobrar uno de estos, el bono descuenta una sesión sola.',
+              style: sutil(13),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final s in widget.servicios)
+                  FilterChip(
+                    label: Text(s.nombre),
+                    selected: _cubre.contains(s.id),
+                    showCheckmark: false,
+                    onSelected: (marcado) => setState(() {
+                      if (marcado) {
+                        _cubre.add(s.id);
+                      } else {
+                        _cubre.remove(s.id);
+                      }
+                    }),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: _guardando ? null : _guardar,
+              child: _guardando
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Guardar'),
+            ),
+            if (widget.bono != null) ...[
+              const SizedBox(height: 4),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _guardando ? null : _eliminar,
+                  icon: const Icon(Ico.borrar, size: 18),
+                  label: const Text('Eliminar bono'),
+                  style: TextButton.styleFrom(foregroundColor: Marca.error),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 }

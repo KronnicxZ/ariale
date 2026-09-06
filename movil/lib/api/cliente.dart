@@ -116,7 +116,8 @@ class ClienteApi extends ChangeNotifier {
   Future<Map<String, dynamic>> parchear(String ruta, Map<String, dynamic> cuerpo) =>
       _peticion('PATCH', ruta, cuerpo: cuerpo);
 
-  Future<Map<String, dynamic>> borrar(String ruta) => _peticion('DELETE', ruta);
+  Future<Map<String, dynamic>> borrar(String ruta, {Map<String, String>? params}) =>
+      _peticion('DELETE', ruta, params: params);
 
   /// Sube un archivo con campos sueltos al lado, como un formulario.
   ///

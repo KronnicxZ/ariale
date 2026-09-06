@@ -121,6 +121,7 @@ class _PantallaProveedoresState extends State<PantallaProveedores> {
                           ),
                           subtitle: Text(
                             [
+                              if (!p.activo) 'Apagado',
                               if (p.telefono != null) telefonoBonito(p.telefono!, prefijo),
                               if (p.comprasAbiertas > 0)
                                 '${p.comprasAbiertas} '
@@ -264,9 +265,71 @@ class _HojaProveedorState extends State<_HojaProveedor> {
                   )
                 : const Text('Guardar'),
           ),
+          if (widget.proveedor != null) ...[
+            const SizedBox(height: 4),
+            TextButton.icon(
+              onPressed: _guardando ? null : _eliminar,
+              icon: const Icon(Ico.borrar, size: 18),
+              label: const Text('Eliminar proveedor'),
+              style: TextButton.styleFrom(foregroundColor: Marca.error),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  /// Lo borra, o lo apaga si tiene compras: el servidor decide y lo dice.
+  Future<void> _eliminar() async {
+    final proveedor = widget.proveedor;
+    if (proveedor == null) return;
+
+    final seguro = await confirmar(
+      context,
+      titulo_: '¿Eliminar a ${proveedor.nombre}?',
+      mensaje: 'Si le has registrado compras no se borra: se apaga, para no '
+          'perder esos gastos de los reportes.',
+    );
+    if (!seguro || !mounted) return;
+
+    setState(() => _guardando = true);
+    final api = Sesion.de(context);
+    final mensajero = ScaffoldMessenger.of(context);
+    final navegador = Navigator.of(context);
+    try {
+      var r = await api.borrar('/api/v1/proveedores', params: {'id': proveedor.id});
+
+      // Se quedó apagado porque tiene compras. Se pregunta la segunda vez,
+      // con el número delante: es la única forma de sacar de la lista a los
+      // de prueba, y hay que verlo antes de decir que sí.
+      if (r['borrado'] == false && (r['compras'] as int? ?? 0) > 0 && mounted) {
+        final compras = r['compras'] as int;
+        final tambien = await confirmar(
+          context,
+          titulo_: '¿Borrar también sus compras?',
+          mensaje: 'Tiene $compras ${compras == 1 ? "compra registrada" : "compras registradas"}. '
+              'Si las borras desaparecen de los gastos y de los reportes, y '
+              'eso no se puede deshacer.',
+          confirmarTexto: 'Borrar todo',
+        );
+        if (tambien) {
+          r = await api.borrar(
+            '/api/v1/proveedores',
+            params: {'id': proveedor.id, 'conCompras': '1'},
+          );
+        }
+      }
+
+      navegador.pop(true);
+      mensajero.showSnackBar(
+        SnackBar(
+          content: Text((r['mensaje'] as String?) ?? '${proveedor.nombre} eliminado.'),
+        ),
+      );
+    } on ErrorApi catch (e) {
+      if (mounted) setState(() => _guardando = false);
+      mensajero.showSnackBar(SnackBar(content: Text(e.mensaje)));
+    }
   }
 }
 
@@ -276,6 +339,7 @@ class _Proveedor {
     required this.nombre,
     required this.comprasAbiertas,
     required this.saldoCentavos,
+    required this.activo,
     this.telefono,
     this.notas,
   });
@@ -284,6 +348,10 @@ class _Proveedor {
   final String nombre;
   final int comprasAbiertas;
   final int saldoCentavos;
+
+  /// Apagado: no se pudo borrar porque tiene compras, y se sacó de circulación.
+  final bool activo;
+
   final String? telefono;
   final String? notas;
 
@@ -292,6 +360,7 @@ class _Proveedor {
         nombre: j['nombre'] as String,
         comprasAbiertas: j['comprasAbiertas'] as int? ?? 0,
         saldoCentavos: j['saldoCentavos'] as int? ?? 0,
+        activo: j['activo'] as bool? ?? true,
         telefono: j['telefono'] as String?,
         notas: j['notas'] as String?,
       );

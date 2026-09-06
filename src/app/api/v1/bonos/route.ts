@@ -1,4 +1,4 @@
-import { withUser } from "@/lib/api";
+import { param, withUser } from "@/lib/api";
 import { prisma } from "@/lib/db";
 
 /**
@@ -84,6 +84,57 @@ export const POST = withUser(async ({ request }) => {
   });
 
   return { id: bono.id };
+});
+
+/**
+ * Borra un bono.
+ *
+ * Solo si no se ha vendido ninguno. Si alguna clienta lo compró, borrarlo
+ * dejaría sus sesiones pendientes colgando de la nada: entonces se apaga,
+ * que impide venderlo más pero respeta las que ya están en la calle.
+ */
+export const DELETE = withUser(async ({ request }) => {
+  const id = param(request, "id");
+  const conVendidos = param(request, "conVendidos") === "1";
+  if (!id) throw new Error("Falta el bono.");
+
+  const bono = await prisma.package.findUnique({
+    where: { id },
+    select: { name: true, _count: { select: { sold: true } } },
+  });
+  if (!bono) throw new Error("Ese bono ya no existe.");
+
+  const vendidos = bono._count.sold;
+
+  if (vendidos > 0 && !conVendidos) {
+    await prisma.package.update({ where: { id }, data: { active: false } });
+    return {
+      id,
+      borrado: false,
+      vendidos,
+      mensaje: `${bono.name} ya se vendió ${vendidos} ${
+        vendidos === 1 ? "vez" : "veces"
+      }. No se puede borrar sin perder esas sesiones, así que lo apagamos.`,
+    };
+  }
+
+  if (vendidos > 0) {
+    await prisma.$transaction([
+      prisma.clientPackage.deleteMany({ where: { packageId: id } }),
+      prisma.package.delete({ where: { id } }),
+    ]);
+    return {
+      id,
+      borrado: true,
+      vendidos,
+      mensaje: `${bono.name} y las ${vendidos} ${
+        vendidos === 1 ? "venta" : "ventas"
+      } que tenía se borraron.`,
+    };
+  }
+
+  await prisma.package.delete({ where: { id } });
+  return { id, borrado: true, vendidos: 0 };
 });
 
 export { OPTIONS } from "@/lib/api";
