@@ -10,6 +10,7 @@ import 'bloqueos.dart';
 import 'catalogo_servicios.dart';
 import 'gastos.dart';
 import 'negocio.dart';
+import 'seguridad.dart';
 import 'proveedores.dart';
 import 'recordatorios.dart';
 import 'reportes.dart';
@@ -111,6 +112,13 @@ class PantallaMas extends StatelessWidget {
                 apoyo: 'Datos, horario y agenda',
                 color: Marca.negro,
                 crear: PantallaNegocio.new,
+              ),
+              _Entrada(
+                icono: Ico.candado,
+                rotulo: 'Seguridad',
+                apoyo: 'Huella o PIN al abrir la app',
+                color: Marca.exito,
+                crear: PantallaSeguridad.new,
               ),
             ]),
             const SizedBox(height: 24),

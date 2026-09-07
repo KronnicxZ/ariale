@@ -23,6 +23,12 @@ dependencies:
   # Guarda el token de sesión y la URL del servidor entre arranques.
   shared_preferences: ^2.3.3
 
+  # El candado de la app: huella o cara del propio teléfono. El PIN va
+  # debajo siempre, por si el lector falla o el teléfono no tiene.
+  local_auth: ^2.3.0
+  # Para no guardar el PIN, sino su huella digital con sal.
+  crypto: ^3.0.6
+
   # Abre WhatsApp (wa.me) y el marcador. Los avisos a clientas salen así:
   # mensaje ya escrito, la dueña pulsa enviar. Nada automático.
   url_launcher: ^6.3.1

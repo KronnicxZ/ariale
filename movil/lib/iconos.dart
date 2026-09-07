@@ -76,6 +76,9 @@ class Ico {
   static const equipo = LucideIcons.users300;
   static const negocio = LucideIcons.store300;
   static const clave = LucideIcons.lock300;
+  static const candado = LucideIcons.shieldCheck300;
+  static const huella = LucideIcons.fingerprint300;
+  static const borrarCifra = LucideIcons.delete300;
 
   // Avisos
   static const recordatorios = LucideIcons.bell300;
