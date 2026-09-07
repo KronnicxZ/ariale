@@ -6,9 +6,12 @@ import '../api/cliente.dart';
 import '../sesion.dart';
 import '../tema.dart';
 
-/// Acceso al panel. La dirección del servidor está detrás de un enlace
-/// discreto: en el uso normal nadie la toca, pero permite apuntar la app
-/// a otro servidor sin recompilar.
+/// Acceso al panel.
+///
+/// La dirección del servidor no se enseña: para quien entra cada mañana no
+/// significa nada y solo invita a tocarla. Sigue estando —hace falta para
+/// apuntar la app a otro servidor sin recompilar— pero detrás de una
+/// pulsación larga sobre el logotipo, que nadie hace sin querer.
 class PantallaEntrar extends StatefulWidget {
   const PantallaEntrar({super.key});
 
@@ -94,8 +97,6 @@ class _PantallaEntrarState extends State<PantallaEntrar> {
 
   @override
   Widget build(BuildContext context) {
-    final api = Sesion.de(context);
-
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -108,10 +109,13 @@ class _PantallaEntrarState extends State<PantallaEntrar> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Image.asset(
-                      'assets/marca/logo-ariale.png',
-                      height: 78,
-                      fit: BoxFit.contain,
+                    GestureDetector(
+                      onLongPress: _cambiarServidor,
+                      child: Image.asset(
+                        'assets/marca/logo-ariale.png',
+                        height: 78,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                     const SizedBox(height: 36),
                     Text('Entra a tu panel', style: titulo(28), textAlign: TextAlign.center),
@@ -180,14 +184,6 @@ class _PantallaEntrarState extends State<PantallaEntrar> {
                               ),
                             )
                           : const Text('Entrar'),
-                    ),
-                    const SizedBox(height: 20),
-                    TextButton(
-                      onPressed: _cambiarServidor,
-                      child: Text(
-                        api.servidor.replaceFirst(RegExp(r'^https?://'), ''),
-                        style: const TextStyle(fontSize: 12, color: Marca.textoSuave),
-                      ),
                     ),
                   ],
                 ),
