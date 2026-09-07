@@ -11,6 +11,7 @@ import '../widgets/calendario.dart';
 import '../widgets/animar.dart';
 import '../widgets/comunes.dart';
 import '../widgets/rejilla_dia.dart';
+import '../widgets/rejilla_semana.dart';
 import 'cita_detalle.dart';
 import 'nueva_cita.dart';
 
@@ -29,6 +30,12 @@ class PantallaAgenda extends StatefulWidget {
 class _PantallaAgendaState extends State<PantallaAgenda> {
   late DateTime _dia;
   bool _mesAbierto = false;
+
+  /// Día o semana. Se queda como se dejó mientras la app esté abierta: quien
+  /// mira por semanas suele seguir mirando por semanas.
+  bool _porSemana = false;
+  Future<_DatosSemana>? _futuroSemana;
+  String? _semanaCargada;
   Map<String, ConteoDia> _conteos = {};
   String? _mesCargado;
   late Future<_DatosDia> _futuro;
@@ -104,10 +111,47 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
     }
   }
 
+  /// El lunes de la semana de un día. La semana empieza en lunes porque el
+  /// domingo el estudio está cerrado y molesta verlo primero.
+  static DateTime _lunesDe(DateTime f) =>
+      DateTime(f.year, f.month, f.day).subtract(Duration(days: f.weekday - 1));
+
+  Future<_DatosSemana> _cargarSemana() async {
+    final lunes = _lunesDe(_dia);
+    final datos = await Sesion.de(context).obtener(
+      '/api/v1/agenda/semana',
+      params: {'desde': claveDia(lunes)},
+    );
+    return _DatosSemana.desdeJson(datos, lunes);
+  }
+
+  void _mirarLaSemana(bool si) {
+    setState(() {
+      _porSemana = si;
+      if (si) {
+        _semanaCargada = claveDia(_lunesDe(_dia));
+        _futuroSemana = _cargarSemana();
+      }
+    });
+  }
+
+  /// Al cambiar de día dentro de la misma semana no se vuelve a pedir: son
+  /// los mismos siete días.
+  void _asegurarSemana() {
+    final clave = claveDia(_lunesDe(_dia));
+    if (clave == _semanaCargada) return;
+    _semanaCargada = clave;
+    _futuroSemana = _cargarSemana();
+  }
+
   Future<void> _refrescar() async {
     _mesCargado = null;
+    _semanaCargada = null;
     final futuro = _cargarDia();
-    setState(() => _futuro = futuro);
+    setState(() {
+      _futuro = futuro;
+      if (_porSemana) _asegurarSemana();
+    });
     await Future.wait([futuro, _cargarMes()]);
   }
 
@@ -115,6 +159,7 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
     setState(() {
       _dia = DateTime(dia.year, dia.month, dia.day);
       _futuro = _cargarDia();
+      if (_porSemana) _asegurarSemana();
     });
     _cargarMes();
   }
@@ -156,9 +201,11 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
     if (creada == true) _refrescar();
   }
 
-  Future<void> _abrirCita(Cita cita) async {
+  Future<void> _abrirCita(Cita cita) => _abrirCitaPorId(cita.id);
+
+  Future<void> _abrirCitaPorId(String id) async {
     final cambio = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => PantallaCitaDetalle(citaId: cita.id)),
+      MaterialPageRoute(builder: (_) => PantallaCitaDetalle(citaId: id)),
     );
     if (cambio == true) _refrescar();
   }
@@ -184,9 +231,14 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => _saltarMes(-1),
+                    // En la vista de semana las flechas mueven una semana:
+                    // saltar un mes entero desde ahí no lleva a ningún sitio
+                    // que se estuviera mirando.
+                    onPressed: () => _porSemana
+                        ? _irA(_dia.subtract(const Duration(days: 7)))
+                        : _saltarMes(-1),
                     icon: const Icon(Ico.anterior),
-                    tooltip: 'Mes anterior',
+                    tooltip: _porSemana ? 'Semana anterior' : 'Mes anterior',
                   ),
                   Expanded(
                     child: GestureDetector(
@@ -199,9 +251,11 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => _saltarMes(1),
+                    onPressed: () => _porSemana
+                        ? _irA(_dia.add(const Duration(days: 7)))
+                        : _saltarMes(1),
                     icon: const Icon(Ico.siguiente),
-                    tooltip: 'Mes siguiente',
+                    tooltip: _porSemana ? 'Semana siguiente' : 'Mes siguiente',
                   ),
                   if (!esHoy)
                     TextButton(
@@ -220,22 +274,98 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
                 ],
               ),
             ),
-            Despliega(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Calendario(
-                  seleccionado: _dia,
-                  hoy: hoy,
-                  conteos: _conteos,
-                  expandido: _mesAbierto,
-                  alElegir: _irA,
-                  alAlternar: () => setState(() => _mesAbierto = !_mesAbierto),
+            if (!_porSemana)
+              Despliega(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Calendario(
+                    seleccionado: _dia,
+                    hoy: hoy,
+                    conteos: _conteos,
+                    expandido: _mesAbierto,
+                    alElegir: _irA,
+                    alAlternar: () => setState(() => _mesAbierto = !_mesAbierto),
+                  ),
                 ),
               ),
+            const Divider(height: 1),
+            _Alternador(
+              porSemana: _porSemana,
+              alCambiar: _mirarLaSemana,
             ),
             const Divider(height: 1),
             Expanded(
-              child: FutureBuilder<_DatosDia>(
+              child: _porSemana ? _semana(hoy) : _diaEntero(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// La semana: siete columnas y las citas dibujadas encima.
+  Widget _semana(DateTime hoy) {
+    return FutureBuilder<_DatosSemana>(
+      future: _futuroSemana,
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          return ErrorConReintento(
+            mensaje: snap.error is ErrorApi
+                ? (snap.error as ErrorApi).mensaje
+                : 'No pudimos cargar la semana.',
+            alReintentar: _refrescar,
+          );
+        }
+
+        final datos = snap.data!;
+        // El tramo de horas es el más ancho de los siete días: si el sábado
+        // cierran antes, el resto de la semana no se recorta por eso.
+        var desde = 24 * 60;
+        var hasta = 0;
+        for (final d in datos.dias) {
+          final h = Sesion.catalogo?.horarioDe(d);
+          if (h == null || !h.abierto) continue;
+          if (h.desdeMin < desde) desde = h.desdeMin;
+          if (h.hastaMin > hasta) hasta = h.hastaMin;
+        }
+        for (final c in datos.citas) {
+          if (c.desdeMin < desde) desde = c.desdeMin;
+          if (c.hastaMin > hasta) hasta = c.hastaMin;
+        }
+        if (hasta <= desde) {
+          desde = 9 * 60;
+          hasta = 18 * 60;
+        }
+
+        return RefreshIndicator(
+          onRefresh: _refrescar,
+          color: Marca.dorado,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: RejillaSemana(
+              dias: datos.dias,
+              citas: datos.citas,
+              hoy: hoy,
+              seleccionado: _dia,
+              desdeMin: (desde ~/ 60) * 60,
+              hastaMin: ((hasta + 59) ~/ 60) * 60,
+              alTocarCita: _abrirCitaPorId,
+              alTocarDia: (d) {
+                _irA(d);
+                _mirarLaSemana(false);
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _diaEntero() {
+    return FutureBuilder<_DatosDia>(
                 future: _futuro,
                 builder: (context, snap) {
                   if (snap.connectionState == ConnectionState.waiting) {
@@ -292,12 +422,75 @@ class _PantallaAgendaState extends State<PantallaAgenda> {
                       ),
                     ],
                   );
-                },
+      },
+    );
+  }
+}
+
+/// El resumen del día y los nombres de las columnas, alineados con la rejilla.
+
+/// Día o semana, en dos pestañas planas. No es un menú: son dos maneras de
+/// mirar lo mismo y se alternan a menudo.
+class _Alternador extends StatelessWidget {
+  const _Alternador({required this.porSemana, required this.alCambiar});
+
+  final bool porSemana;
+  final ValueChanged<bool> alCambiar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 8),
+      child: Row(
+        children: [
+          for (final (etiqueta, semana) in const [('Día', false), ('Semana', true)])
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Material(
+                color: porSemana == semana ? Marca.negro : Marca.tarjeta,
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => alCambiar(semana),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                    child: Text(
+                      etiqueta,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: porSemana == semana ? Colors.white : Marca.textoSuave,
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
+    );
+  }
+}
+
+/// Lo que devuelve la consulta de la semana, ya listo para pintar.
+class _DatosSemana {
+  _DatosSemana({required this.dias, required this.citas});
+
+  final List<DateTime> dias;
+  final List<CitaSemana> citas;
+
+  factory _DatosSemana.desdeJson(Map<String, dynamic> j, DateTime lunes) {
+    final colores = <String, Color>{
+      for (final e in (j['especialistas'] as List? ?? []))
+        (e as Map)['id'] as String: Marca.desdeHex(e['color'] as String?),
+    };
+
+    return _DatosSemana(
+      dias: List.generate(7, (i) => lunes.add(Duration(days: i))),
+      citas: [
+        for (final c in (j['citas'] as List? ?? []))
+          CitaSemana.desdeJson(c as Map<String, dynamic>, colores),
+      ],
     );
   }
 }

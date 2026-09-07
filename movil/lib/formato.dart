@@ -74,6 +74,15 @@ String diaRelativo(DateTime fecha) {
 /// yyyy-MM-dd, que es como viajan los días por la API.
 String claveDia(DateTime fecha) => DateFormat('yyyy-MM-dd').format(fecha);
 
+/// 540 (minutos desde medianoche) → "9 am". Sin los minutos: en la rejilla
+/// de la semana solo hay sitio para la hora en punto.
+String horaCorta(int minutos) {
+  final h = minutos ~/ 60;
+  final sufijo = h < 12 ? 'am' : 'pm';
+  final doce = h % 12 == 0 ? 12 : h % 12;
+  return '$doce $sufijo';
+}
+
 /// "14:30" → "2:30 pm". Las horas viajan en 24 h y se leen en 12, que es
 /// como se dicen aquí.
 String horaBonita(String hhmm) {
