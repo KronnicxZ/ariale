@@ -2,13 +2,22 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { getCurrentClient, getCurrentSpecialist, getCurrentUser } from "@/lib/auth";
+import {
+  getCurrentClient,
+  getCurrentSpecialist,
+  getCurrentUser,
+  setClientSession,
+} from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { createAppointment, findOrCreateClient } from "@/actions/appointments";
 import { repartirServicios } from "@/lib/slots";
 import { fmtDayLong, fmtDayShort, fmtTime } from "@/lib/date";
 import { avisarNuevaCita } from "@/lib/push";
 import { toMessage } from "@/actions/shared";
+import { normalizePhone } from "@/lib/utils";
+// En un fichero "use server" solo se pueden exportar funciones asíncronas,
+// así que la constante y el tipo viven donde también los ve el navegador.
+import { FALTA_NOMBRE, type QuienReserva } from "@/components/booking/types";
 
 export type BookingInput = {
   serviceIds: string[];
@@ -299,14 +308,50 @@ export async function specialistBookAction(
   }
 }
 
-/** Desde el enlace público: la clienta reserva para sí misma. */
-export async function clientBookAction(input: BookingInput): Promise<BookingOutcome> {
-  const client = await getCurrentClient();
-  if (!client) return { ok: false, error: "Tu sesión caducó. Escribe tu teléfono de nuevo." };
+/**
+ * Desde el enlace público: la clienta reserva para sí misma.
+ *
+ * El teléfono se pide **al confirmar**, no al entrar. Antes la página abría
+ * con "escribe tu número" y había que entregarlo para ver siquiera si
+ * quedaba hueco el sábado; ahora se elige servicio, día y hora, y el número
+ * se pide una vez, cuando ya hay algo que reservar.
+ */
+export async function clientBookAction(
+  input: BookingInput,
+  quien?: QuienReserva,
+): Promise<BookingOutcome> {
+  let client = await getCurrentClient();
+
+  if (!client) {
+    if (!quien) return { ok: false, error: "Escribe tu teléfono para confirmar." };
+
+    const phone = normalizePhone(quien.phone);
+    if (phone.length < 10) return { ok: false, error: "Ese número no parece completo." };
+
+    const existente = await prisma.client.findUnique({ where: { phone } });
+
+    if (existente) {
+      if (!existente.active) {
+        await prisma.client.update({ where: { id: existente.id }, data: { active: true } });
+      }
+      client = existente;
+    } else {
+      // Primera vez: el formulario se vuelve a pintar pidiendo el nombre.
+      const name = quien.name?.trim();
+      if (!name) return { ok: false, error: FALTA_NOMBRE };
+      client = await prisma.client.create({ data: { name, phone } });
+      revalidatePath("/panel/clientes");
+    }
+
+    // La sesión se abre al reservar, no antes: así la clienta ve luego sus
+    // citas sin volver a escribir el número.
+    await setClientSession(client.id);
+  }
 
   const result = await book(input, client.id, "CLIENT");
   if (result.ok) {
     revalidatePath("/reservar");
+    revalidatePath("/reservar/mis-citas");
     revalidatePath("/panel/agenda");
   }
   return result;

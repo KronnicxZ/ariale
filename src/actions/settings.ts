@@ -160,7 +160,7 @@ export async function setAutoConfirmAction(enabled: boolean) {
   const settings = await getSettings();
   await prisma.settings.update({ where: { id: settings.id }, data: { autoConfirm: enabled } });
   revalidatePath("/panel/agenda/enlaces");
-  revalidatePath("/reservar/nueva");
+  revalidatePath("/reservar");
 }
 
 /** Fuerza una nueva consulta de la tasa BCV, borrando la del día. */

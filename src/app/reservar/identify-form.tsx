@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { AlertCircle, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +11,11 @@ import type { ActionState } from "@/actions/shared";
 import { normalizePhone } from "@/lib/utils";
 
 /**
- * Puerta de entrada de la clienta: solo el teléfono. Si es nueva, en el mismo
- * formulario se le pide el nombre y ya queda registrada.
+ * La puerta del espacio de la clienta: solo el teléfono. Si es nueva, en el
+ * mismo formulario se le pide el nombre y ya queda registrada.
+ *
+ * Ya no se cruza para agendar —eso se hace sin identificarse hasta el final—
+ * sino para ver lo que es suyo: sus citas, sus bonos y su historial.
  */
 export function IdentifyForm({
   business,
@@ -39,7 +43,7 @@ export function IdentifyForm({
         <p className="text-muted-foreground mt-2 text-sm">
           {needsName
             ? "Es la primera vez que agendas con nosotras. Con tu nombre queda listo."
-            : `Escribe tu número para agendar con ${business}. Si ya vienes, entras a tu cuenta.`}
+            : `Escribe tu número para ver tus citas en ${business}.`}
         </p>
 
         <form action={action} className="mt-7 space-y-4">
@@ -101,6 +105,15 @@ export function IdentifyForm({
             {!pending ? <ArrowRight className="size-4" /> : null}
           </Button>
         </form>
+
+        {/* Quien viene a agendar y no a mirar lo suyo no tiene por qué pasar
+            por aquí: el asistente ya no pide el número hasta el final. */}
+        <p className="text-muted-foreground mt-6 text-center text-sm">
+          ¿Solo quieres agendar?{" "}
+          <Link href="/reservar" className="text-primary font-medium hover:underline">
+            Hazlo sin escribir tu número
+          </Link>
+        </p>
       </div>
     </div>
   );

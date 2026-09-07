@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
+import { ArrowUpRight } from "lucide-react";
 
 export type AreaServicio = {
   id: string;
@@ -123,18 +125,28 @@ export function Servicios({ areas }: { areas: AreaServicio[] }) {
               }`}
             >
               {area.servicios.map((s) => (
-                <li
-                  key={s.id}
-                  className="border-border/70 flex items-baseline justify-between gap-4 border-b py-3.5"
-                >
-                  <span className="min-w-0">
-                    <span className="block text-[15px] font-medium">{s.nombre}</span>
-                    <span className="text-muted-foreground text-xs">
-                      {s.duracion}
-                      {s.quien ? ` · con ${s.quien}` : ""}
+                <li key={s.id} className="border-border/70 border-b">
+                  {/* La lista de precios es lo que la gente viene a mirar, así
+                      que desde aquí mismo se agenda: el asistente abre con
+                      este servicio ya elegido. */}
+                  <Link
+                    href={`/reservar?servicio=${s.id}`}
+                    className="group flex items-baseline justify-between gap-4 py-3.5 transition"
+                  >
+                    <span className="min-w-0">
+                      <span className="group-hover:text-primary block text-[15px] font-medium transition">
+                        {s.nombre}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {s.duracion}
+                        {s.quien ? ` · con ${s.quien}` : ""}
+                      </span>
                     </span>
-                  </span>
-                  <span className="font-numeric shrink-0 text-[15px]">{s.precio}</span>
+                    <span className="flex shrink-0 items-baseline gap-2">
+                      <span className="font-numeric text-[15px]">{s.precio}</span>
+                      <ArrowUpRight className="text-primary size-4 self-center opacity-0 transition group-hover:opacity-100" />
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>

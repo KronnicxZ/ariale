@@ -289,6 +289,8 @@ export async function fetchDiasAction(input: {
   hasta: string;
   serviceIds: string[];
   specialistId?: string | null;
+  /** La cita que se está moviendo: no se cuenta a sí misma como ocupada. */
+  excluirCitaId?: string | null;
 }) {
   if (input.serviceIds.length === 0) return { dias: [] as string[] };
   const dias = await getDiasConHueco({
@@ -296,6 +298,7 @@ export async function fetchDiasAction(input: {
     hasta: input.hasta,
     serviceIds: input.serviceIds,
     specialistId: input.specialistId ?? null,
+    excluirCitaId: input.excluirCitaId ?? null,
   });
   return { dias };
 }

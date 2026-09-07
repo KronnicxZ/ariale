@@ -15,7 +15,7 @@ export const metadata = { title: "Tus visitas", robots: { index: false, follow: 
 
 export default async function ClientHistoryPage() {
   const client = await getCurrentClient();
-  if (!client) redirect("/reservar");
+  if (!client) redirect("/reservar/mis-citas");
 
   const [settings, rateInfo] = await Promise.all([getSettings(), getRate()]);
 
@@ -51,11 +51,11 @@ export default async function ClientHistoryPage() {
   return (
     <div className="mx-auto w-full max-w-md flex-1 px-5 py-5">
       <Link
-        href="/reservar"
+        href="/reservar/mis-citas"
         className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-sm transition"
       >
         <ArrowLeft className="size-4" />
-        Inicio
+        Mis citas
       </Link>
 
       <h1 className="font-display text-2xl font-semibold">Tus visitas</h1>
@@ -152,7 +152,7 @@ export default async function ClientHistoryPage() {
       </section>
 
       <Button asChild className="mt-7 h-12 w-full text-base">
-        <Link href="/reservar/nueva">
+        <Link href="/reservar">
           <CalendarPlus className="size-5" />
           Agendar otra cita
         </Link>

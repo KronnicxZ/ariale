@@ -23,7 +23,7 @@ function revalidateCatalog() {
   revalidatePath("/panel/bonos");
   revalidatePath("/panel/especialistas");
   revalidatePath("/panel/agenda/nueva");
-  revalidatePath("/reservar/nueva");
+  revalidatePath("/reservar");
 }
 
 // --- Categorías -----------------------------------------------------------

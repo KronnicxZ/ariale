@@ -347,8 +347,14 @@ export async function getDiasConHueco(options: {
   serviceIds: string[];
   /** Si viene, solo cuenta ella. Si no, quien sepa hacer lo elegido. */
   specialistId?: string | null;
+  /**
+   * Al mover una cita, la que se mueve no se cuenta como ocupada: si no, el
+   * día en que ya está agendada sale lleno por culpa de ella misma y no se
+   * puede pasar de las tres a las cinco del mismo día.
+   */
+  excluirCitaId?: string | null;
 }): Promise<string[]> {
-  const { desde, hasta, serviceIds, specialistId } = options;
+  const { desde, hasta, serviceIds, specialistId, excluirCitaId } = options;
 
   const [settings, workingHours, servicios, equipo] = await Promise.all([
     prisma.settings.findFirst(),
@@ -411,6 +417,7 @@ export async function getDiasConHueco(options: {
         startAt: { gte: inicio, lte: fin },
         status: { notIn: ["CANCELLED", "NO_SHOW"] },
         specialistId: { in: todasLasQueImportan },
+        ...(excluirCitaId ? { id: { not: excluirCitaId } } : {}),
       },
       select: { startAt: true, endAt: true, specialistId: true },
     }),

@@ -8,6 +8,7 @@ import { waLink } from "@/lib/whatsapp";
 import { DAY_SHORT, fmtDuration, hora12, nowInTz } from "@/lib/date";
 import { formatUsd } from "@/lib/money";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { InstagramIcon } from "@/components/instagram-icon";
 import { Reveal } from "./reveal";
 import { CintaFotos, CintaPalabras } from "./cinta";
 import { Galeria, type Foto } from "./galeria";
@@ -449,6 +450,22 @@ export default async function PortadaPage() {
                   {waEspecialistas.map((e) => (
                     <WaPill key={e.nombre} href={e.href} nombre={e.nombre} tono="oscuro" />
                   ))}
+
+                  {/* La marca vive en Instagram y hasta ahora solo salía el
+                      arroba en gris, al pie. Aquí se ve y se toca. */}
+                  {settings.instagram ? (
+                    <a
+                      href={`https://www.instagram.com/${settings.instagram}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 py-2.5 pr-5 pl-2.5 text-[15px] font-medium text-white backdrop-blur transition hover:bg-white/20"
+                    >
+                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white">
+                        <InstagramIcon className="size-4" />
+                      </span>
+                      @{settings.instagram}
+                    </a>
+                  ) : null}
                 </div>
               </div>
 
@@ -516,10 +533,7 @@ export default async function PortadaPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-5 text-sm text-white/40">
-              {settings.businessName}
-              {settings.instagram ? ` · @${settings.instagram}` : ""}
-            </p>
+            <p className="mt-5 text-sm text-white/40">{settings.businessName}</p>
           </div>
         </div>
       </section>
