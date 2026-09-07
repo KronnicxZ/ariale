@@ -380,6 +380,35 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                           const SizedBox(height: 10),
                           _Diseno(url: cita.disenoUrl!),
                         ],
+                        // Que ya haya faltado antes es lo que se querría
+                        // saber la tarde de antes, no después. Va junto al
+                        // aviso de alergias, que es donde se mira.
+                        if (d.faltas > 0) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Marca.alerta.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Ico.noVino, size: 18, color: Marca.alerta),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    d.faltas == 1
+                                        ? 'Ya faltó una vez a una cita.'
+                                        : 'Ya faltó ${d.faltas} veces a sus citas.',
+                                    style: const TextStyle(fontSize: 13.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         if (d.alergias != null && d.alergias!.isNotEmpty) ...[
                           const SizedBox(height: 10),
                           Container(
@@ -513,6 +542,7 @@ class _Detalle {
     required this.cita,
     required this.servicios,
     this.alergias,
+    this.faltas = 0,
     this.ventaEstado,
     this.ventaNumero,
     this.ventaCobradoCentavos,
@@ -521,6 +551,9 @@ class _Detalle {
   final Cita cita;
   final List<_ServicioCita> servicios;
   final String? alergias;
+
+  /// Cuántas veces ha faltado esta clienta. Cero es lo normal.
+  final int faltas;
   final String? ventaEstado;
   final int? ventaNumero;
   final int? ventaCobradoCentavos;
@@ -530,6 +563,7 @@ class _Detalle {
     return _Detalle(
       cita: Cita.desdeJson(j),
       alergias: (j['clienta'] as Map)['alergias'] as String?,
+      faltas: (j['clienta'] as Map)['faltas'] as int? ?? 0,
       servicios: [
         for (final s in (j['servicios'] as List))
           _ServicioCita(

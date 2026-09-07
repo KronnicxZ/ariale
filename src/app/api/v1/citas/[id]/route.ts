@@ -12,6 +12,12 @@ export const GET = withUserParams<{ id: string }, unknown>(async ({ params }) =>
   const appointment = await getAppointment(params.id);
   if (!appointment) throw new Error("Esa cita ya no existe.");
 
+  // Cuántas veces ha faltado esta clienta. Va aquí y no en la ficha porque
+  // el momento de saberlo es al mirar la cita de mañana, no después.
+  const faltas = await prisma.appointment.count({
+    where: { clientId: appointment.client.id, status: "NO_SHOW" },
+  });
+
   return {
     cita: {
       ...serializeAppointment(appointment),
@@ -22,6 +28,7 @@ export const GET = withUserParams<{ id: string }, unknown>(async ({ params }) =>
         correo: appointment.client.email,
         notas: appointment.client.notes,
         alergias: appointment.client.allergies,
+        faltas,
       },
       venta: appointment.sale
         ? {

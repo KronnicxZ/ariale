@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Icono adaptativo: Android recorta este lienzo con la forma que use el
-  teléfono (círculo, redondeado, gota). Por eso la flor va al 42% del alto:
-  entra holgada en la zona segura y no se le corta ningún pétalo.
+  teléfono (círculo, redondeado, gota) y solo garantiza el 66 % central.
+  La flor va al 60 %: llena esa zona sin que se le corte un pétalo. Estaba
+  al 42 % y se veía una mota dentro de un cuadro blanco.
+
+  Los archivos los genera `npm run iconos-app`; no se tocan a mano.
 -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@color/ic_launcher_background"/>

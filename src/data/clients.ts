@@ -71,6 +71,9 @@ export async function getClients(options: {
         where: { status: "ACTIVE", expiresAt: { gte: new Date() } },
         select: { sessionsTotal: true, sessionsUsed: true },
       },
+      // Las que no se presentaron. Van aparte porque la lista de arriba las
+      // excluye a propósito —no cuentan como visita— y aquí sí importan.
+      _count: { select: { appointments: { where: { status: "NO_SHOW" } } } },
     },
   });
 
@@ -101,6 +104,7 @@ export async function getClients(options: {
       nextAppointmentAt: nextAppointment?.startAt ?? null,
       upcomingCount: client.appointments.filter((a) => a.startAt >= now).length,
       packageSessions,
+      noShowCount: client._count.appointments,
     };
   });
 
@@ -156,6 +160,9 @@ export async function getClientProfile(id: string) {
 
   const now = new Date();
   const attended = client.appointments.filter((a) => a.status === "ATTENDED");
+  // Los plantones. Se marcan desde la app y hasta ahora no se veían en
+  // ningún sitio: el dato se quedaba enterrado en la cita.
+  const noShows = client.appointments.filter((a) => a.status === "NO_SHOW");
   const totalSpentCents = client.sales.reduce((sum, s) => sum + s.paidCents, 0);
   const balanceCents = client.sales.reduce(
     (sum, s) => (s.status === "CANCELLED" ? sum : sum + s.totalCents - s.paidCents),
@@ -191,6 +198,8 @@ export async function getClientProfile(id: string) {
       ticketAvgCents: attended.length > 0 ? Math.round(totalSpentCents / attended.length) : 0,
       firstVisitAt: attended.at(-1)?.startAt ?? null,
       lastVisitAt: attended.at(0)?.startAt ?? null,
+      noShows: noShows.length,
+      lastNoShowAt: noShows.at(0)?.startAt ?? null,
     },
     upcoming: client.appointments.filter(
       (a) => a.startAt >= now && a.status !== "CANCELLED" && a.status !== "NO_SHOW",

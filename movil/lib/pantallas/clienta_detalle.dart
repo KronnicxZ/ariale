@@ -161,6 +161,18 @@ class _PantallaClientaDetalleState extends State<PantallaClientaDetalle> {
                       color: Marca.error,
                     ),
                   ],
+                  // Los plantones. Con la fecha del último: "faltó dos veces"
+                  // a secas no ayuda a decidir si conviene llamarla antes.
+                  if (f.faltas > 0) ...[
+                    const SizedBox(height: 14),
+                    Aviso(
+                      icono: Ico.noVino,
+                      texto: 'No se presentó ${f.faltas} '
+                          '${f.faltas == 1 ? 'vez' : 'veces'}'
+                          '${f.ultimaFalta != null ? ', la última el ${fechaCorta(f.ultimaFalta!)}' : ''}.',
+                      color: Marca.alerta,
+                    ),
+                  ],
                   const SizedBox(height: 14),
                   Row(
                     children: [
@@ -453,6 +465,8 @@ class _Ficha {
     required this.historial,
     required this.bonos,
     required this.tocaRepetir,
+    required this.faltas,
+    this.ultimaFalta,
     this.alergias,
     this.notas,
     this.foto,
@@ -470,6 +484,10 @@ class _Ficha {
   final List<_CitaFicha> historial;
   final List<_BonoFicha> bonos;
   final List<_Repetir> tocaRepetir;
+
+  /// Cuántas veces no se presentó, y cuándo fue la última.
+  final int faltas;
+  final DateTime? ultimaFalta;
   final String? alergias;
   final String? notas;
 
@@ -494,6 +512,10 @@ class _Ficha {
       ultimaVisita: r['ultimaVisita'] == null
           ? null
           : DateTime.parse(r['ultimaVisita'] as String).toLocal(),
+      faltas: r['faltas'] as int? ?? 0,
+      ultimaFalta: r['ultimaFalta'] == null
+          ? null
+          : DateTime.parse(r['ultimaFalta'] as String).toLocal(),
       proximas: [
         for (final x in (j['proximas'] as List))
           _CitaFicha.desdeJson(x as Map<String, dynamic>),

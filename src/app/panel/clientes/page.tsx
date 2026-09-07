@@ -168,7 +168,8 @@ export default async function ClientsPage(props: PageProps<"/panel/clientes">) {
 
                 {(client.balanceCents > 0 ||
                   client.upcomingCount > 0 ||
-                  client.packageSessions > 0) && (
+                  client.packageSessions > 0 ||
+                  client.noShowCount > 0) && (
                   <div className="flex flex-wrap gap-1.5">
                     {client.balanceCents > 0 ? (
                       <StatusBadge tone="danger">
@@ -184,6 +185,13 @@ export default async function ClientsPage(props: PageProps<"/panel/clientes">) {
                       <StatusBadge tone="brand">
                         {client.packageSessions} sesion
                         {client.packageSessions === 1 ? "" : "es"} de bono
+                      </StatusBadge>
+                    ) : null}
+                    {/* Las veces que no se presentó. Se marcan desde la app
+                        y hasta ahora no se veían en ningún lado. */}
+                    {client.noShowCount > 0 ? (
+                      <StatusBadge tone="warning">
+                        Faltó {client.noShowCount} {client.noShowCount === 1 ? "vez" : "veces"}
                       </StatusBadge>
                     ) : null}
                   </div>

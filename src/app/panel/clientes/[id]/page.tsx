@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   BadgePercent,
   CalendarPlus,
+  CalendarX2,
   Cake,
   AtSign,
   Mail,
@@ -122,6 +123,22 @@ export default async function ClientProfilePage(props: PageProps<"/panel/cliente
             <ShieldAlert className="text-warning mt-0.5 size-4 shrink-0" />
             <span>
               <strong>Ojo:</strong> {client.allergies}
+            </span>
+          </p>
+        ) : null}
+
+        {/* Los plantones, con la fecha del último: "faltó dos veces" sin
+            decir cuándo no ayuda a decidir si llamarla antes. */}
+        {stats.noShows > 0 ? (
+          <p className="bg-warning/10 text-warning-foreground mt-3 flex items-start gap-2 rounded-xl px-3 py-2.5 text-sm">
+            <CalendarX2 className="text-warning mt-0.5 size-4 shrink-0" />
+            <span>
+              No se presentó <strong>{stats.noShows}</strong>{" "}
+              {stats.noShows === 1 ? "vez" : "veces"}
+              {stats.lastNoShowAt
+                ? `, la última ${fmtRelativeDay(stats.lastNoShowAt, settings.timezone)}`
+                : ""}
+              .
             </span>
           </p>
         ) : null}

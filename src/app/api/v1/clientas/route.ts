@@ -41,6 +41,7 @@ export const GET = withUser(async ({ request }) => {
       activa: c.active,
       alergias: c.allergies,
       visitas: c.salesCount,
+      faltas: c.noShowCount,
       gastadoCentavos: c.totalSpentCents,
       saldoCentavos: c.balanceCents,
       ultimaVisita: c.lastVisitAt?.toISOString() ?? null,

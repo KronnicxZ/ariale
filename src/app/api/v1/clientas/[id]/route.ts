@@ -31,6 +31,8 @@ export const GET = withUserParams<{ id: string }, unknown>(async ({ params }) =>
       ticketCentavos: stats.ticketAvgCents,
       primeraVisita: stats.firstVisitAt?.toISOString() ?? null,
       ultimaVisita: stats.lastVisitAt?.toISOString() ?? null,
+      faltas: stats.noShows,
+      ultimaFalta: stats.lastNoShowAt?.toISOString() ?? null,
     },
     // La más cercana primero: es la que importa.
     proximas: [...upcoming].reverse().map((cita) => ({
