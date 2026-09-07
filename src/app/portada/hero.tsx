@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { CalendarPlus, ChevronDown } from "lucide-react";
+import { CalendarPlus, ChevronDown, Clock, MapPin } from "lucide-react";
 
 /**
  * La primera pantalla. La foto del estudio respira detrás, y encima la marca
@@ -11,15 +11,24 @@ import { CalendarPlus, ChevronDown } from "lucide-react";
  * filo dorado que se abre, y al final el lema y el botón.
  *
  * El orden importa: si todo entra a la vez no es una entrada, es un parpadeo.
+ *
+ * Al pie va una línea con el horario de hoy y la ciudad. Es lo primero que
+ * se pregunta —¿están abiertas?, ¿dónde queda?— y hasta ahora había que
+ * bajar la página entera para saberlo.
  */
 export function Hero({
   negocio,
   lema,
   rotulo,
+  hoy,
+  ciudad,
 }: {
   negocio: string;
   lema: string;
   rotulo: string;
+  /** "9:00 am – 6:00 pm", o null si hoy no abren. */
+  hoy: string | null;
+  ciudad: string | null;
 }) {
   // Cada pieza entra un poco después que la anterior. En un componente
   // servidor esto no se puede: por eso el hero es cliente.
@@ -103,13 +112,33 @@ export function Hero({
         </motion.div>
       </div>
 
+      {/* Cerrado también es una respuesta: mejor decirlo que callarlo. En el
+          teléfono se reparte en dos líneas en vez de salirse por el lado. */}
+      <motion.div
+        {...sube(0.8)}
+        className="absolute inset-x-0 bottom-0 z-10 border-t border-white/10 bg-black/30 backdrop-blur"
+      >
+        <ul className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-7 gap-y-1.5 px-5 py-3 text-[13px] text-white/80 sm:gap-x-9 sm:py-3.5 sm:text-sm">
+          <li className="flex items-center gap-2">
+            <Clock className="text-primary size-4 shrink-0" />
+            {hoy ? `Hoy ${hoy}` : "Hoy cerrado"}
+          </li>
+          {ciudad ? (
+            <li className="flex items-center gap-2">
+              <MapPin className="text-primary size-4 shrink-0" />
+              {ciudad}
+            </li>
+          ) : null}
+        </ul>
+      </motion.div>
+
       {/* Que se note que hay más abajo. Se esconde en el teléfono, donde la
           barra fija ya ocupa ese borde. */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1.3 }}
-        className="absolute inset-x-0 bottom-8 z-10 hidden justify-center sm:flex"
+        className="absolute inset-x-0 bottom-20 z-10 hidden justify-center sm:flex"
       >
         <ChevronDown className="baja-suave size-6 text-white/60" />
       </motion.div>

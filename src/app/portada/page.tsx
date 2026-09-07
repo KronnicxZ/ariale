@@ -5,12 +5,13 @@ import { CalendarCheck, CalendarPlus, Clock, MapPin, Sparkles, UserCheck } from 
 import { prisma } from "@/lib/db";
 import { getSettings, getWorkingHours } from "@/lib/settings";
 import { waLink } from "@/lib/whatsapp";
-import { DAY_SHORT, fmtDuration, hora12 } from "@/lib/date";
+import { DAY_SHORT, fmtDuration, hora12, nowInTz } from "@/lib/date";
 import { formatUsd } from "@/lib/money";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { Reveal } from "./reveal";
 import { CintaFotos, CintaPalabras } from "./cinta";
 import { Galeria, type Foto } from "./galeria";
+import { Cabecera } from "./cabecera";
 import { Hero } from "./hero";
 import { BarraAgendar } from "./barra-agendar";
 import { Servicios, type AreaServicio } from "./servicios";
@@ -227,6 +228,9 @@ export default async function PortadaPage() {
     .filter((h) => h.enabled)
     .sort((a, b) => a.dayOfWeek - b.dayOfWeek);
 
+  // El de hoy, en la hora del estudio y no en la de quien mira la página.
+  const hoy = abiertos.find((h) => h.dayOfWeek === nowInTz().getDay());
+
   const waEspecialistas = ESPECIALISTAS_WA.map((e) => ({
     ...e,
     href: waLink(
@@ -245,6 +249,7 @@ export default async function PortadaPage() {
       descripcion: DESCRIPCION_POR_TIPO[s.category.kind],
       foto: FOTO_POR_TIPO[s.category.kind],
       quien: null,
+      desde: "",
       servicios: [],
     };
     area.servicios.push({
@@ -261,18 +266,25 @@ export default async function PortadaPage() {
   // se dice una vez arriba y no se repite en cada línea. Si no coinciden,
   // se dice servicio por servicio, que es cuando de verdad hace falta.
   const areas = [...porCategoria.values()].map((a) => {
+    // "Desde $12,00": el más barato del área, calculado y no escrito a mano.
+    const barato = servicios
+      .filter((s) => s.category.id === a.id)
+      .reduce((min, s) => Math.min(min, s.priceCents), Number.POSITIVE_INFINITY);
+    const conDesde = { ...a, desde: formatUsd(barato) };
+
     const distintos = new Set(a.servicios.map((s) => s.quien ?? ""));
-    if (distintos.size !== 1) return a;
+    if (distintos.size !== 1) return conDesde;
     return {
-      ...a,
+      ...conDesde,
       quien: a.servicios[0].quien,
       servicios: a.servicios.map((s) => ({ ...s, quien: null })),
     };
   });
 
-  // El rótulo del hero se arma con lo que de verdad hay en el catálogo, no
-  // con una lista escrita a mano que se queda vieja: las áreas activas y,
-  // al final, la ciudad —que es el último trozo de la dirección—.
+  // El rótulo del hero se arma con lo que de verdad hay en el catálogo y no
+  // con una lista escrita a mano que se queda vieja. La ciudad ya no va
+  // aquí: la dice la tira de abajo, y repetirla era decirla dos veces en la
+  // misma pantalla.
   const PALABRA_POR_TIPO: Partial<Record<CategoryKind, string>> = {
     MANICURE: "Uñas",
     PEDICURE: "Pies",
@@ -286,7 +298,6 @@ export default async function PortadaPage() {
     ...(["MANICURE", "PEDICURE", "DEPILATION"] as const)
       .filter((k) => hay.has(k))
       .map((k) => PALABRA_POR_TIPO[k]),
-    ciudad,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -317,10 +328,15 @@ export default async function PortadaPage() {
       {/* ------------------------------------------------------------------
           Hero: la foto del estudio respirando y la marca presentandose
           ------------------------------------------------------------------ */}
+      <Cabecera negocio={settings.businessName} />
+
+      <span id="inicio" />
       <Hero
         negocio={settings.businessName}
         lema={settings.tagline}
         rotulo={rotuloHero}
+        hoy={hoy ? `${hora12(hoy.openTime)} – ${hora12(hoy.closeTime)}` : null}
+        ciudad={ciudad ?? null}
       />
 
       <CintaPalabras palabras={palabrasCinta} />
@@ -351,7 +367,7 @@ export default async function PortadaPage() {
           Servicios contados al bajar, con sus precios reales
           ------------------------------------------------------------------ */}
       {areas.length > 0 ? (
-        <section className="px-5 pb-16 sm:pb-24">
+        <section id="servicios" className="scroll-mt-20 px-5 pb-16 sm:pb-24">
           <Reveal>
             <div className="mx-auto max-w-7xl pb-12 lg:pb-16">
               <Titulo
@@ -370,7 +386,7 @@ export default async function PortadaPage() {
       {/* ------------------------------------------------------------------
           Galería sobre negro: las fotos mandan
           ------------------------------------------------------------------ */}
-      <section className="noche px-5 py-16 sm:py-24">
+      <section id="trabajos" className="noche scroll-mt-20 px-5 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl">
           <Reveal>
             <Titulo
@@ -389,7 +405,7 @@ export default async function PortadaPage() {
       {/* ------------------------------------------------------------------
           El equipo: dos personas, no una franquicia
           ------------------------------------------------------------------ */}
-      <section className="px-5 py-16 sm:py-24">
+      <section id="nosotras" className="scroll-mt-20 px-5 py-16 sm:py-24">
         <Reveal>
           <div className="mx-auto grid max-w-6xl items-center gap-10 sm:grid-cols-[minmax(0,320px)_1fr] lg:grid-cols-[minmax(0,440px)_1fr] lg:gap-16">
             <div className="relative mx-auto aspect-[3/4] w-60 overflow-hidden rounded-3xl shadow-xl sm:w-full">
@@ -417,7 +433,7 @@ export default async function PortadaPage() {
       {/* ------------------------------------------------------------------
           Cierre: agendar, escribir, y dónde encontrarlas
           ------------------------------------------------------------------ */}
-      <section className="noche filo-oro border-t px-5 py-16 pb-28 sm:py-24">
+      <section id="contacto" className="noche filo-oro scroll-mt-20 border-t px-5 py-16 pb-28 sm:py-24">
         <div className="mx-auto max-w-6xl">
           <Reveal>
             <div className="grid gap-12 sm:grid-cols-[1.15fr_1fr] sm:gap-16">
@@ -468,6 +484,16 @@ export default async function PortadaPage() {
                       <div className="min-w-0">
                         <p className="font-medium text-white">Dónde estamos</p>
                         <p className="mt-1 text-sm text-white/65">{settings.address}</p>
+                        {/* Antes había que copiar la dirección a mano para
+                            buscarla; desde el teléfono es lo que más cuesta. */}
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary mt-2 inline-block text-sm hover:underline"
+                        >
+                          Cómo llegar
+                        </a>
                       </div>
                     </div>
                   ) : null}

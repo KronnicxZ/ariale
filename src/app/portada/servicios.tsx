@@ -11,6 +11,8 @@ export type AreaServicio = {
   foto: string;
   /** Quién atiende el área entera, si todos sus servicios coinciden. */
   quien: string | null;
+  /** El precio más barato del área, ya formateado. */
+  desde: string;
   servicios: {
     id: string;
     nombre: string;
@@ -103,13 +105,28 @@ export function Servicios({ areas }: { areas: AreaServicio[] }) {
             {/* Quién atiende el área. Si dentro del área no todas hacen lo
                 mismo, esta línea no aparece y el nombre baja a cada
                 servicio, que es donde entonces significa algo. */}
-            {area.quien ? (
-              <p className="text-primary mt-4 text-sm font-medium">Con {area.quien}</p>
-            ) : null}
+            {/* Quién atiende el área, y desde cuánto sale. Lo de "desde" es
+                lo que más se pregunta por WhatsApp antes de nada. */}
+            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+              {area.quien ? (
+                <span className="text-primary font-medium">Con {area.quien}</span>
+              ) : null}
+              {area.quien ? <span className="text-border">·</span> : null}
+              <span className="text-muted-foreground">
+                Desde <span className="font-numeric text-foreground">{area.desde}</span>
+              </span>
+            </div>
 
-            <ul className="border-border/70 mt-7 divide-y">
+            <ul
+              className={`border-border/70 mt-7 grid ${
+                area.servicios.length > 6 ? "sm:grid-cols-2 sm:gap-x-10" : ""
+              }`}
+            >
               {area.servicios.map((s) => (
-                <li key={s.id} className="flex items-baseline justify-between gap-4 py-3.5">
+                <li
+                  key={s.id}
+                  className="border-border/70 flex items-baseline justify-between gap-4 border-b py-3.5"
+                >
                   <span className="min-w-0">
                     <span className="block text-[15px] font-medium">{s.nombre}</span>
                     <span className="text-muted-foreground text-xs">
