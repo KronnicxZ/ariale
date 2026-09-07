@@ -59,9 +59,31 @@ export const GET = withUserParams<{ id: string }, unknown>(async ({ params }) =>
  * Anula la venta. No la borra: el historial de caja tiene que poder
  * explicarse después, y una venta anulada queda a la vista.
  */
-export const DELETE = withUserParams<{ id: string }, unknown>(async ({ params }) => {
+/**
+ * Anula la venta, o la borra del todo con `definitiva=1`.
+ *
+ * Anular es lo normal: deja de contar en los totales pero el historial de
+ * caja se conserva, que es lo que quiere cualquiera que se equivoque
+ * cobrando. Borrar es para lo que nunca debió existir —las pruebas— y por
+ * eso hay que pedirlo aparte. Los cobros y las líneas se van con ella; la
+ * cita, si la tuviera, se queda.
+ */
+export const DELETE = withUserParams<{ id: string }, unknown>(async ({ request, params }) => {
+  const definitiva = new URL(request.url).searchParams.get("definitiva") === "1";
+
+  const venta = await prisma.sale.findUnique({
+    where: { id: params.id },
+    select: { number: true, _count: { select: { payments: true } } },
+  });
+  if (!venta) throw new Error("Esa venta ya no existe.");
+
+  if (definitiva) {
+    await prisma.sale.delete({ where: { id: params.id } });
+    return { borrada: true, numero: venta.number };
+  }
+
   await prisma.sale.update({ where: { id: params.id }, data: { status: "CANCELLED" } });
-  return { anulada: true };
+  return { anulada: true, numero: venta.number, cobros: venta._count.payments };
 });
 
 export { OPTIONS } from "@/lib/api";

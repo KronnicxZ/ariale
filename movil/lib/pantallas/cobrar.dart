@@ -7,6 +7,7 @@ import '../formato.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
+import 'venta_detalle.dart';
 
 /// Cuentas por cobrar: quién debe, cuánto, y las dos acciones que importan
 /// — cobrar y recordar por WhatsApp.
@@ -39,6 +40,14 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
     final futuro = _cargar();
     setState(() => _futuro = futuro);
     await futuro;
+  }
+
+  Future<void> _abrirVenta(_Cuenta cuenta) async {
+    final huboCambios = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => PantallaVentaDetalle(id: cuenta.id)),
+    );
+    if (huboCambios == true) _refrescar();
   }
 
   Future<void> _cobrar(_Cuenta cuenta) async {
@@ -146,6 +155,7 @@ class _PantallaCobrarState extends State<PantallaCobrar> {
                           prefijo: negocio?.prefijo ?? '+58',
                           negocio: negocio?.nombre ?? 'Arialé Studio',
                           alCobrar: () => _cobrar(c),
+                          alAbrir: () => _abrirVenta(c),
                         ),
                       ),
                     ),
@@ -165,6 +175,7 @@ class _TarjetaCuenta extends StatelessWidget {
     required this.prefijo,
     required this.negocio,
     required this.alCobrar,
+    required this.alAbrir,
   });
 
   final _Cuenta cuenta;
@@ -172,9 +183,16 @@ class _TarjetaCuenta extends StatelessWidget {
   final String negocio;
   final VoidCallback alCobrar;
 
+  /// Abre la venta que hay detrás. Desde ahí se anula y, si hace falta, se
+  /// borra: aquí solo se cobra y se recuerda.
+  final VoidCallback alAbrir;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return InkWell(
+      onTap: alAbrir,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
       decoration: BoxDecoration(
         color: Marca.tarjeta,
         borderRadius: BorderRadius.circular(18),
@@ -274,6 +292,7 @@ class _TarjetaCuenta extends StatelessWidget {
             ],
           ),
         ],
+      ),
       ),
     );
   }

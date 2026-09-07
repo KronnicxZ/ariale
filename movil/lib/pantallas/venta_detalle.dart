@@ -107,6 +107,35 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
     }
   }
 
+  /// Borra la venta de la base. Solo se ofrece cuando ya está anulada: hay
+  /// que pasar por anular primero, que es reversible, antes de lo que no lo es.
+  Future<void> _borrar(_Venta venta) async {
+    final seguro = await confirmar(
+      context,
+      titulo_: '¿Borrar la venta #${venta.numero}?',
+      mensaje: 'Desaparece de la caja y del historial de la clienta, con los '
+          'cobros que tuviera. Esto no se puede deshacer. Si la cita existe, '
+          'esa se queda.',
+      confirmarTexto: 'Borrar',
+    );
+    if (!seguro || !mounted) return;
+
+    final mensajero = ScaffoldMessenger.of(context);
+    final navegador = Navigator.of(context);
+    try {
+      await Sesion.de(context).borrar(
+        '/api/v1/ventas/${venta.id}',
+        params: {'definitiva': '1'},
+      );
+      navegador.pop(true);
+      mensajero.showSnackBar(
+        SnackBar(content: Text('Venta #${venta.numero} borrada.')),
+      );
+    } on ErrorApi catch (e) {
+      mensajero.showSnackBar(SnackBar(content: Text(e.mensaje)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final negocio = Sesion.catalogo?.negocio;
@@ -288,17 +317,22 @@ class _PantallaVentaDetalleState extends State<PantallaVentaDetalle> {
                       ),
                     ),
                   ],
-                  if (venta.estado != 'CANCELLED') ...[
-                    const SizedBox(height: 28),
-                    Center(
-                      child: TextButton.icon(
-                        onPressed: () => _anular(venta),
-                        icon: const Icon(Ico.anular, size: 18),
-                        label: const Text('Anular esta venta'),
-                        style: TextButton.styleFrom(foregroundColor: Marca.error),
-                      ),
-                    ),
-                  ],
+                  const SizedBox(height: 28),
+                  Center(
+                    child: venta.estado != 'CANCELLED'
+                        ? TextButton.icon(
+                            onPressed: () => _anular(venta),
+                            icon: const Icon(Ico.anular, size: 18),
+                            label: const Text('Anular esta venta'),
+                            style: TextButton.styleFrom(foregroundColor: Marca.error),
+                          )
+                        : TextButton.icon(
+                            onPressed: () => _borrar(venta),
+                            icon: const Icon(Ico.borrar, size: 18),
+                            label: const Text('Borrar del todo'),
+                            style: TextButton.styleFrom(foregroundColor: Marca.error),
+                          ),
+                  ),
                 ],
               );
             },
