@@ -8,6 +8,7 @@ import '../api/cliente.dart';
 import '../api/modelos.dart';
 import '../actualizacion.dart';
 import '../push.dart';
+import '../formato.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import 'agenda.dart';
@@ -117,7 +118,12 @@ class _PantallaInicioState extends State<PantallaInicio> {
     ];
 
     return Scaffold(
-      body: IndexedStack(index: _indice, children: pantallas),
+      body: Column(
+        children: [
+          const _AvisoSinConexion(),
+          Expanded(child: IndexedStack(index: _indice, children: pantallas)),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _indice,
         onDestinationSelected: (i) => setState(() => _indice = i),
@@ -149,6 +155,55 @@ class _PantallaInicioState extends State<PantallaInicio> {
           ),
         ],
       ),
+    );
+  }
+}
+
+
+/// La franja de "sin conexión", encima de todo y en todas las pestañas.
+///
+/// Aparece cuando una consulta se ha tenido que servir de lo guardado en el
+/// teléfono. Dice a qué hora se vio, que es el dato que importa: una agenda
+/// de hace diez minutos vale; una de ayer, no.
+class _AvisoSinConexion extends StatelessWidget {
+  const _AvisoSinConexion();
+
+  @override
+  Widget build(BuildContext context) {
+    final api = Sesion.de(context);
+
+    return ListenableBuilder(
+      listenable: api,
+      builder: (context, _) {
+        final desde = api.sinConexionDesde;
+        if (desde == null) return const SizedBox.shrink();
+
+        return Material(
+          color: Marca.alerta,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              child: Row(
+                children: [
+                  const Icon(Ico.sinConexion, size: 15, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Sin conexión · esto es lo que viste a las ${hora(desde)}',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
