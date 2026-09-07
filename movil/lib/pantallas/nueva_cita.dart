@@ -8,6 +8,7 @@ import '../formato.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
+import '../widgets/selector_cuando.dart';
 import 'elegir_clienta.dart';
 
 /// Agendar en cuatro decisiones: clienta, servicios, día y hora.
@@ -552,7 +553,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
             subtitulo: _servicioIds.isEmpty
                 ? 'Primero elige al menos un servicio.'
                 : 'La cita dura ${duracion(_duracionMostrada)}.',
-            hijo: _SelectorDia(
+            hijo: SelectorDia(
               dia: _dia,
               desde: _catalogo.hoy,
               hasta: _catalogo.maxDia,
@@ -575,7 +576,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
                     : _huecos.isEmpty
                         ? _Mensaje(_motivoSinHuecos ??
                             'Ese día no queda un hueco de esa duración.')
-                        : _ListaHoras(
+                        : ListaHoras(
                             huecos: _huecos,
                             hora: _hora,
                             alElegir: (h) => setState(() => _hora = h),
@@ -985,238 +986,6 @@ class _FilaServicio extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _SelectorDia extends StatelessWidget {
-  const _SelectorDia({
-    required this.dia,
-    required this.desde,
-    required this.hasta,
-    required this.alElegir,
-    this.conHueco,
-  });
-
-  final String dia;
-  final String desde;
-  final String hasta;
-  final ValueChanged<String> alElegir;
-
-  /// Los días con sitio. Nulo mientras no se sabe: todos encendidos.
-  final Set<String>? conHueco;
-
-  static const _nombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-  @override
-  Widget build(BuildContext context) {
-    final inicio = DateTime.parse(desde);
-    final dias = List.generate(21, (i) => inicio.add(Duration(days: i)));
-
-    return SizedBox(
-      height: 76,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: dias.length + 1,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          if (i == dias.length) {
-            return _BotonCalendario(
-              dia: dia,
-              desde: desde,
-              hasta: hasta,
-              alElegir: alElegir,
-            );
-          }
-
-          final fecha = dias[i];
-          final clave = claveDia(fecha);
-          final activo = clave == dia;
-          // Sin hueco es, para quien agenda, lo mismo que cerrado.
-          final lleno = conHueco != null && !conHueco!.contains(clave);
-
-          return Opacity(
-            opacity: lleno ? 0.38 : 1,
-            child: Material(
-            color: activo ? Marca.dorado : Marca.tarjeta,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              onTap: lleno ? null : () => alElegir(clave),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: 66,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: activo ? Marca.dorado : Marca.borde),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      i == 0
-                          ? 'Hoy'
-                          : i == 1
-                              ? 'Mañana'
-                              : _nombres[fecha.weekday % 7],
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w600,
-                        color: activo
-                            ? Marca.negro.withValues(alpha: 0.7)
-                            : Marca.textoSuave,
-                      ),
-                    ),
-                    Text(
-                      '${fecha.day}',
-                      style: cifra(19, color: activo ? Marca.negro : Marca.texto).copyWith(
-                        decoration: lleno ? TextDecoration.lineThrough : null,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _BotonCalendario extends StatelessWidget {
-  const _BotonCalendario({
-    required this.dia,
-    required this.desde,
-    required this.hasta,
-    required this.alElegir,
-  });
-
-  final String dia;
-  final String desde;
-  final String hasta;
-  final ValueChanged<String> alElegir;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Marca.tarjeta,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () async {
-          final elegida = await showDatePicker(
-            context: context,
-            initialDate: DateTime.parse(dia),
-            firstDate: DateTime.parse(desde),
-            lastDate: DateTime.parse(hasta),
-            locale: const Locale('es'),
-          );
-          if (elegida != null) alElegir(claveDia(elegida));
-        },
-        child: Container(
-          width: 62,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Marca.borde),
-          ),
-          child: const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Ico.agenda, size: 17, color: Marca.textoSuave),
-              SizedBox(height: 5),
-              Text(
-                'Otro día',
-                style: TextStyle(fontSize: 9.5, color: Marca.textoSuave),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ListaHoras extends StatelessWidget {
-  const _ListaHoras({
-    required this.huecos,
-    required this.hora,
-    required this.alElegir,
-  });
-
-  final List<Hueco> huecos;
-  final String? hora;
-  final ValueChanged<String> alElegir;
-
-  static const _franjas = [
-    ('morning', 'Mañana'),
-    ('afternoon', 'Tarde'),
-    ('evening', 'Noche'),
-  ];
-
-  /// "14:30" -> "2:30 pm"
-  String _bonita(String h) {
-    final partes = h.split(':');
-    final hh = int.parse(partes[0]);
-    final sufijo = hh < 12 ? 'am' : 'pm';
-    final doce = hh % 12 == 0 ? 12 : hh % 12;
-    return '$doce:${partes[1]} $sufijo';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final (clave, etiqueta) in _franjas)
-          if (huecos.any((h) => h.franja == clave)) ...[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Text(
-                etiqueta.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                  color: Marca.textoSuave,
-                ),
-              ),
-            ),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final h in huecos.where((h) => h.franja == clave))
-                  Material(
-                    color: hora == h.hora ? Marca.dorado : Marca.tarjeta,
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: () => alElegir(h.hora),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: hora == h.hora ? Marca.dorado : Marca.borde,
-                          ),
-                        ),
-                        child: Text(
-                          _bonita(h.hora),
-                          style: cifra(
-                            13.5,
-                            color: hora == h.hora ? Marca.negro : Marca.texto,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
-      ],
     );
   }
 }

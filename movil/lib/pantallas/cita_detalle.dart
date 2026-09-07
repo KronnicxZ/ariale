@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../iconos.dart';
@@ -10,6 +11,7 @@ import '../fotos_de_clientas.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
+import 'mover_cita.dart';
 
 /// Detalle de una cita con las acciones del día a día: confirmar, marcar
 /// atendida, cancelar y escribirle a la clienta.
@@ -63,6 +65,62 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
     } finally {
       if (mounted) setState(() => _guardando = false);
     }
+  }
+
+  /// "No vino" no es lo mismo que "cancelada": la cancelación la avisa
+  /// alguien, el plantón se sufre. La app solo sabía apuntar la primera, así
+  /// que un plantón se registraba como cancelación y se perdía la señal —que
+  /// además la ficha de la clienta lleva contada.
+  Future<void> _marcarNoVino(_Detalle d) async {
+    final seguro = await confirmar(
+      context,
+      titulo_: '¿No vino?',
+      mensaje: 'Queda apuntado en la ficha de ${d.cita.clientaNombre}. '
+          'A ella no se le avisa nada.',
+      confirmarTexto: 'No vino',
+    );
+    if (!seguro) return;
+    await _cambiarEstado('NO_SHOW', d);
+  }
+
+  Future<void> _moverCita(_Detalle d) async {
+    final movida = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PantallaMoverCita(
+          citaId: widget.citaId,
+          diaActual: claveDia(d.cita.inicio),
+          horaActual: DateFormat('HH:mm').format(d.cita.inicio),
+          resumen: '${d.cita.resumenServicios} · con ${d.cita.especialistaNombre}',
+        ),
+      ),
+    );
+    if (movida != true || !mounted) return;
+
+    _huboCambios = true;
+    setState(() => _futuro = _cargar());
+
+    // La clienta tiene que enterarse de que su cita cambió de hora: es el
+    // aviso que más falta hace de todos, y el que peor sienta que falte.
+    final nuevo = await _futuro;
+    await _avisarDelCambio(nuevo);
+  }
+
+  Future<void> _avisarDelCambio(_Detalle d) async {
+    final cita = d.cita;
+    if (cita.clientaTelefono.isEmpty) return;
+    final negocio = Sesion.catalogo?.negocio;
+
+    await abrirWhatsApp(
+      cita.clientaTelefono,
+      Mensajes.citaMovida(
+        clienta: cita.clientaNombre,
+        cuando: cita.inicio,
+        servicios: cita.resumenServicios,
+        negocio: negocio?.nombre ?? 'Arialé Studio',
+      ),
+      prefijo: negocio?.prefijo ?? '+58',
+    );
   }
 
   Future<void> _avisarALaClienta(String estado, _Detalle d) async {
@@ -354,7 +412,9 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                 const SizedBox(height: 16),
                 if (_guardando)
                   const Center(child: CircularProgressIndicator())
-                else
+                else ...[
+                  // En dos filas: cinco acciones en una sola dejan los
+                  // rótulos cortados y todo del ancho de un dedo a medias.
                   Row(
                     children: [
                       if (cita.porConfirmar)
@@ -370,15 +430,40 @@ class _PantallaCitaDetalleState extends State<PantallaCitaDetalle> {
                           rotulo: 'Atendida',
                           alTocar: () => _cambiarEstado('ATTENDED', d),
                         ),
-                      if (!cita.cancelada)
+                      if (!cita.atendida && !cita.cancelada)
+                        _Accion(
+                          icono: Ico.mover,
+                          rotulo: 'Mover',
+                          alTocar: () => _moverCita(d),
+                        ),
+                      // Tres huecos siempre, aunque no haya tres botones: si
+                      // no, las de arriba salen más anchas que las de abajo.
+                      if (!cita.porConfirmar) const Expanded(child: SizedBox()),
+                    ],
+                  ),
+                  if (!cita.atendida && !cita.cancelada) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _Accion(
+                          icono: Ico.noVino,
+                          rotulo: 'No vino',
+                          color: Marca.alerta,
+                          alTocar: () => _marcarNoVino(d),
+                        ),
                         _Accion(
                           icono: Ico.anular,
                           rotulo: 'Cancelar',
                           color: Marca.error,
                           alTocar: () => _cambiarEstado('CANCELLED', d),
                         ),
-                    ],
-                  ),
+                        // Un hueco para que las dos de abajo tengan el mismo
+                        // ancho que las tres de arriba y no queden gigantes.
+                        const Expanded(child: SizedBox()),
+                      ],
+                    ),
+                  ],
+                ],
                 const SizedBox(height: 18),
                 Card(
                   child: Padding(

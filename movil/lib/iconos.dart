@@ -38,6 +38,8 @@ class Ico {
   static const hora = LucideIcons.clock300;
   static const cerrado = LucideIcons.moon300;
   static const repetir = LucideIcons.repeat300;
+  static const mover = LucideIcons.calendarSync300;
+  static const noVino = LucideIcons.userX300;
 
   // Clientas
   static const clientas = LucideIcons.users300;

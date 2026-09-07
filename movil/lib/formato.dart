@@ -74,6 +74,16 @@ String diaRelativo(DateTime fecha) {
 /// yyyy-MM-dd, que es como viajan los días por la API.
 String claveDia(DateTime fecha) => DateFormat('yyyy-MM-dd').format(fecha);
 
+/// "14:30" → "2:30 pm". Las horas viajan en 24 h y se leen en 12, que es
+/// como se dicen aquí.
+String horaBonita(String hhmm) {
+  final partes = hhmm.split(':');
+  final hh = int.parse(partes[0]);
+  final sufijo = hh < 12 ? 'am' : 'pm';
+  final doce = hh % 12 == 0 ? 12 : hh % 12;
+  return '$doce:${partes[1]} $sufijo';
+}
+
 String iniciales(String nombre) {
   final partes = nombre.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
   if (partes.isEmpty) return '?';
@@ -144,6 +154,21 @@ class Mensajes {
       '🕐 ${hora(cuando)}\n'
       '✨ $servicios\n\n'
       'Disculpa la molestia. ¿Te busco otro día? Dime cuándo te queda bien.';
+
+  /// Cuando la cita cambia de hora. Es el aviso que más falta hace: una
+  /// clienta que se presenta a la hora vieja es un plantón de los dos lados.
+  static String citaMovida({
+    required String clienta,
+    required DateTime cuando,
+    required String servicios,
+    required String negocio,
+  }) =>
+      '¡Hola ${primerNombre(clienta)}! 💛\n\n'
+      'Cambiamos tu cita en $negocio. Queda así:\n'
+      '📅 ${fechaLarga(cuando)}\n'
+      '🕐 ${hora(cuando)}\n'
+      '✨ $servicios\n\n'
+      '¿Te queda bien? Si no, dime y buscamos otra.';
 
   static String recordatorio({
     required String clienta,

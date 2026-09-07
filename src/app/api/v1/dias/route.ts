@@ -1,5 +1,6 @@
 import { param, withUser } from "@/lib/api";
 import { fetchDiasAction } from "@/actions/appointments";
+import { serviciosDeLaCita } from "@/lib/api-cita";
 
 /**
  * Qué días de un tramo tienen al menos un hueco para lo que se pidió.
@@ -12,18 +13,22 @@ import { fetchDiasAction } from "@/actions/appointments";
 export const GET = withUser(async ({ request }) => {
   const desde = param(request, "desde");
   const hasta = param(request, "hasta");
-  const servicios = param(request, "servicios");
-  const especialista = param(request, "especialista") ?? null;
-
   if (!desde || !hasta) throw new Error("Falta el tramo de días.");
-  const serviceIds = (servicios ?? "").split(",").filter(Boolean);
+
+  // Como en /huecos: al mover una cita basta con decir cuál.
+  const citaId = param(request, "cita");
+  const deLaCita = citaId ? await serviciosDeLaCita(citaId) : null;
+
+  const serviceIds =
+    deLaCita?.serviceIds ?? (param(request, "servicios") ?? "").split(",").filter(Boolean);
   if (serviceIds.length === 0) throw new Error("Elige al menos un servicio.");
 
   const { dias } = await fetchDiasAction({
     desde,
     hasta,
     serviceIds,
-    specialistId: especialista,
+    specialistId: deLaCita?.specialistId ?? param(request, "especialista") ?? null,
+    excluirCitaId: citaId ?? null,
   });
 
   return { dias };
