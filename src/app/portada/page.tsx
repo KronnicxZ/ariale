@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarCheck, CalendarPlus, Clock, MapPin, Sparkles, UserCheck } from "lucide-react";
@@ -13,9 +14,20 @@ import { Galeria, type Foto } from "./galeria";
 import { Hero } from "./hero";
 import { BarraAgendar } from "./barra-agendar";
 import { Servicios, type AreaServicio } from "./servicios";
+import { fichaDelNegocio, textosSeo } from "@/lib/seo";
 import type { CategoryKind } from "@/generated/prisma/client";
 
-export const metadata = { title: "Inicio" };
+export async function generateMetadata(): Promise<Metadata> {
+  const textos = await textosSeo();
+  return {
+    // Absoluto: sin esto la plantilla del layout deja "Inicio · Arialé
+    // Studio" en la pestaña, que no dice nada de lo que hacen ni de dónde
+    // están —y es lo primero que se ve en Google—.
+    title: { absolute: textos.titulo },
+    description: textos.descripcion,
+    alternates: { canonical: "/" },
+  };
+}
 // Horario, precios y servicios salen del panel: si cambian ahí, se tienen
 // que ver aquí sin esperar a un redespliegue.
 export const dynamic = "force-dynamic";
@@ -288,8 +300,20 @@ export default async function PortadaPage() {
 
   // Sin `overflow-x-hidden` aquí: cortaría el `position: sticky` de la foto
   // que acompaña a los servicios. Las cintas ya se recortan a sí mismas.
+  // La ficha para Google: horario, dirección, teléfono y los servicios con
+  // su precio. Es lo que hace que en el buscador salga el negocio y no un
+  // enlace pelado.
+  const ficha = await fichaDelNegocio(servicios);
+
   return (
     <div className="flex-1">
+      <script
+        type="application/ld+json"
+        // El contenido lo armamos nosotros a partir de la base, no viene de
+        // fuera; y va aquí y no en el `<head>` porque Next lo iza solo.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ficha) }}
+      />
+
       {/* ------------------------------------------------------------------
           Hero: la foto del estudio respirando y la marca presentandose
           ------------------------------------------------------------------ */}

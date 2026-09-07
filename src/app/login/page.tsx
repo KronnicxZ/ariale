@@ -4,7 +4,7 @@ import { getSettings } from "@/lib/settings";
 import { BrandMark } from "@/components/brand-mark";
 import { LoginForm } from "./login-form";
 
-export const metadata = { title: "Entrar" };
+export const metadata = { title: "Entrar", robots: { index: false, follow: false } };
 
 export default async function LoginPage() {
   if (await getCurrentUser()) redirect("/panel");

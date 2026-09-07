@@ -10,7 +10,8 @@ import { AppointmentStatusBadge } from "@/components/panel/status-badge";
 import { fmtDate, fmtTime } from "@/lib/date";
 import { formatBs, formatUsd } from "@/lib/money";
 
-export const metadata = { title: "Tus visitas" };
+// Las visitas de una clienta son suyas: ni se indexan ni se siguen.
+export const metadata = { title: "Tus visitas", robots: { index: false, follow: false } };
 
 export default async function ClientHistoryPage() {
   const client = await getCurrentClient();

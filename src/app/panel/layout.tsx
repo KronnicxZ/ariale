@@ -5,6 +5,10 @@ import { getRate } from "@/lib/rate";
 import { Sidebar } from "@/components/panel/sidebar";
 import { MobileNav } from "@/components/panel/mobile-nav";
 
+// El panel pide sesión, pero además se le dice al buscador que no entre: si
+// una ruta se deja abierta por error, que no acabe indexada encima.
+export const metadata = { robots: { index: false, follow: false } };
+
 export default async function PanelLayout({ children }: LayoutProps<"/panel">) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");

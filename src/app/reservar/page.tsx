@@ -11,7 +11,14 @@ import { firstName } from "@/lib/utils";
 import { IdentifyForm } from "./identify-form";
 import { clientCancelAppointmentAction } from "@/actions/client-zone";
 
-export const metadata = { title: "Agenda tu cita" };
+// Pública y con su propia descripción: mucha gente llega buscando "agendar
+// cita" con el nombre del estudio, no buscando la portada.
+export const metadata = {
+  title: "Agenda tu cita",
+  description:
+    "Elige el servicio, el día y la hora. Ves los precios y los huecos libres antes de reservar, sin esperar a que te contesten.",
+  alternates: { canonical: "/reservar" },
+};
 
 export default async function ReservarPage() {
   const [client, settings] = await Promise.all([getCurrentClient(), getSettings()]);

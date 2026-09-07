@@ -6,7 +6,7 @@ import { getBookingOptions, getClientPackages } from "@/data/booking";
 import { getRate } from "@/lib/rate";
 import { ClientBooking } from "./client-booking";
 
-export const metadata = { title: "Tu cita" };
+export const metadata = { title: "Tu cita", robots: { index: false, follow: false } };
 
 export default async function ClientBookingPage() {
   const client = await getCurrentClient();

@@ -12,7 +12,10 @@ import { stringParam } from "@/lib/period";
 export async function generateMetadata(props: PageProps<"/agenda/[slug]">) {
   const { slug } = await props.params;
   const specialist = await prisma.specialist.findUnique({ where: { slug } });
-  return { title: specialist ? `Agenda de ${specialist.name}` : "Agenda" };
+  return {
+    title: specialist ? `Agenda de ${specialist.name}` : "Agenda",
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function SpecialistAgendaPage(props: PageProps<"/agenda/[slug]">) {
