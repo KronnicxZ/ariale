@@ -40,6 +40,12 @@ export type BookingOutcome =
       ok: true;
       appointmentId: string;
       status: string;
+      /**
+       * A nombre de quién quedó. Se enseña al confirmar: si el teléfono ya
+       * estaba registrado no se pide el nombre, y una cifra mal tecleada
+       * agendaría a nombre de otra sin que nadie se entere.
+       */
+      clientName: string;
       whenLabel: string;
       timeLabel: string;
       servicesLabel: string;
@@ -158,6 +164,7 @@ async function book(
         ok: true,
         appointmentId: primera.id,
         status: primera.status,
+        clientName: primera.client.name,
         whenLabel: detalle[0].whenLabel,
         timeLabel: detalle[0].timeLabel,
         servicesLabel: detalle.map((d) => d.servicesLabel).join(" + "),
@@ -215,6 +222,7 @@ async function book(
         ok: true,
         appointmentId: primera.id,
         status: primera.status,
+        clientName: primera.client.name,
         whenLabel: fmtDayLong(primera.startAt, settings.timezone),
         timeLabel: fmtTime(primera.startAt, settings.timezone),
         servicesLabel: citas
@@ -245,6 +253,7 @@ async function book(
       ok: true,
       appointmentId: appointment.id,
       status: appointment.status,
+      clientName: appointment.client.name,
       whenLabel: fmtDayLong(appointment.startAt, settings.timezone),
       timeLabel: fmtTime(appointment.startAt, settings.timezone),
       servicesLabel: appointment.services.map((s) => s.service.name).join(" + "),

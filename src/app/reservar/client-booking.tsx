@@ -288,7 +288,14 @@ function Confirmada({
             </div>
           </>
         )}
+        {/* A nombre de quién quedó. Cuando el teléfono ya estaba registrado
+            no se pide el nombre, y una cifra mal tecleada agendaría a nombre
+            de otra: dicho aquí, se ve al momento. */}
         <div className="flex justify-between gap-4 border-t pt-2">
+          <dt className="text-muted-foreground">A nombre de</dt>
+          <dd className="text-right font-medium">{done.clientName}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
           <dt className="text-muted-foreground">Total</dt>
           <dd className="text-right font-semibold">
             {formatUsd(done.totalCents)}
