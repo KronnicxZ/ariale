@@ -17,7 +17,14 @@ import {
 export function ProfileForms({
   user,
 }: {
-  user: { name: string; email: string; phone: string | null; role: string };
+  user: {
+    name: string;
+    email: string;
+    phone: string | null;
+    role: string;
+    /// Tiene ficha de especialista: atiende clientas y sale en la agenda.
+    esEspecialista: boolean;
+  };
 }) {
   const router = useRouter();
   const [profileState, profileAction, profilePending] = useActionState<ActionState, FormData>(
@@ -46,7 +53,14 @@ export function ProfileForms({
         <div>
           <h2 className="font-semibold">Tus datos</h2>
           <p className="text-muted-foreground text-sm">
-            {user.role === "OWNER" ? "Dueña del estudio" : "Administradora"}
+            {/* No todas las cuentas son de quien atiende: la de quien lleva
+                el sistema no tiene ficha de especialista, y llamarla
+                "administradora" sonaba a otra cosa. */}
+            {user.esEspecialista
+              ? user.role === "OWNER"
+                ? "Dueña del estudio"
+                : "Especialista"
+              : "Cuenta de administración"}
           </p>
         </div>
 
