@@ -6,6 +6,7 @@ import '../sesion.dart';
 import '../tema.dart';
 import 'compras.dart';
 import 'equipo.dart';
+import 'bloqueos.dart';
 import 'catalogo_servicios.dart';
 import 'gastos.dart';
 import 'negocio.dart';
@@ -76,6 +77,13 @@ class PantallaMas extends StatelessWidget {
               ),
             ]),
             const _Grupo('El estudio', [
+              _Entrada(
+                icono: Ico.cerrado,
+                rotulo: 'Días y horas bloqueadas',
+                apoyo: 'Cuando no atiendes, para que nadie reserve',
+                color: Marca.lavanda,
+                crear: PantallaBloqueos.new,
+              ),
               _Entrada(
                 icono: Ico.reportes,
                 rotulo: 'Reportes',
