@@ -622,3 +622,25 @@ Future<bool> confirmar(
   );
   return respuesta ?? false;
 }
+
+/// Abre el reloj de Android siempre en 12 horas.
+///
+/// Por defecto sigue el ajuste del teléfono, y en 24 h "01:00" se lee como
+/// "la una" y se guarda la una de la madrugada. Pasó: el domingo quedó
+/// abierto desde la 1:00 am y la página de reservas ofrecía horas de
+/// madrugada —haciendo lo correcto con un horario mal puesto—.
+Future<TimeOfDay?> elegirHora(
+  BuildContext context, {
+  required TimeOfDay inicial,
+  String? ayuda,
+}) {
+  return showTimePicker(
+    context: context,
+    initialTime: inicial,
+    helpText: ayuda,
+    builder: (context, hijo) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+      child: hijo!,
+    ),
+  );
+}

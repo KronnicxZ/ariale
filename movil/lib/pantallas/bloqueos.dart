@@ -210,6 +210,8 @@ class _HojaBloqueoState extends State<_HojaBloqueo> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
+  /// En 24 h, que es como viaja al servidor. Para enseñarla se pasa por
+  /// `horaBonita`: aquí nadie lee "14:30".
   String _texto(TimeOfDay h) =>
       '${h.hour.toString().padLeft(2, '0')}:${h.minute.toString().padLeft(2, '0')}';
 
@@ -236,9 +238,9 @@ class _HojaBloqueoState extends State<_HojaBloqueo> {
   }
 
   Future<void> _elegirHora({required bool inicial}) async {
-    final elegida = await showTimePicker(
-      context: context,
-      initialTime: inicial ? _horaDesde : _horaHasta,
+    final elegida = await elegirHora(
+      context,
+      inicial: inicial ? _horaDesde : _horaHasta,
     );
     if (elegida == null) return;
     setState(() {
@@ -379,7 +381,7 @@ class _HojaBloqueoState extends State<_HojaBloqueo> {
                   Expanded(
                     child: _Selector(
                       rotulo: 'Desde las',
-                      valor: _texto(_horaDesde),
+                      valor: horaBonita(_texto(_horaDesde)),
                       alTocar: () => _elegirHora(inicial: true),
                     ),
                   ),
@@ -387,7 +389,7 @@ class _HojaBloqueoState extends State<_HojaBloqueo> {
                   Expanded(
                     child: _Selector(
                       rotulo: 'Hasta las',
-                      valor: _texto(_horaHasta),
+                      valor: horaBonita(_texto(_horaHasta)),
                       alTocar: () => _elegirHora(inicial: false),
                     ),
                   ),

@@ -25,8 +25,59 @@ import {
   saveScheduleAction,
 } from "@/actions/settings";
 import type { ActionState } from "@/actions/shared";
-import { DAY_NAMES } from "@/lib/date";
+import { DAY_NAMES, hora12 } from "@/lib/date";
 import { cn, readableOn } from "@/lib/utils";
+
+/**
+ * Las medias horas del día, para elegir apertura y cierre.
+ *
+ * Antes esto era un `<input type="time">`, que se pinta en el formato del
+ * sistema: en español, 24 horas. "01:00" se leyó como "la una de la tarde" y
+ * quedó guardada la una de la madrugada —con la página de reservas ofreciendo
+ * citas a las 2 am, haciendo lo correcto con un horario mal puesto—. Aquí no
+ * hay ambigüedad posible: cada opción dice "am" o "pm".
+ */
+const HORAS_DEL_DIA = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2);
+  const m = i % 2 === 0 ? "00" : "30";
+  return `${String(h).padStart(2, "0")}:${m}`;
+});
+
+/** Las del día más la que ya estuviera guardada, si cae a una hora rara. */
+function opcionesDeHora(actual: string) {
+  return HORAS_DEL_DIA.includes(actual)
+    ? HORAS_DEL_DIA
+    : [...HORAS_DEL_DIA, actual].sort();
+}
+
+function SelectorDeHora({
+  name,
+  value,
+  onChange,
+  disabled,
+  label,
+}: {
+  name: string;
+  value: string;
+  onChange: (valor: string) => void;
+  disabled: boolean;
+  label: string;
+}) {
+  return (
+    <Select name={name} value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger className="w-32" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {opcionesDeHora(value).map((h) => (
+          <SelectItem key={h} value={h}>
+            {hora12(h)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 type Settings = {
   businessName: string;
@@ -270,22 +321,20 @@ function ScheduleForm({
             <span className="w-24 shrink-0 text-sm font-medium">{DAY_NAMES[day.dayOfWeek]}</span>
 
             <div className="flex flex-1 items-center gap-2">
-              <Input
-                type="time"
+              <SelectorDeHora
                 name={`open-${day.dayOfWeek}`}
                 value={day.openTime}
-                onChange={(event) => update(day.dayOfWeek, { openTime: event.target.value })}
+                onChange={(valor) => update(day.dayOfWeek, { openTime: valor })}
                 disabled={!day.enabled}
-                className="w-32"
+                label={`${DAY_NAMES[day.dayOfWeek]}: abre`}
               />
               <span className="text-muted-foreground text-sm">a</span>
-              <Input
-                type="time"
+              <SelectorDeHora
                 name={`close-${day.dayOfWeek}`}
                 value={day.closeTime}
-                onChange={(event) => update(day.dayOfWeek, { closeTime: event.target.value })}
+                onChange={(valor) => update(day.dayOfWeek, { closeTime: valor })}
                 disabled={!day.enabled}
-                className="w-32"
+                label={`${DAY_NAMES[day.dayOfWeek]}: cierra`}
               />
             </div>
           </div>

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../iconos.dart';
 
 import '../api/cliente.dart';
+import '../formato.dart';
 import '../sesion.dart';
 import '../tema.dart';
 import '../widgets/comunes.dart';
@@ -60,17 +61,17 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
   }
 
   Future<void> _editarDia(_Dia dia) async {
-    final desde = await showTimePicker(
-      context: context,
-      initialTime: _aHora(dia.desde),
-      helpText: 'Hora de apertura',
+    final desde = await elegirHora(
+      context,
+      inicial: _aHora(dia.desde),
+      ayuda: 'Hora de apertura',
     );
     if (desde == null || !mounted) return;
 
-    final hasta = await showTimePicker(
-      context: context,
-      initialTime: _aHora(dia.hasta),
-      helpText: 'Hora de cierre',
+    final hasta = await elegirHora(
+      context,
+      inicial: _aHora(dia.hasta),
+      ayuda: 'Hora de cierre',
     );
     if (hasta == null) return;
 
@@ -179,8 +180,8 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                             ),
                             subtitle: Text(
                               a.horario[i].abierto
-                                  ? '${a.horario[i].desde} — ${a.horario[i].hasta}'
-                                  : 'Cerrado · ${a.horario[i].desde} — ${a.horario[i].hasta}',
+                                  ? '${horaBonita(a.horario[i].desde)} — ${horaBonita(a.horario[i].hasta)}'
+                                  : 'Cerrado · ${horaBonita(a.horario[i].desde)} — ${horaBonita(a.horario[i].hasta)}',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: a.horario[i].abierto
