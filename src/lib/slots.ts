@@ -46,6 +46,10 @@ function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number) {
   return aStart < bEnd && bStart < aEnd;
 }
 
+/** La franja que se ofrece cuando se agenda fuera del horario del salón. */
+const FUERA_DESDE = 8 * 60;
+const FUERA_HASTA = 20 * 60;
+
 export async function getAvailability(options: {
   day: string;
   durationMin: number;
@@ -57,8 +61,25 @@ export async function getAvailability(options: {
   serviceIds?: string[];
   /** Al reprogramar, la cita que se está moviendo no debe bloquearse a sí misma. */
   excludeAppointmentId?: string;
+  /**
+   * Salta el horario del salón: un domingo cerrado, o las siete de la tarde
+   * cuando se cierra a las seis.
+   *
+   * Solo para quien agenda desde dentro. El estudio a veces atiende fuera de
+   * hora a quien lo pide, y hasta ahora eso no se podía apuntar: el día
+   * salía cerrado y no había forma de meterle la cita. En la página pública
+   * no se usa nunca —ahí el horario es el horario—.
+   */
+  ignorarHorario?: boolean;
 }): Promise<DayAvailability> {
-  const { day, durationMin, specialistId, serviceIds, excludeAppointmentId } = options;
+  const {
+    day,
+    durationMin,
+    specialistId,
+    serviceIds,
+    excludeAppointmentId,
+    ignorarHorario = false,
+  } = options;
 
   const [settings, workingHours] = await Promise.all([
     prisma.settings.findFirst(),
@@ -73,12 +94,14 @@ export async function getAvailability(options: {
   const dow = toTz(dayStart, tz).getDay();
 
   const hours = workingHours.find((h) => h.dayOfWeek === dow);
-  if (!hours || !hours.enabled) {
+  if (!ignorarHorario && (!hours || !hours.enabled)) {
     return { day, open: false, slots: [], reason: "El salón no atiende ese día." };
   }
 
-  const openMin = minutesOf(hours.openTime);
-  const closeMin = minutesOf(hours.closeTime);
+  // Fuera de horario, la jornada va de 8 a 20: es de sol a sol sin llegar a
+  // ofrecer las tres de la madrugada, que no le sirve a nadie.
+  const openMin = ignorarHorario ? Math.min(FUERA_DESDE, minutesOf(hours?.openTime ?? "09:00")) : minutesOf(hours!.openTime);
+  const closeMin = ignorarHorario ? Math.max(FUERA_HASTA, minutesOf(hours?.closeTime ?? "18:00")) : minutesOf(hours!.closeTime);
   if (closeMin - openMin < durationMin) {
     return { day, open: true, slots: [], reason: "La jornada es más corta que el servicio." };
   }
@@ -153,7 +176,10 @@ export async function getAvailability(options: {
     list.push([s, e]);
   }
 
-  const earliest = addMinutes(new Date(), minHoursAhead * 60);
+  // Quien agenda desde dentro puede meter una cita para dentro de media
+  // hora: el aviso previo es para la clienta que reserva sola, no para
+  // quien tiene el teléfono en la mano.
+  const earliest = ignorarHorario ? new Date() : addMinutes(new Date(), minHoursAhead * 60);
   const slots: Slot[] = [];
 
   for (let start = openMin; start + durationMin <= closeMin; start += slotMinutes) {
@@ -353,8 +379,17 @@ export async function getDiasConHueco(options: {
    * puede pasar de las tres a las cinco del mismo día.
    */
   excluirCitaId?: string | null;
+  /** Ver `getAvailability`: agendar desde dentro fuera del horario. */
+  ignorarHorario?: boolean;
 }): Promise<string[]> {
-  const { desde, hasta, serviceIds, specialistId, excluirCitaId } = options;
+  const {
+    desde,
+    hasta,
+    serviceIds,
+    specialistId,
+    excluirCitaId,
+    ignorarHorario = false,
+  } = options;
 
   const [settings, workingHours, servicios, equipo] = await Promise.all([
     prisma.settings.findFirst(),
@@ -463,16 +498,20 @@ export async function getDiasConHueco(options: {
     }
   }
 
-  const minimo = addMinutes(new Date(), minHoursAhead * 60);
+  const minimo = ignorarHorario ? new Date() : addMinutes(new Date(), minHoursAhead * 60);
   const conHueco: string[] = [];
 
   for (let dia = desde; dia <= hasta; dia = dayKey(addDays(startOfDayUtc(dia, tz), 1), tz)) {
     const dow = toTz(startOfDayUtc(dia, tz), tz).getDay();
     const horario = workingHours.find((h) => h.dayOfWeek === dow);
-    if (!horario || !horario.enabled) continue;
+    if (!ignorarHorario && (!horario || !horario.enabled)) continue;
 
-    const abre = minutesOf(horario.openTime);
-    const cierra = minutesOf(horario.closeTime);
+    const abre = ignorarHorario
+      ? Math.min(FUERA_DESDE, minutesOf(horario?.openTime ?? "09:00"))
+      : minutesOf(horario!.openTime);
+    const cierra = ignorarHorario
+      ? Math.max(FUERA_HASTA, minutesOf(horario?.closeTime ?? "18:00"))
+      : minutesOf(horario!.closeTime);
 
     const libreEn = (inicioMin: number, grupo: Grupo) =>
       grupo.specialistIds.some((quien) =>

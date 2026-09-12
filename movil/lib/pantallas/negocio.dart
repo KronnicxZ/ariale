@@ -78,7 +78,9 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
       'horario': [
         {
           'dia': dia.dia,
-          'abierto': true,
+          // Cambiar la hora no abre el día: se pueden dejar puestas las
+          // horas de un domingo que hoy está cerrado.
+          'abierto': dia.abierto,
           'desde': _aTexto(desde),
           'hasta': _aTexto(hasta),
         },
@@ -154,24 +156,20 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                       ),
                     ),
                   ),
-                  const Seccion('Horario', apoyo: 'Toca un día para cambiarlo'),
+                  const Seccion(
+                    'Horario',
+                    apoyo: 'Toca el día para cambiar las horas; el interruptor abre y cierra',
+                  ),
                   Card(
                     child: Column(
                       children: [
                         for (var i = 0; i < a.horario.length; i++) ...[
                           if (i > 0) const Divider(height: 1),
-                          SwitchListTile(
-                            value: a.horario[i].abierto,
-                            onChanged: (v) => _guardar({
-                              'horario': [
-                                {
-                                  'dia': a.horario[i].dia,
-                                  'abierto': v,
-                                  'desde': a.horario[i].desde,
-                                  'hasta': a.horario[i].hasta,
-                                },
-                              ],
-                            }),
+                          // Fila entera tocable. Antes solo lo era el textito
+                          // de la hora, y cerrado no lo era en absoluto: se
+                          // veía "toca un día para cambiarlo" y no pasaba nada.
+                          ListTile(
+                            onTap: () => _editarDia(a.horario[i]),
                             title: Text(
                               _nombresDia[a.horario[i].dia],
                               style: const TextStyle(
@@ -179,22 +177,30 @@ class _PantallaNegocioState extends State<PantallaNegocio> {
                                 fontSize: 14.5,
                               ),
                             ),
-                            subtitle: GestureDetector(
-                              onTap: a.horario[i].abierto
-                                  ? () => _editarDia(a.horario[i])
-                                  : null,
-                              child: Text(
-                                a.horario[i].abierto
-                                    ? '${a.horario[i].desde} — ${a.horario[i].hasta}'
-                                    : 'Cerrado',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: a.horario[i].abierto
-                                      ? Marca.dorado
-                                      : Marca.textoSuave,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            subtitle: Text(
+                              a.horario[i].abierto
+                                  ? '${a.horario[i].desde} — ${a.horario[i].hasta}'
+                                  : 'Cerrado · ${a.horario[i].desde} — ${a.horario[i].hasta}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: a.horario[i].abierto
+                                    ? Marca.dorado
+                                    : Marca.textoSuave,
+                                fontWeight: FontWeight.w600,
                               ),
+                            ),
+                            trailing: Switch(
+                              value: a.horario[i].abierto,
+                              onChanged: (v) => _guardar({
+                                'horario': [
+                                  {
+                                    'dia': a.horario[i].dia,
+                                    'abierto': v,
+                                    'desde': a.horario[i].desde,
+                                    'hasta': a.horario[i].hasta,
+                                  },
+                                ],
+                              }),
                             ),
                           ),
                         ],

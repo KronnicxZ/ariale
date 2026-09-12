@@ -23,11 +23,16 @@ export const GET = withUser(async ({ request }) => {
 
   const specialistId = deLaCita?.specialistId ?? param(request, "especialista") ?? null;
 
+  // "fuera=1": el equipo agenda fuera del horario del salón —un domingo, o
+  // a las siete—. La página pública nunca manda esto.
+  const fueraDeHorario = param(request, "fuera") === "1";
+
   const result = await fetchSlotsAction({
     day,
     serviceIds,
     specialistId,
     excludeAppointmentId: citaId ?? undefined,
+    ignorarHorario: fueraDeHorario,
   });
 
   return {

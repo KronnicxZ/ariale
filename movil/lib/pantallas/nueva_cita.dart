@@ -39,6 +39,16 @@ class PantallaNuevaCita extends StatefulWidget {
 }
 
 class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
+  /// Agendar saltándose el horario del salón: un domingo cerrado, o las
+  /// siete de la tarde. El estudio a veces atiende fuera de hora a quien lo
+  /// pide y hasta ahora eso no se podía apuntar.
+  bool _fueraDeHorario = false;
+
+  /// Para poder llevar la pantalla hasta lo que falta cuando se pulsa el
+  /// botón de abajo.
+  final _desplazamiento = ScrollController();
+  final _anclaServicio = GlobalKey();
+  final _anclaHora = GlobalKey();
   ClientaElegida? _clienta;
   final _servicioIds = <String>[];
   String? _especialistaId;
@@ -94,6 +104,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
   @override
   void dispose() {
     _nota.dispose();
+    _desplazamiento.dispose();
     super.dispose();
   }
 
@@ -195,6 +206,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
           'hasta': _catalogo.maxDia,
           'servicios': _servicioIds.join(','),
           if (_especialistaActivo case final e?) 'especialista': e,
+          if (_fueraDeHorario) 'fuera': '1',
         },
       );
       if (id != _peticionDias || !mounted) return;
@@ -240,6 +252,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
             'dia': _dia,
             'servicios': _servicioIds.join(','),
             if (_especialistaActivo case final e?) 'especialista': e,
+            if (_fueraDeHorario) 'fuera': '1',
           },
         );
         // Descartamos respuestas que llegan tarde.
@@ -302,6 +315,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
           'dia': _dia,
           'servicios': entrada.value.map((s) => s.id).join(','),
           'especialista': entrada.key.id,
+          if (_fueraDeHorario) 'fuera': '1',
         }),
     ]);
 
@@ -450,6 +464,39 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     }
   }
 
+  /// Elige la clienta. Se llama desde dos sitios —la ficha de arriba y el
+  /// botón de abajo— así que vive aquí y no dentro del selector.
+  Future<void> _elegirClienta() async {
+    final elegida = await Navigator.push<ClientaElegida>(
+      context,
+      MaterialPageRoute(builder: (_) => const PantallaElegirClienta()),
+    );
+    if (elegida != null && mounted) {
+      setState(() => _clienta = elegida);
+      _cargarLoDeSiempre(elegida.id);
+    }
+  }
+
+  /// El botón de abajo dice qué falta; tocarlo lleva hasta ello.
+  ///
+  /// Antes se quedaba apagado: quien estaba abajo del todo leía "elige la
+  /// clienta", lo pulsaba, no pasaba nada, y concluía que la app no dejaba
+  /// agendar. La clienta se elige arriba y hay que subir toda la pantalla.
+  Future<void> _irALoQueFalta() async {
+    if (_clienta == null) return _elegirClienta();
+
+    final ancla = _servicioIds.isEmpty ? _anclaServicio : _anclaHora;
+    final contexto = ancla.currentContext;
+    if (contexto != null) {
+      await Scrollable.ensureVisible(
+        contexto,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOut,
+        alignment: 0.1,
+      );
+    }
+  }
+
   /// Qué falta para poder confirmar, en el mismo orden en que se pide.
   /// Null cuando ya no falta nada.
   String? get _queFalta {
@@ -466,6 +513,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
     return Scaffold(
       appBar: AppBar(title: const Text('Nueva cita')),
       body: ListView(
+        controller: _desplazamiento,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
           _Seccion(
@@ -477,6 +525,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
                 setState(() => _clienta = c);
                 _cargarLoDeSiempre(c?.id);
               },
+              alBuscar: _elegirClienta,
             ),
           ),
           if (_loDeSiempre.isNotEmpty && _servicioIds.isEmpty)
@@ -489,6 +538,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
               ),
             ),
           _Seccion(
+            key: _anclaServicio,
             rotulo: 'Elige el servicio',
             subtitulo: 'Puedes combinar más de uno. El tiempo se suma solo.',
             hijo: _ListaServicios(
@@ -553,18 +603,46 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
             subtitulo: _servicioIds.isEmpty
                 ? 'Primero elige al menos un servicio.'
                 : 'La cita dura ${duracion(_duracionMostrada)}.',
-            hijo: SelectorDia(
-              dia: _dia,
-              desde: _catalogo.hoy,
-              hasta: _catalogo.maxDia,
-              conHueco: _diasConHueco,
-              alElegir: (d) {
-                setState(() => _dia = d);
-                _recargarHuecos();
-              },
+            hijo: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SelectorDia(
+                  dia: _dia,
+                  desde: _catalogo.hoy,
+                  hasta: _catalogo.maxDia,
+                  conHueco: _diasConHueco,
+                  alElegir: (d) {
+                    setState(() => _dia = d);
+                    _recargarHuecos();
+                  },
+                ),
+                const SizedBox(height: 6),
+                // El horario del salón es para las clientas que reservan
+                // solas. Desde aquí a veces hay que atender un domingo o a
+                // las siete, y eso tiene que poder apuntarse.
+                SwitchListTile(
+                  value: _fueraDeHorario,
+                  onChanged: (v) {
+                    setState(() => _fueraDeHorario = v);
+                    _recargarDias();
+                    _recargarHuecos();
+                  },
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: const Text(
+                    'Fuera de horario',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    'Para atender un día cerrado o a una hora en la que no se abre.',
+                    style: sutil(12.5),
+                  ),
+                ),
+              ],
             ),
           ),
           _Seccion(
+            key: _anclaHora,
             rotulo: 'Elige la hora',
             hijo: _servicioIds.isEmpty
                 ? _Mensaje('Elige un servicio y te mostramos los horarios libres.')
@@ -624,6 +702,7 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
           falta: _queFalta,
           guardando: _guardando,
           alConfirmar: _guardar,
+          alIrALoQueFalta: _irALoQueFalta,
         ),
       ),
     );
@@ -631,7 +710,12 @@ class _PantallaNuevaCitaState extends State<PantallaNuevaCita> {
 }
 
 class _Seccion extends StatelessWidget {
-  const _Seccion({required this.rotulo, required this.hijo, this.subtitulo});
+  const _Seccion({
+    super.key,
+    required this.rotulo,
+    required this.hijo,
+    this.subtitulo,
+  });
 
   final String rotulo;
   final String? subtitulo;
@@ -748,23 +832,22 @@ class _SelectorClienta extends StatelessWidget {
     required this.clienta,
     required this.prefijo,
     required this.alElegir,
+    required this.alBuscar,
   });
 
   final ClientaElegida? clienta;
   final String prefijo;
   final ValueChanged<ClientaElegida?> alElegir;
 
+  /// Abrir la búsqueda de clientas. La lleva la pantalla, porque el botón de
+  /// abajo también tiene que poder abrirla.
+  final VoidCallback alBuscar;
+
   @override
   Widget build(BuildContext context) {
     if (clienta == null) {
       return OutlinedButton.icon(
-        onPressed: () async {
-          final elegida = await Navigator.push<ClientaElegida>(
-            context,
-            MaterialPageRoute(builder: (_) => const PantallaElegirClienta()),
-          );
-          if (elegida != null) alElegir(elegida);
-        },
+        onPressed: alBuscar,
         icon: const Icon(Ico.buscarClienta, size: 20),
         label: const Text('Elegir clienta'),
         style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 54)),
@@ -1001,6 +1084,7 @@ class _BarraResumen extends StatelessWidget {
     required this.listo,
     required this.guardando,
     required this.alConfirmar,
+    required this.alIrALoQueFalta,
     required this.falta,
   });
 
@@ -1012,6 +1096,10 @@ class _BarraResumen extends StatelessWidget {
   final bool listo;
   final bool guardando;
   final VoidCallback alConfirmar;
+
+  /// Lleva a lo que falta. El botón nunca se queda muerto: si dice "elige la
+  /// clienta", tocarlo abre la búsqueda de clientas.
+  final VoidCallback alIrALoQueFalta;
 
   /// Lo primero que falta para poder confirmar, en el orden en que se pide.
   final String? falta;
@@ -1076,7 +1164,11 @@ class _BarraResumen extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: listo && !guardando ? alConfirmar : null,
+              onPressed: guardando
+                  ? null
+                  : listo
+                      ? alConfirmar
+                      : alIrALoQueFalta,
               child: guardando
                   ? const SizedBox(
                       width: 20,

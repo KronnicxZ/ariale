@@ -246,6 +246,8 @@ export async function fetchSlotsAction(input: {
   serviceIds: string[];
   specialistId?: string | null;
   excludeAppointmentId?: string;
+  /** Solo desde dentro: ofrece horas fuera del horario del salón. */
+  ignorarHorario?: boolean;
 }) {
   const services = await prisma.service.findMany({
     where: { id: { in: input.serviceIds } },
@@ -270,6 +272,7 @@ export async function fetchSlotsAction(input: {
           specialistId: input.specialistId ?? null,
           serviceIds: input.serviceIds,
           excludeAppointmentId: input.excludeAppointmentId,
+          ignorarHorario: input.ignorarHorario,
         });
 
   return {
@@ -291,6 +294,8 @@ export async function fetchDiasAction(input: {
   specialistId?: string | null;
   /** La cita que se está moviendo: no se cuenta a sí misma como ocupada. */
   excluirCitaId?: string | null;
+  /** Solo desde dentro: cuenta también los días cerrados. */
+  ignorarHorario?: boolean;
 }) {
   if (input.serviceIds.length === 0) return { dias: [] as string[] };
   const dias = await getDiasConHueco({
@@ -299,6 +304,7 @@ export async function fetchDiasAction(input: {
     serviceIds: input.serviceIds,
     specialistId: input.specialistId ?? null,
     excluirCitaId: input.excluirCitaId ?? null,
+    ignorarHorario: input.ignorarHorario,
   });
   return { dias };
 }

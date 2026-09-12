@@ -29,6 +29,7 @@ export const GET = withUser(async ({ request }) => {
     serviceIds,
     specialistId: deLaCita?.specialistId ?? param(request, "especialista") ?? null,
     excluirCitaId: citaId ?? null,
+    ignorarHorario: param(request, "fuera") === "1",
   });
 
   return { dias };
