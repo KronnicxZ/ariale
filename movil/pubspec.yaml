@@ -1,7 +1,7 @@
-name: ariale_movil
-description: "Arialé Studio — agenda y caja del estudio en el móvil."
+﻿name: ariale_movil
+description: "ArialÃ© Studio â€” agenda y caja del estudio en el mÃ³vil."
 publish_to: "none"
-version: 0.10.1+12
+version: 0.11.0+13
 
 environment:
   sdk: ^3.13.2
@@ -10,53 +10,53 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Meses y días en español dentro de los selectores de fecha de Material.
+  # Meses y dÃ­as en espaÃ±ol dentro de los selectores de fecha de Material.
   flutter_localizations:
     sdk: flutter
 
   # Llamadas a la API del panel.
   http: ^1.2.2
   # Para decirle al servidor que lo que sube es una imagen y no un binario
-  # cualquiera. Ya venía con `http`; aquí solo se declara para poder usarla.
+  # cualquiera. Ya venÃ­a con `http`; aquÃ­ solo se declara para poder usarla.
   http_parser: ^4.1.2
 
-  # Guarda el token de sesión y la URL del servidor entre arranques.
+  # Guarda el token de sesiÃ³n y la URL del servidor entre arranques.
   shared_preferences: ^2.3.3
 
-  # Entrar con la cuenta de Google del estudio, además de con contraseña.
+  # Entrar con la cuenta de Google del estudio, ademÃ¡s de con contraseÃ±a.
   google_sign_in: ^6.2.2
 
-  # El candado de la app: huella o cara del propio teléfono. El PIN va
-  # debajo siempre, por si el lector falla o el teléfono no tiene.
+  # El candado de la app: huella o cara del propio telÃ©fono. El PIN va
+  # debajo siempre, por si el lector falla o el telÃ©fono no tiene.
   local_auth: ^2.3.0
   # Para no guardar el PIN, sino su huella digital con sal.
   crypto: ^3.0.6
 
-  # Abre WhatsApp (wa.me) y el marcador. Los avisos a clientas salen así:
-  # mensaje ya escrito, la dueña pulsa enviar. Nada automático.
+  # Abre WhatsApp (wa.me) y el marcador. Los avisos a clientas salen asÃ­:
+  # mensaje ya escrito, la dueÃ±a pulsa enviar. Nada automÃ¡tico.
   url_launcher: ^6.3.1
 
-  # Fechas y números en español de Venezuela.
+  # Fechas y nÃºmeros en espaÃ±ol de Venezuela.
   intl: ^0.20.2
 
-  # Playfair Display para títulos y Plus Jakarta Sans para el resto, las
-  # mismas de la página.
+  # Playfair Display para tÃ­tulos y Plus Jakarta Sans para el resto, las
+  # mismas de la pÃ¡gina.
   google_fonts: ^6.2.1
   lucide_icons_flutter: ^3.1.17
   font_awesome_flutter: ^11.0.0
   flutter_contacts: ^2.3.1
 
-  # Avisa en el propio teléfono cuando se acerca la hora de una cita.
+  # Avisa en el propio telÃ©fono cuando se acerca la hora de una cita.
   flutter_local_notifications: ^18.0.1
   timezone: ^0.9.4
 
   # Avisa en el momento cuando una clienta agenda desde la web, aunque la
-  # app esté cerrada: el servidor manda el push, Firebase lo entrega.
+  # app estÃ© cerrada: el servidor manda el push, Firebase lo entrega.
   firebase_core: ^3.10.0
   firebase_messaging: ^15.2.0
 
-  # Actualizarse sola: la app pregunta al servidor si hay una versión más
-  # nueva, se baja el APK y abre el instalador de Android. Así no hay que
+  # Actualizarse sola: la app pregunta al servidor si hay una versiÃ³n mÃ¡s
+  # nueva, se baja el APK y abre el instalador de Android. AsÃ­ no hay que
   # pasarles el archivo por WhatsApp cada vez que cambia algo.
   package_info_plus: ^8.1.2
   path_provider: ^2.1.5

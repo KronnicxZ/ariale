@@ -12,7 +12,20 @@
           "package_name": "com.arialestudio.ariale_movil"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "194280334443-fgucut01pqm6j3dne6024d5lpfpbtarv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.arialestudio.ariale_movil",
+            "certificate_hash": "46d3496c43b4eca69380d82c9c0390d4cff36735"
+          }
+        },
+        {
+          "client_id": "194280334443-udumretvuko8ivptblqfaj8qtv9pft3j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCObI7IVmNejWPSXf9b2K0ppoYMxwm1z04"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "194280334443-udumretvuko8ivptblqfaj8qtv9pft3j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
