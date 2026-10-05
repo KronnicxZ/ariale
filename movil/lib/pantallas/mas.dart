@@ -9,6 +9,7 @@ import 'equipo.dart';
 import 'bloqueos.dart';
 import 'catalogo_servicios.dart';
 import 'gastos.dart';
+import 'cuenta.dart';
 import 'negocio.dart';
 import 'seguridad.dart';
 import 'proveedores.dart';
@@ -112,6 +113,13 @@ class PantallaMas extends StatelessWidget {
                 apoyo: 'Datos, horario y agenda',
                 color: Marca.negro,
                 crear: PantallaNegocio.new,
+              ),
+              _Entrada(
+                icono: Ico.clave,
+                rotulo: 'Mi cuenta',
+                apoyo: 'Cómo entras y tu cuenta de Google',
+                color: Marca.lavanda,
+                crear: PantallaCuenta.new,
               ),
               _Entrada(
                 icono: Ico.candado,

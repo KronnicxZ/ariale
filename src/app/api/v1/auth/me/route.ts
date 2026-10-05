@@ -10,6 +10,10 @@ export const GET = withUser(async ({ user }) => ({
     role: user.role,
     // Cuál de las dos eres. La agenda es la misma para todas.
     specialistId: user.specialistId,
+    // Para que "Mi cuenta" sepa qué enseñar sin preguntar aparte.
+    google: user.googleSub
+      ? { vinculada: true, correo: user.googleEmail }
+      : { vinculada: false, correo: null },
   },
 }));
 

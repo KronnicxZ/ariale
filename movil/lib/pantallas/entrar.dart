@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../iconos.dart';
 
 import '../api/cliente.dart';
+import '../google.dart';
 import '../sesion.dart';
 import '../tema.dart';
 
@@ -44,6 +45,31 @@ class _PantallaEntrarState extends State<PantallaEntrar> {
 
     try {
       await Sesion.de(context).entrar(_correo.text.trim(), _contrasena.text);
+    } on ErrorApi catch (e) {
+      if (mounted) setState(() => _error = e.mensaje);
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
+  /// Entrar con la cuenta de Google ya vinculada.
+  ///
+  /// Si no lo está, el servidor lo dice con todas las letras y manda a
+  /// entrar con la contraseña: vincular se hace desde dentro, nunca aquí.
+  Future<void> _entrarConGoogle() async {
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+
+    try {
+      final token = await pedirTokenDeGoogle();
+      // Null es que cerró el selector de cuentas: no es un error.
+      if (token == null) return;
+      if (!mounted) return;
+      await Sesion.de(context).entrarConGoogle(token);
+    } on ErrorGoogle catch (e) {
+      if (mounted) setState(() => _error = e.mensaje);
     } on ErrorApi catch (e) {
       if (mounted) setState(() => _error = e.mensaje);
     } finally {
@@ -185,6 +211,28 @@ class _PantallaEntrarState extends State<PantallaEntrar> {
                             )
                           : const Text('Entrar'),
                     ),
+                    if (hayGoogle) ...[
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          const Expanded(child: Divider()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text('o', style: sutil(12.5)),
+                          ),
+                          const Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      OutlinedButton.icon(
+                        onPressed: _cargando ? null : _entrarConGoogle,
+                        icon: const Icon(Ico.google, size: 19),
+                        label: const Text('Entrar con Google'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 52),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

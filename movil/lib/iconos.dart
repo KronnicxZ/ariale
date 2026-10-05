@@ -55,6 +55,13 @@ class Ico {
     fontFamily: 'FontAwesomeBrands',
     fontPackage: 'font_awesome_flutter',
   );
+  /// La "G" de Google, del mismo paquete de marcas que el de WhatsApp.
+  static const google = IconData(
+    0xf1a0,
+    fontFamily: 'FontAwesomeBrands',
+    fontPackage: 'font_awesome_flutter',
+  );
+
   static const cumple = LucideIcons.cake300;
   static const alergia = LucideIcons.heartPulse300;
   static const nota = LucideIcons.notebookPen300;

@@ -14,7 +14,13 @@ param(
     # Por defecto se compila solo para ARM64, que es lo que llevan todos los
     # teléfonos de los últimos años: 22 MB en vez de 58. Con -Universal sale
     # un APK que funciona también en teléfonos viejos de 32 bits.
-    [switch]$Universal
+    [switch]$Universal,
+
+    # El "client ID de tipo web" del proyecto de Google, para "Entrar con
+    # Google". Si no se pasa, se busca GOOGLE_CLIENT_ID en el .env de la
+    # raíz; si tampoco está, el APK sale sin los botones de Google en vez de
+    # salir con botones que fallan.
+    [string]$ClienteGoogle
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,14 +40,31 @@ $Servidor = $Servidor.TrimEnd('/')
 $arquitectura = if ($Universal) { 'todos los procesadores' } else { 'ARM64' }
 Write-Host "Compilando contra $Servidor ($arquitectura)..." -ForegroundColor Yellow
 
+if (-not $ClienteGoogle) {
+    $archivoEnv = Join-Path $PSScriptRoot '..\.env'
+    if (Test-Path $archivoEnv) {
+        $linea = Select-String -Path $archivoEnv -Pattern '^GOOGLE_CLIENT_ID=' | Select-Object -First 1
+        if ($linea) { $ClienteGoogle = ($linea.Line -replace '^GOOGLE_CLIENT_ID=', '').Trim('"', "'", ' ') }
+    }
+}
+
+if ($ClienteGoogle) {
+    Write-Host "Con entrar con Google." -ForegroundColor Yellow
+} else {
+    Write-Host "Sin entrar con Google: falta GOOGLE_CLIENT_ID." -ForegroundColor DarkYellow
+}
+
 # Java escribe avisos en stderr y, con ErrorActionPreference en 'Stop',
 # PowerShell los toma por fallos y aborta un build que salió bien. Lo que
 # dice de verdad si funcionó es el código de salida.
 $ErrorActionPreference = 'Continue'
+$definiciones = @("--dart-define=SERVIDOR=$Servidor")
+if ($ClienteGoogle) { $definiciones += "--dart-define=GOOGLE_CLIENT_ID=$ClienteGoogle" }
+
 if ($Universal) {
-    & $flutter build apk --release "--dart-define=SERVIDOR=$Servidor"
+    & $flutter build apk --release @definiciones
 } else {
-    & $flutter build apk --release --target-platform android-arm64 "--dart-define=SERVIDOR=$Servidor"
+    & $flutter build apk --release --target-platform android-arm64 @definiciones
 }
 $codigo = $LASTEXITCODE
 $ErrorActionPreference = 'Stop'

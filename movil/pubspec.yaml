@@ -23,6 +23,9 @@ dependencies:
   # Guarda el token de sesión y la URL del servidor entre arranques.
   shared_preferences: ^2.3.3
 
+  # Entrar con la cuenta de Google del estudio, además de con contraseña.
+  google_sign_in: ^6.2.2
+
   # El candado de la app: huella o cara del propio teléfono. El PIN va
   # debajo siempre, por si el lector falla o el teléfono no tiene.
   local_auth: ^2.3.0

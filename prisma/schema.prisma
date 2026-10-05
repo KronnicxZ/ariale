@@ -80,6 +80,15 @@ model User {
   passwordHash String
   role         Role     @default(ADMIN)
   active       Boolean  @default(true)
+
+  /// La cuenta de Google vinculada, si la hay. Es el `sub` del token de
+  /// Google —su identificador de verdad, que no cambia aunque se cambie el
+  /// correo—. Vincular se hace desde dentro, con la sesión ya abierta; sin
+  /// vincular, entrar con Google no encuentra a nadie y falla, que es lo que
+  /// queremos: nadie entra solo por tener un correo que se parezca.
+  googleSub    String?  @unique
+  /// El correo de esa cuenta, solo para poder enseñar cuál está vinculada.
+  googleEmail  String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

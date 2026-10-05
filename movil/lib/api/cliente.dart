@@ -87,13 +87,18 @@ class ClienteApi extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> entrar(String correo, String contrasena) async {
-    final datos = await _peticion(
-      'POST',
-      '/api/v1/auth/login',
-      cuerpo: {'email': correo, 'password': contrasena},
-      conToken: false,
-    );
+  Future<void> entrar(String correo, String contrasena) => _abrirSesion(
+        '/api/v1/auth/login',
+        {'email': correo, 'password': contrasena},
+      );
+
+  /// Entrar con la cuenta de Google ya vinculada. El servidor comprueba el
+  /// token y dice de quién es; aquí solo se guarda lo que devuelve.
+  Future<void> entrarConGoogle(String idToken) =>
+      _abrirSesion('/api/v1/auth/google', {'idToken': idToken});
+
+  Future<void> _abrirSesion(String ruta, Map<String, dynamic> cuerpo) async {
+    final datos = await _peticion('POST', ruta, cuerpo: cuerpo, conToken: false);
 
     final usuaria = datos['user'] as Map;
     _token = datos['token'] as String;
