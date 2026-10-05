@@ -22,23 +22,50 @@ import 'tema.dart';
 class Actualizacion {
   Actualizacion._();
 
-  static bool _yaPreguntado = false;
+  static DateTime? _ultimaRevision;
 
-  /// Se llama una vez por arranque, cuando ya hay sesión y pantalla.
-  static Future<void> revisar(BuildContext context) async {
+  /// Cada cuánto se vuelve a mirar solo.
+  ///
+  /// Antes se miraba una vez por arranque y nunca más. Pero estos teléfonos
+  /// no cierran las apps: se quedan en segundo plano días, "abrir la app" es
+  /// volver a ella, y el aviso no salía nunca —que fue justo lo que pasó—.
+  /// Ahora se mira también al volver, sin pasarse.
+  static const _cada = Duration(hours: 4);
+
+  /// La versión instalada, para enseñarla en "Más".
+  static Future<String> instalada() async {
+    final info = await PackageInfo.fromPlatform();
+    return info.version;
+  }
+
+  /// Mira si hay una versión nueva.
+  ///
+  /// `manual` es cuando lo pide alguien desde "Más": entonces se mira
+  /// siempre, y si no hay nada nuevo también se dice —si no, el botón
+  /// parece roto.
+  static Future<void> revisar(BuildContext context, {bool manual = false}) async {
     // Solo Android: el APK no le sirve a nadie más.
-    if (_yaPreguntado || !Platform.isAndroid) return;
-    _yaPreguntado = true;
+    if (!Platform.isAndroid) {
+      if (manual && context.mounted) _avisar(context, 'Solo se actualiza sola en Android.');
+      return;
+    }
+    final ultima = _ultimaRevision;
+    if (!manual && ultima != null && DateTime.now().difference(ultima) < _cada) return;
+    _ultimaRevision = DateTime.now();
 
     try {
       final datos = await Sesion.de(context).obtener('/api/v1/version');
       final version = datos['version'] as Map<String, dynamic>?;
-      if (version == null) return;
-
       final info = await PackageInfo.fromPlatform();
       final instalada = int.tryParse(info.buildNumber) ?? 0;
-      final publicada = version['build'] as int;
-      if (publicada <= instalada) return;
+      final publicada = version == null ? 0 : version['build'] as int;
+
+      if (version == null || publicada <= instalada) {
+        if (manual && context.mounted) {
+          _avisar(context, 'Ya tienes la última versión (${info.version}).');
+        }
+        return;
+      }
 
       if (!context.mounted) return;
       final quiere = await _preguntar(
@@ -49,12 +76,17 @@ class Actualizacion {
       if (quiere != true || !context.mounted) return;
 
       await _bajarEInstalar(context, version['url'] as String);
-    } on ErrorApi {
+    } on ErrorApi catch (e) {
       // El servidor viejo no tiene esta ruta, o la sesión caducó. Ninguna de
-      // las dos cosas debe estropear el arranque.
+      // las dos cosas debe estropear el arranque; pero si lo pidió alguien,
+      // se le contesta.
+      if (manual && context.mounted) _avisar(context, e.mensaje);
     } catch (_) {
       // Sin conexión, sin permiso de escritura, lo que sea: la app sirve
       // igual con la versión que ya está instalada.
+      if (manual && context.mounted) {
+        _avisar(context, 'No pudimos comprobarlo. Revisa tu conexión.');
+      }
     }
   }
 

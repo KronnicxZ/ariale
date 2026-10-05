@@ -1,7 +1,7 @@
 ﻿name: ariale_movil
 description: "ArialÃ© Studio â€” agenda y caja del estudio en el mÃ³vil."
 publish_to: "none"
-version: 0.11.0+13
+version: 0.11.1+14
 
 environment:
   sdk: ^3.13.2

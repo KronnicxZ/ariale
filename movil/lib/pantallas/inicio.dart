@@ -27,7 +27,7 @@ class PantallaInicio extends StatefulWidget {
   State<PantallaInicio> createState() => _PantallaInicioState();
 }
 
-class _PantallaInicioState extends State<PantallaInicio> {
+class _PantallaInicioState extends State<PantallaInicio> with WidgetsBindingObserver {
   int _indice = 0;
   String? _diaAgenda;
   bool _cargandoCatalogo = true;
@@ -36,7 +36,24 @@ class _PantallaInicioState extends State<PantallaInicio> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _cargarCatalogo();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState estado) {
+    // Estos teléfonos no cierran las apps: "abrir la app" casi siempre es
+    // volver a ella desde segundo plano, y ahí no se ejecuta `initState`.
+    // Sin esto, el aviso de versión nueva no salía nunca.
+    if (estado == AppLifecycleState.resumed && mounted) {
+      unawaited(Actualizacion.revisar(context));
+    }
   }
 
   /// El catálogo se descarga una vez al entrar: servicios, especialistas,

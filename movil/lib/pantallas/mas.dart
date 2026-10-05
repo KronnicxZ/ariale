@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../actualizacion.dart';
 import '../iconos.dart';
 
 import '../sesion.dart';
@@ -150,6 +151,27 @@ class PantallaMas extends StatelessWidget {
               child: Text(
                 'Servidor: ${api.servidor}',
                 style: const TextStyle(fontSize: 11, color: Marca.textoSuave),
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Siempre tiene que haber una forma de pedirlo a mano: cuando el
+            // aviso no sale, el síntoma es "no me avisó" y no hay nada que
+            // tocar.
+            Center(
+              child: FutureBuilder<String>(
+                future: Actualizacion.instalada(),
+                builder: (context, snap) => TextButton(
+                  onPressed: () => Actualizacion.revisar(context, manual: true),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Marca.textoSuave,
+                    textStyle: const TextStyle(fontSize: 11),
+                  ),
+                  child: Text(
+                    snap.hasData
+                        ? 'Versión ${snap.data} · buscar actualización'
+                        : 'Buscar actualización',
+                  ),
+                ),
               ),
             ),
           ],

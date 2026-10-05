@@ -140,7 +140,12 @@ class ClienteApi extends ChangeNotifier {
   /* Lo guardado para cuando no hay internet                             */
   /* ------------------------------------------------------------------ */
 
-  String _claveDeCache(String ruta, Map<String, String>? params) {
+  /// Lo que nunca se guarda: una respuesta vieja aquí no es "lo último que
+  /// viste", es una respuesta equivocada.
+  static const _sinCache = {'/api/v1/version'};
+
+  String? _claveDeCache(String ruta, Map<String, String>? params) {
+    if (_sinCache.contains(ruta)) return null;
     if (params == null || params.isEmpty) return '$_prefijoCache$ruta';
     final orden = params.keys.toList()..sort();
     final cola = orden.map((k) => '$k=${params[k]}').join('&');
